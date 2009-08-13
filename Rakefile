@@ -10,6 +10,7 @@ begin
     gem.email = "cyril.rohr@gmail.com"
     gem.homepage = "http://github.com/cryx/restfully"
     gem.authors = ["Cyril Rohr"]
+    gem.add_dependency "rest-client"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 
