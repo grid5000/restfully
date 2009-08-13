@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "restfully"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow some specific conventions.}
+    gem.description = %Q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow HATEOAS principles and provide OPTIONS methods and/or Allow headers.}
     gem.email = "cyril.rohr@gmail.com"
     gem.homepage = "http://github.com/cryx/restfully"
     gem.authors = ["Cyril Rohr"]

@@ -1,6 +1,8 @@
 = restfully
 
-Description goes here.
+An attempt at dynamically providing "clever" wrappers on top of RESTful APIs that follow the HATEOAS principle. For it to work, the API must follow certain conventions (to be explained later).
+
+Alpha work, will probably only work against my API of reference :-)
 
 == Note on Patches/Pull Requests
  
@@ -12,6 +14,10 @@ Description goes here.
   (if you want to have your own version, that is fine but
    bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
+
+== Testing
+
+* Run autotest in the project directory.
 
 == Copyright
 
