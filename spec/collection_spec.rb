@@ -7,9 +7,12 @@ describe Collection do
     collection = Collection.new("uri", session=mock('session'))
     collection.size.should == 0
     res = collection << (resource = mock(Resource, :guid => '/sites/rennes'))
+    res.should equal collection
     collection.size.should == 1
     collection.should == {'/sites/rennes' => resource}
     collection.should respond_to(:each)
+    collection.should respond_to(:store)
+    collection.should respond_to(:[])
     collection.should respond_to(:length)
   end
   
