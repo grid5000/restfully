@@ -26,5 +26,6 @@ module Restfully
         raise ParserNotFound, [object, content_type]
       end
     end
+
   end
 end

@@ -6,8 +6,7 @@ module Restfully
   
   class Resource < DelegateClass(Hash)
     undef :type
-    attr_writer :parent
-    attr_reader :uri, :session, :state, :raw, :guid, :associations
+    attr_reader :uri, :session, :state, :raw, :uid, :associations
 
     def initialize(uri, session, options = {})
       @uri = uri
@@ -22,28 +21,37 @@ module Restfully
     
     def loaded?;    @state == :loaded;    end
     
-    def parent     
-      @parent.nil? ? nil : @parent.load
-    end
-    
     def method_missing(method, *args)
       if association = @associations[method.to_s]
-        association.load
+        session.logger.debug "loading association #{method} with #{args.inspect}"
+        association.load(*args)
       else
         super(method, *args)
       end
     end
   
-    def load(force_reload = false)
+    def load(options = {})
+      options = options.symbolize_keys
+      force_reload = options.delete(:reload) || false
+      path = uri
+      if options.has_key?(:query)
+        path, query_string = uri.split("?")
+        query_string ||= ""
+        query_string.concat(options.delete(:query).to_params)
+        path = "#{path}?#{query_string}"
+        force_reload = true
+      end
       if loaded? && force_reload == false
         self
       else
-        @raw = session.get(uri) if raw.nil? || force_reload
+        @raw = session.get(path, options) if raw.nil? || force_reload
+        @associations.clear
+        @attributes.clear
         (raw['links'] || []).each{|link| define_link(Link.new(link))}
         raw.each do |key, value|
           case key
           when 'links'  then  next
-          when 'guid'   then  @guid = value
+          when 'uid'   then  @uid = value
           else
             case value
             when Hash
@@ -54,7 +62,7 @@ module Restfully
               @attributes.store(key, value)
             end
           end
-        end        
+        end
         @state = :loaded
         self
       end
@@ -72,15 +80,13 @@ module Restfully
           raw_included = link.resolved? ? raw[link.title] : nil
           @associations[link.title] = Collection.new(link.href, session, 
             'raw' => raw_included,
-            'parent' => self,
             'title' => link.title)
         when 'member'
           raw_included = link.resolved? ? raw[link.title] : nil
-          @associations[link.title] = Resource.new(link.href, session, 'parent' => self, 'raw' => raw_included)
+          @associations[link.title] = Resource.new(link.href, session, 
+            'raw' => raw_included)
         when 'self'
           # uri is supposed to be equal to link['href'] for self relations. so we do nothing
-        when 'parent'
-          @parent = Resource.new(link.href, session)
         end
       else 
         session.logger.warn link.errors.join("\n")

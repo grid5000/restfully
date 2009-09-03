@@ -3,7 +3,7 @@ require 'delegate'
 module Restfully
   class Collection < DelegateClass(Hash)
     
-    attr_reader :state, :raw, :uri, :session, :title, :parent
+    attr_reader :state, :raw, :uri, :session, :title
     
     def initialize(uri, session, options = {})
       @uri = uri
@@ -12,34 +12,26 @@ module Restfully
       @raw = options['raw']
       @state = :unloaded
       @items = {}
-      @parent = options['parent']
       super(@items)
-    end
-    
-    def <<(resource)
-      @items.store(resource.guid, resource)
-      self
-    end
-    
-    # allows for short symbol access, instead of complete guid
-    # ex:
-    #   collection[:rennes] <=> collection["/sites/rennes"] if collection.uri == '/sites'
-    # 
-    def [](key)
-      if key.is_a?(Symbol) && parent && title
-        item = @items[File.join(parent.guid, title, key.to_s)]
-      else
-        item = @items[key]
-      end
     end
     
     def loaded?;    @state == :loaded;    end
     
-    def load(force_reload = false)
+    def load(options = {})
+      options = options.symbolize_keys
+      force_reload = options.delete(:reload) || false
+      path = uri
+      if options.has_key?(:query)
+        path, query_string = uri.split("?")
+        query_string ||= ""
+        query_string.concat(options.delete(:query).to_params)
+        path = "#{path}?#{query_string}"
+        force_reload = true
+      end      
       if loaded? && force_reload == false
         self
       else
-        @raw = session.get(uri) if raw.nil? || force_reload
+        @raw = session.get(path, options) if raw.nil? || force_reload
         raw.each do |key, value|
           next if key == 'links'
           self_link = (value['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
@@ -53,6 +45,7 @@ module Restfully
         self
       end
     end
+    
     
   end
 end
