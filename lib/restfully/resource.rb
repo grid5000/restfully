@@ -5,13 +5,13 @@ module Restfully
   # Suppose that the load method has been called on the resource before trying to access its attributes or associations
   
   class Resource < DelegateClass(Hash)
+    
     undef :type
-    attr_reader :uri, :session, :state, :raw, :uid, :associations
+    attr_reader :uri, :session, :state, :raw, :uid, :associations, :type
 
     def initialize(uri, session, options = {})
       @uri = uri
       @session = session
-      @parent = options['parent']
       @raw = options['raw']
       @state = :unloaded
       @attributes = {}
@@ -23,7 +23,7 @@ module Restfully
     
     def method_missing(method, *args)
       if association = @associations[method.to_s]
-        session.logger.debug "loading association #{method} with #{args.inspect}"
+        session.logger.debug "Loading association #{method}, args=#{args.inspect}"
         association.load(*args)
       else
         super(method, *args)
@@ -51,7 +51,8 @@ module Restfully
         raw.each do |key, value|
           case key
           when 'links'  then  next
-          when 'uid'   then  @uid = value
+          when 'uid'    then  @uid = value
+          when 'type'   then  @type = value
           else
             case value
             when Hash
@@ -72,10 +73,32 @@ module Restfully
       @associations.has_key?(method.to_s) || super(method, *args)
     end
     
+    def inspect(options = {:space => "     "})
+      output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+      if loaded?
+        output += "\n#{options[:space]}------------ META ------------"
+        output += "\n#{options[:space]}@uri: #{uri.inspect}"
+        output += "\n#{options[:space]}@uid: #{uid.inspect}"
+        output += "\n#{options[:space]}@type: #{type.inspect}"
+        @associations.each do |title, assoc|
+          output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
+        end
+        unless @attributes.empty?
+          output += "\n#{options[:space]}------------ PROPERTIES ------------"
+          @attributes.each do |key, value|
+            output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
+          end
+        end
+      end
+      output += ">"
+    end    
+    
     protected
     def define_link(link)
       if link.valid?
         case link.rel
+        when 'parent'
+          @associations['parent'] = Resource.new(link.href, session)
         when 'collection'
           raw_included = link.resolved? ? raw[link.title] : nil
           @associations[link.title] = Collection.new(link.href, session, 
@@ -86,7 +109,7 @@ module Restfully
           @associations[link.title] = Resource.new(link.href, session, 
             'raw' => raw_included)
         when 'self'
-          # uri is supposed to be equal to link['href'] for self relations. so we do nothing
+          @uri = link.href
         end
       else 
         session.logger.warn link.errors.join("\n")

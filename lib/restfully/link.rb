@@ -1,7 +1,7 @@
 module Restfully
   class Link
     
-    VALID_RELATIONSHIPS = %w{member parent collection self}
+    VALID_RELATIONSHIPS = %w{member parent collection self alternate}
     RELATIONSHIPS_REQUIRING_TITLE = %w{collection member}
     
     attr_reader :rel, :title, :href, :errors

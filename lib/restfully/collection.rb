@@ -46,6 +46,21 @@ module Restfully
       end
     end
     
+    def inspect(options = {:space => "     "})
+      output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+      if loaded?
+        output += "\n#{options[:space]}------------ META ------------"
+        output += "\n#{options[:space]}@uri: #{uri.inspect}"
+        unless @items.empty?        
+          output += "\n#{options[:space]}------------ PROPERTIES ------------"
+          @items.each do |key, value|
+            output += "\n#{options[:space]}#{key.inspect} => #{value.class.name}"
+          end
+        end
+      end
+      output += ">"
+    end
+    
     
   end
 end

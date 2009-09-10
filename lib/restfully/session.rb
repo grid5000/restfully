@@ -1,6 +1,7 @@
 require 'uri'
 require 'logger'
 require 'restclient'
+require 'restfully/parsing'
 
 module Restfully
   class Error < StandardError; end
@@ -16,10 +17,11 @@ module Restfully
     
     # TODO: use CacheableResource
     def initialize(base_url, options = {})
+      options = options.stringify_keys
       @base_url = base_url
       @root = options['root'] || '/'
       @logger = options['logger'] || NullLogger.new 
-      @user = options['user']
+      @username = options['username']
       @password = options['password']
       # TODO: generalize
       # @connection = Patron::Session.new
@@ -29,7 +31,7 @@ module Restfully
       # @connection.insecure = true
       # @connection.username = @user
       # @connection.password = @password      
-      @connection = RestClient::Resource.new(base_url || '', :user => @user, :password => @password)
+      @connection = RestClient::Resource.new(base_url || '', :user => @username, :password => @password)
       yield Resource.new(root, self).load, self if block_given?
     end
     

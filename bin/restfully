@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+# The command line Restfully client
+
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+
+require 'restfully'
+require 'optparse'
+require 'logger'
+require 'pp'
+
+@options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = "Usage: restfully base_url [root_uri] [options]"
+
+  opts.on("-u=", "--username=", "Sets the username") do |u|
+    @options['username'] = u
+  end
+  opts.on("-p=", "--password=", "Sets the user password") do |p|
+    @options['password'] = p
+  end
+  opts.on("-c=", "--config=", "Sets the various options based on a custom YAML configuration file") do |v|
+    @options['configuration_file'] = v
+  end
+  opts.on("-v", "--verbose", "Run verbosely") do |v|
+    @options['verbose'] = v
+  end
+  opts.on("--log=", "Outputs log messages to the given file. Defaults to stdout") do |v|
+    @options['log'] = v
+  end
+  
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+  
+end
+
+option_parser.parse!
+
+@base_url = ARGV.shift
+@root_uri = ARGV.shift || "/"
+
+if (config_filename = @options.delete('configuration_file')) && File.exists?(File.expand_path(config_filename))
+  config = YAML.load_file(File.expand_path(config_filename))
+  @base_url = config.delete('base_url') || @base_url
+  @root_uri = config.delete('root_uri') || @root_uri
+  @options.merge!(config)
+end
+
+unless @base_url
+  $stderr.puts option_parser.help
+  exit(-1)
+else
+  if (log_file=@options.delete('log'))
+    @logger = Logger.new(File.expand_path(log_file))
+  else
+    @logger = Logger.new(STDOUT)
+  end
+  if @options.delete('verbose')
+    @logger.level = Logger::DEBUG
+  else
+    @logger.level = Logger::WARN
+  end
+
+  def session
+    @session ||= Restfully::Session.new(@base_url, @options.merge('root' => @root_uri, 'logger' => @logger))
+  end
+  def root 
+    @root ||= Restfully::Resource.new(session.root, session).load
+  end
+  
+  root # preloads
+  
+  require 'irb'
+  require 'irb/completion'
+  
+  ARGV.clear
+  IRB.start
+  exit!
+end
