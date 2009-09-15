@@ -13,7 +13,51 @@ Alpha work, will probably only work against my API of reference :-)
   
 e.g., for the Grid5000 API:
   $ restfully https://api.grid5000.fr/sid /grid5000 -u username -p password
-  
+
+If the connection was successful, you should get a prompt. Call the +root+ function to see what are the available resources. <tt>@property</tt> means that you can call the +property+ method on the object. Other properties are available via the <tt>[]</tt> function.
+e.g.:
+  irb(main):005:0> root
+  => #<Restfully::Resource:0x90bdd4
+       ------------ META ------------
+       @uri: "/grid5000"
+       @uid: "grid5000"
+       @type: "grid"
+       @environments: Restfully::Collection
+       @sites: Restfully::Collection
+       @version: Restfully::Resource
+       @versions: Restfully::Collection
+       ------------ PROPERTIES ------------
+       "version" => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827">
+   irb(main):006:0> root.uri
+   => "/grid5000"
+   irb(main):007:0> root.sites
+   => #<Restfully::Collection:0x8faaf2
+        ------------ META ------------
+        @uri: "/grid5000/sites"
+        ------------ PROPERTIES ------------
+        "lille" => Restfully::Resource
+        "grenoble" => Restfully::Resource
+        "toulouse" => Restfully::Resource
+        "sophia" => Restfully::Resource
+        "rennes" => Restfully::Resource
+        "lyon" => Restfully::Resource
+        "nancy" => Restfully::Resource
+        "bordeaux" => Restfully::Resource
+        "orsay" => Restfully::Resource>
+   irb(main):008:0> root['version']
+   => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827"
+   irb(main):009:0> root.version
+   => #<Restfully::Resource:0x8facf0
+        ------------ META ------------
+        @uri: "/grid5000/versions/ee1f8111c8835496a9e4a6f7c9491c0238ee9827"
+        @uid: "ee1f8111c8835496a9e4a6f7c9491c0238ee9827"
+        @type: "version"
+        @parent: Restfully::Resource
+        ------------ PROPERTIES ------------
+        "author" => "Cyril Constantin <>"
+        "date" => "Fri, 11 Sep 2009 14:32:48 GMT"
+        "message" => "[environments] update of environments on sites">
+
 You may also prefer to use a configuration file to avoid entering the command line options:
   $ echo '
   base_url: https://api.grid5000.fr/sid
