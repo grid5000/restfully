@@ -143,7 +143,7 @@ describe Resource do
       resource.should respond_to(:status)
       status.should_receive(:load).and_return(status)
       resource.status.should == status
-      resource.uri.should == 'uri' # self link should not override it
+      resource.uri.should == "/sites/rennes/versions/123" # self link should override the URI attribute
     end
   end
 end

@@ -9,7 +9,7 @@ logger.level = Logger::INFO
 # Restfully.adapter = Restfully::HTTP::RestClientAdapter
 # Restfully.adapter = Patron::Session
 RestClient.log = 'stdout'
-Restfully::Session.new('https://localhost:3443/sid', 'root' => '/versions/current', 'logger' => logger) do |grid, session|
+Restfully::Session.new('https://localhost:3443/sid', 'root' => '/grid5000', 'logger' => logger) do |grid, session|
   grid_stats = {'hardware' => {}, 'system' => {}}
   grid.sites.each do |site_uid, site|
     site_stats = site.status.inject({'hardware' => {}, 'system' => {}}) {|accu, (node_uid, node_status)|
@@ -24,7 +24,4 @@ Restfully::Session.new('https://localhost:3443/sid', 'root' => '/versions/curren
   p [:total, grid_stats]
   puts "Getting status of a few nodes in rennes:"
   pp grid.sites['rennes'].status(:query => {:only => ['paradent-1', 'paradent-10', 'paramount-3']})
-  
-  # TODO: Auto discovery of allowed HTTP methods: create raises an error if not available, otherwise POSTs the given object (and auto-select the content-type)
-  # grid.sites["rennes"].jobs.create({:walltime => 120, :whatever => ''})
 end

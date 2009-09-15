@@ -32,6 +32,7 @@ module Restfully
         self
       else
         @raw = session.get(path, options) if raw.nil? || force_reload
+        @items.clear
         raw.each do |key, value|
           next if key == 'links'
           self_link = (value['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
