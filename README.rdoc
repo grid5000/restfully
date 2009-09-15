@@ -4,6 +4,30 @@ An attempt at dynamically providing "clever" wrappers on top of RESTful APIs tha
 
 Alpha work, will probably only work against my API of reference :-)
 
+== Installation
+  $ gem install crohr-restfully
+
+== Usage
+=== Command line
+  $ resfully api_base_url root_uri [-u username] [-p password]
+  
+e.g., for the Grid5000 API:
+  $ restfully https://api.grid5000.fr/sid /grid5000 -u username -p password
+  
+You may also prefer to use a configuration file to avoid entering the command line options:
+  $ echo '
+  base_url: https://api.grid5000.fr/sid
+  root_uri: /grid5000
+  username: MYLOGIN
+  password: MYPASSWORD
+  ' > ~/somewhere/api.grid5000.fr.yml
+
+And then:
+  $ restfully -c ~/somewhere/api.grid5000.fr.yml
+
+=== As a library
+See the +examples+ directory for examples.
+
 == Note on Patches/Pull Requests
  
 * Fork the project.
