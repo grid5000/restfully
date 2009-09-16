@@ -7,7 +7,7 @@ describe Resource do
     @logger = Logger.new(STDOUT)
   end
   
-  it "should have all methods of a hash" do
+  it "should have all the methods of a hash" do
     resource = Resource.new("uri", session=mock('session'))
     resource.size.should == 0
     resource['whatever'] = 'thing'
@@ -46,57 +46,77 @@ describe Resource do
     before do
       @raw = {
         'links' => [
-          {'rel' => 'self', 'href' => '/sites/rennes/versions/123'},
-          {'rel' => 'member', 'href' => '/versions/123', 'title' => 'grid'},
+          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+          {'rel' => 'parent', 'href' => '/grid5000'},
           {'rel' => 'invalid_rel', 'href' => '/whatever'},
-          {'rel' => 'member', 'href' => '/sites/rennes/statuses/current', 'title' => 'status'},
-          {'rel' => 'collection', 'href' => '/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'},
-          {'rel' => 'collection', 'href' => '/sites/rennes/clusters/versions/123', 'resolvable' => true, 'resolved' => true, 'title' => 'clusters'},
-          {'rel' => 'collection', 'href' => '/sites/rennes/environments/versions/123', 'resolvable' => true, 'resolved' => false, 'title' => 'environments'},
+          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/status', 'title' => 'status'},
+          {'rel' => 'member', 'href' => '/grid5000/sites/rennes/versions/123', 'title' => 'version'},
+          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'},
+          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters', 'resolvable' => true, 'resolved' => true, 'title' => 'clusters'},
+          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/environments/versions/123', 'resolvable' => true, 'resolved' => false, 'title' => 'environments'},
           {'rel' => 'collection', 'href' => '/has/no/title'} 
         ],
         'uid' => 'rennes',
         'whatever' => 'whatever',
         'an_array' => [1, 2, 3],
         'clusters' => {
-          '/sites/rennes/clusters/paradent' => {
-            'guid' => '/sites/rennes/clusters/paradent',
+          'paradent' => {
+            'uid' => 'paradent',
             'links' => [
-              {'rel' => 'self', 'href' => '/sites/rennes/clusters/paradent/versions/123'},
-              {'rel' => 'parent', 'href' => '/sites/rennes/versions/123'},
-              {'rel' => 'collection', 'href' => '/sites/rennes/clusters/paradent/nodes/versions/123', 'title' => 'nodes', 'resolvable' => true, 'resolved' => false},
-              {'rel' => 'collection', 'href' => '/sites/rennes/clusters/paradent/versions', 'resolvable' => false, 'title' => 'versions'},
-              {'rel' => 'member', 'href' => '/sites/rennes/clusters/paradent/statuses/current', 'title' => 'status'}
+              {'rel' => 'self', 'href' => '/grid5000/sites/rennes/clusters/paradent'},
+              {'rel' => 'parent', 'href' => '/grid5000/sites/rennes'},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paradent/nodes', 'title' => 'nodes', 'resolvable' => true, 'resolved' => false},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paradent/versions', 'resolvable' => false, 'title' => 'versions'},
+              {'rel' => 'member', 'href' => '/grid5000/sites/rennes/clusters/paradent/versions/123', 'title' => 'version'},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paradent/status', 'title' => 'status'}
             ],
             'model' => 'XYZ'
           },
-          '/sites/rennes/clusters/paramount' => {
-            'guid' => '/sites/rennes/clusters/paramount',
+          'paramount' => {
+            'uid' => 'paramount',
             'links' => [
-              {'rel' => 'self', 'href' => '/sites/rennes/clusters/paramount/versions/123'},
-              {'rel' => 'parent', 'href' => '/sites/rennes/versions/123'},
-              {'rel' => 'collection', 'href' => '/sites/rennes/clusters/paramount/nodes/versions/123', 'title' => 'nodes', 'resolvable' => true, 'resolved' => false},
-              {'rel' => 'collection', 'href' => '/sites/rennes/clusters/paramount/versions', 'resolvable' => false, 'title' => 'versions'},
-              {'rel' => 'member', 'href' => '/sites/rennes/clusters/paramount/statuses/current', 'title' => 'status'}
+              {'rel' => 'self', 'href' => '/grid5000/sites/rennes/clusters/paramount'},
+              {'rel' => 'parent', 'href' => '/grid5000/sites/rennes'},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paramount/nodes', 'title' => 'nodes', 'resolvable' => true, 'resolved' => false},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paramount/versions', 'resolvable' => false, 'title' => 'versions'},
+              {'rel' => 'member', 'href' => '/grid5000/sites/rennes/clusters/paramount/versions/123', 'title' => 'version'},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/clusters/paramount/status', 'title' => 'status'}
             ],
             'model' => 'XYZ1b'
           }
         }
-      }
+      }.to_json
+      @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw)
     end
     it "should not be loaded in its initial state" do
-      resource = Resource.new("uri", mock('session'))
+      resource = Resource.new(mock("uri"), mock('session'))
       resource.should_not be_loaded
     end
     it "should get the raw representation of the resource via the session if it doesn't have it" do
-      resource = Resource.new("uri", session = mock("session", :logger => Logger.new(STDOUT)))
+      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
       resource.raw.should be_nil
-      session.should_receive(:get).with('uri', {}).and_return(@raw)
+      session.should_receive(:get).with(uri, {}).and_return(@response_200)
       resource.load
     end
+    it "should get the raw representation of the resource via the session if there are query parameters" do
+      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
+      resource.stub!(:define_link) # do not define links
+      resource.stub!(:loaded?).and_return(true) # should force reload even if already loaded
+      resource.raw.should be_nil
+      session.should_receive(:get).with(uri, {:query => {:q1 => 'v1'}}).and_return(@response_200)
+      resource.load(:query => {:q1 => 'v1'})
+    end
+    it "should get the raw representation of the resource if forced to do so" do
+      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
+      resource.stub!(:define_link) # do not define links
+      resource.stub!(:loaded?).and_return(true) # should force reload even if already loaded
+      resource.raw.should be_nil
+      session.should_receive(:get).with(uri, {}).and_return(@response_200)
+      resource.load(:reload => true)
+    end
     it "should correctly define the functions to access simple values" do
-      resource = Resource.new("uri", session = mock("session", :get => @raw, :logger => @logger))
+      resource = Resource.new("uri", session = mock("session", :get => @response_200, :logger => @logger))
       resource.stub!(:define_link) # do not define links
       resource.load
       resource['whatever'].should == 'whatever'
@@ -107,43 +127,71 @@ describe Resource do
       lambda{resource.clusters}.should raise_error(NoMethodError)
     end
     
-    it "should correctly define the functions to access links" do
-      resource = Resource.new("uri", session = mock("session", :get => @raw, :logger => @logger))
+    it "should correctly define a collection association" do
+      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+        'links' => [
+          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
+        ],
+        'uid' => 'rennes'
+      }), :logger => @logger))
+      Collection.should_receive(:new).with('/grid5000/sites/rennes/versions', session, :title => 'versions', :raw => nil).and_return(collection=mock("restfully collection"))
+      resource.load
+      resource.associations['versions'].should == collection
+    end
+    it "should NOT update the URI with the self link" do
+      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+        'links' => [
+          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'}
+        ],
+        'uid' => 'rennes'
+      }), :logger => @logger))
+      resource.uri.should == "uri"
+      resource.load
+      resource.uri.should == "uri"
+    end
+    it "should correctly define a member association" do
+      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+        'links' => [
+          {'rel' => 'member', 'href' => '/grid5000/sites/rennes/versions/123', 'title' => 'version'}
+        ],
+        'uid' => 'rennes'
+      }), :logger => @logger))
+      Resource.should_receive(:new).with('/grid5000/sites/rennes/versions/123', session, :title => 'version', :raw => nil).and_return(member=mock("restfully resource"))
+      resource.load
+      resource.associations['version'].should == member
+    end
+    it "should correctly define a parent association" do
+      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+        'links' => [
+          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+          {'rel' => 'parent', 'href' => '/grid5000'}
+        ],
+        'uid' => 'rennes'
+      }), :logger => @logger))
+      Resource.should_receive(:new).with('/grid5000', session).and_return(parent=mock("restfully resource"))
+      resource.load
+      resource.associations['parent'].should == parent
+    end
+    it "should ignore bad links" do
+      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+        'links' => [
+          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+          {'rel' => 'invalid_rel', 'href' => '/whatever'},
+          {'rel' => 'collection', 'href' => '/has/no/title'} 
+        ],
+        'uid' => 'rennes'
+      }), :logger => @logger))
+      resource.load
+      resource.associations.should be_empty
+    end
+    
+    it "should correctly define the functions to access links [integration test]" do
+      resource = Resource.new("uri", session = mock("session", :get => @response_200, :logger => @logger))
       @logger.should_receive(:warn).with(/collection \/has\/no\/title has no title/)
       @logger.should_receive(:warn).with(/invalid_rel is not a valid link relationship/)
-      Collection.should_receive(:new).
-        with('/sites/rennes/versions', session, 'raw' => nil, 'title' => 'versions').
-        and_return(versions=mock(Collection))
-      Collection.should_receive(:new).
-        with('/sites/rennes/clusters/versions/123', session, 'raw' => @raw['clusters'], 'title' => 'clusters').
-        and_return(clusters=mock(Collection))
-      Collection.should_receive(:new).
-        with('/sites/rennes/environments/versions/123', session, 'raw' => nil, 'title' => 'environments').
-        and_return(environments=mock(Collection))
-      Resource.should_receive(:new).
-        with('/versions/123', session, 'raw' => nil).
-        and_return(parent=mock(Resource))
-      Resource.should_receive(:new).
-        with('/sites/rennes/statuses/current', session, 'raw' => nil).
-        and_return(status=mock(Resource))
-      # associations should not exist before loading
-      resource.respond_to?(:clusters).should be_false
-      # load the resource so that associations get created
       resource.load
-      # check that functions exist
-      resource.should respond_to(:clusters)
-      clusters.should_receive(:load).and_return(clusters)
-      resource.clusters.should == clusters
-      resource.should respond_to(:environments)
-      environments.should_receive(:load).and_return(environments)
-      resource.environments.should == environments
-      resource.should respond_to(:versions)
-      versions.should_receive(:load).and_return(versions)
-      resource.versions.should == versions
-      resource.should respond_to(:status)
-      status.should_receive(:load).and_return(status)
-      resource.status.should == status
-      resource.uri.should == "/sites/rennes/versions/123" # self link should override the URI attribute
+      resource.associations.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
     end
   end
 end

@@ -1,4 +1,5 @@
 require 'rubygems'
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'pp'
 
 require File.dirname(__FILE__)+'/../lib/restfully'
@@ -9,7 +10,7 @@ logger.level = Logger::INFO
 # Restfully.adapter = Restfully::HTTP::RestClientAdapter
 # Restfully.adapter = Patron::Session
 RestClient.log = 'stdout'
-Restfully::Session.new('https://localhost:3443/sid', 'root' => '/grid5000', 'logger' => logger) do |grid, session|
+Restfully::Session.new('https://localhost:3443/sid', 'relative_root_uri' => '/grid5000', 'logger' => logger) do |grid, session|
   grid_stats = {'hardware' => {}, 'system' => {}}
   grid.sites.each do |site_uid, site|
     site_stats = site.status.inject({'hardware' => {}, 'system' => {}}) {|accu, (node_uid, node_status)|
