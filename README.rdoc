@@ -9,7 +9,7 @@ Alpha work.
 
 == Usage
 === Command line
-  $ resfully api_base_uri relative_root_uri [-u username] [-p password]
+  $ resfully base_uri [root_path] [-u username] [-p password]
   
 e.g., for the Grid5000 API:
   $ restfully https://api.grid5000.fr/sid /grid5000 -u username -p password
@@ -28,8 +28,10 @@ e.g.:
        @versions: Restfully::Collection
        ------------ PROPERTIES ------------
        "version" => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827">
+    
    irb(main):006:0> root.uri
    => "/grid5000"
+   
    irb(main):007:0> root.sites
    => #<Restfully::Collection:0x8faaf2
         ------------ META ------------
@@ -46,6 +48,7 @@ e.g.:
         "orsay" => Restfully::Resource>
    irb(main):008:0> root['version']
    => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827"
+   
    irb(main):009:0> root.version
    => #<Restfully::Resource:0x8facf0
         ------------ META ------------
@@ -61,7 +64,7 @@ e.g.:
 You may also prefer to use a configuration file to avoid entering the command line options:
   $ echo '
   base_uri: https://api.grid5000.fr/sid
-  relative_root_uri: /grid5000
+  root_path: /grid5000
   username: MYLOGIN
   password: MYPASSWORD
   ' > ~/somewhere/api.grid5000.fr.yml
