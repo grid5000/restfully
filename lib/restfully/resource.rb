@@ -10,9 +10,10 @@ module Restfully
     attr_reader :uri, :session, :state, :raw, :uid, :associations, :type
 
     def initialize(uri, session, options = {})
+      options = options.symbolize_keys
       @uri = uri
       @session = session
-      @raw = options['raw']
+      @raw = options[:raw]
       @state = :unloaded
       @attributes = {}
       super(@attributes)
@@ -32,21 +33,16 @@ module Restfully
   
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = options.delete(:reload) || false
-      path = uri
-      if options.has_key?(:query)
-        path, query_string = uri.split("?")
-        query_string ||= ""
-        query_string.concat(options.delete(:query).to_params)
-        path = "#{path}?#{query_string}"
-        force_reload = true
-      end
-      if loaded? && force_reload == false
+      force_reload = !!options.delete(:reload) || options.has_key?(:query)
+      if loaded? && !force_reload
         self
-      else
-        @raw = session.get(path, options) if raw.nil? || force_reload
+      else  
         @associations.clear
         @attributes.clear
+        if raw.nil? || force_reload
+          response = session.get(uri, options) 
+          @raw = response.body
+        end
         (raw['links'] || []).each{|link| define_link(Link.new(link))}
         raw.each do |key, value|
           case key
@@ -73,7 +69,7 @@ module Restfully
       @associations.has_key?(method.to_s) || super(method, *args)
     end
     
-    def inspect(options = {:space => "     "})
+    def inspect(options = {:space => "\t"})
       output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
       if loaded?
         output += "\n#{options[:space]}------------ META ------------"
@@ -102,14 +98,15 @@ module Restfully
         when 'collection'
           raw_included = link.resolved? ? raw[link.title] : nil
           @associations[link.title] = Collection.new(link.href, session, 
-            'raw' => raw_included,
-            'title' => link.title)
+            :raw => raw_included,
+            :title => link.title)
         when 'member'
           raw_included = link.resolved? ? raw[link.title] : nil
           @associations[link.title] = Resource.new(link.href, session, 
-            'raw' => raw_included)
+            :title => link.title,
+            :raw => raw_included)
         when 'self'
-          @uri = link.href
+          # we do nothing
         end
       else 
         session.logger.warn link.errors.join("\n")

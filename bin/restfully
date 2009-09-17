@@ -10,7 +10,7 @@ require 'pp'
 
 @options = {}
 option_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: restfully base_url [root_uri] [options]"
+  opts.banner = "Usage: restfully base_uri [root_path] [options]"
 
   opts.on("-u=", "--username=", "Sets the username") do |u|
     @options['username'] = u
@@ -37,17 +37,17 @@ end
 
 option_parser.parse!
 
-@base_url = ARGV.shift
-@root_uri = ARGV.shift || "/"
+@base_uri = ARGV.shift
+@root_path = ARGV.shift || "/"
 
 if (config_filename = @options.delete('configuration_file')) && File.exists?(File.expand_path(config_filename))
   config = YAML.load_file(File.expand_path(config_filename))
-  @base_url = config.delete('base_url') || @base_url
-  @root_uri = config.delete('root_uri') || @root_uri
+  @base_uri = config.delete('base_uri') || @base_uri
+  @root_path = config.delete('root_path') || @root_path
   @options.merge!(config)
 end
 
-unless @base_url
+unless @base_uri
   $stderr.puts option_parser.help
   exit(-1)
 else
@@ -63,10 +63,10 @@ else
   end
 
   def session
-    @session ||= Restfully::Session.new(@base_url, @options.merge('root' => @root_uri, 'logger' => @logger))
+    @session ||= Restfully::Session.new(@base_uri, @options.merge('root_path' => @root_path, 'logger' => @logger))
   end
   def root 
-    @root ||= Restfully::Resource.new(session.root, session).load
+    @root ||= Restfully::Resource.new(session.root_path, session).load
   end
   
   root # preloads

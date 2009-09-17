@@ -1,0 +1,489 @@
+{
+  "lille": {
+    "name": "Lille",
+    "latitude": 50.65,
+    "location": "Lille, France",
+    "security_contact": null,
+    "uid": "lille",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/lille",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/lille\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/lille\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/lille\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/lille\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/lille\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 3.0833,
+    "email_contact": null,
+    "web": null,
+    "sys_admin_contact": null
+  },
+  "grenoble": {
+    "name": "Grenoble",
+    "latitude": 45.1833,
+    "location": "Grenoble, France",
+    "security_contact": null,
+    "uid": "grenoble",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/grenoble",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/grenoble\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/grenoble\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/grenoble\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/grenoble\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/grenoble\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 5.7167,
+    "email_contact": null,
+    "web": null,
+    "sys_admin_contact": null
+  },
+  "toulouse": {
+    "name": "Toulouse",
+    "latitude": 43.6167,
+    "location": "Toulouse, France",
+    "security_contact": null,
+    "uid": "toulouse",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/toulouse",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/toulouse\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/toulouse\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/toulouse\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/toulouse\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/toulouse\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 1.4333,
+    "email_contact": null,
+    "web": null,
+    "sys_admin_contact": null
+  },
+  "sophia": {
+    "name": "Sophia-Antipolis",
+    "latitude": 43.6161,
+    "location": "Sophia-Antipolis, France",
+    "security_contact": "sophia-staff@lists.grid5000.fr",
+    "uid": "sophia",
+    "type": "site",
+    "user_support_contact": "sophia-staff@lists.grid5000.fr",
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/sophia",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/sophia\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/sophia\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/sophia\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/sophia\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/sophia\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 7.0678,
+    "compilation_server": true,
+    "email_contact": "sophia-staff@lists.grid5000.fr",
+    "web": null,
+    "sys_admin_contact": "sophia-staff@lists.grid5000.fr"
+  },
+  "rennes": {
+    "name": "Rennes",
+    "latitude": 48.1,
+    "location": "Rennes, France",
+    "security_contact": "rennes-staff@lists.grid5000.fr",
+    "uid": "rennes",
+    "type": "site",
+    "user_support_contact": "rennes-staff@lists.grid5000.fr",
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/rennes",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/rennes\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/rennes\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/rennes\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/rennes\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/rennes\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": -1.6667,
+    "compilation_server": false,
+    "email_contact": "rennes-staff@lists.grid5000.fr",
+    "web": "http:\/\/www.irisa.fr",
+    "sys_admin_contact": "rennes-staff@lists.grid5000.fr"
+  },
+  "lyon": {
+    "name": "Lyon",
+    "latitude": 45.7667,
+    "location": "Lyon, France",
+    "security_contact": null,
+    "uid": "lyon",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/lyon",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/lyon\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/lyon\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/lyon\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/lyon\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/lyon\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 4.8333,
+    "email_contact": null,
+    "web": null,
+    "sys_admin_contact": null
+  },
+  "nancy": {
+    "name": "Nancy",
+    "latitude": 48.7,
+    "location": "Nancy, France",
+    "security_contact": null,
+    "uid": "nancy",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/nancy",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/nancy\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/nancy\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/nancy\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/nancy\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/nancy\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 6.2,
+    "web": null,
+    "sys_admin_contact": null
+  },
+  "bordeaux": {
+    "name": "Bordeaux",
+    "latitude": 44.833333,
+    "location": "Bordeaux, France",
+    "security_contact": "bordeaux-staff@lists.grid5000.fr",
+    "uid": "bordeaux",
+    "type": "site",
+    "user_support_contact": "bordeaux-staff@lists.grid5000.fr",
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/bordeaux",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/bordeaux\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/bordeaux\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/bordeaux\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/bordeaux\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/bordeaux\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "Grid5000 Bordeaux site",
+    "longitude": -0.566667,
+    "email_contact": "bordeaux-staff@lists.grid5000.fr",
+    "web": "http:\/\/www.grid5000.fr\/mediawiki\/index.php\/Bordeaux:Home",
+    "sys_admin_contact": "bordeaux-staff@lists.grid5000.fr"
+  },
+  "orsay": {
+    "name": "Orsay",
+    "latitude": 48.7,
+    "location": "Orsay, France",
+    "security_contact": null,
+    "uid": "orsay",
+    "type": "site",
+    "user_support_contact": null,
+    "version": "747d2af24c5f3c2578a96626e0b00413c8484f04",
+    "links": [
+      {
+        "href": "\/grid5000\/sites\/orsay",
+        "rel": "self"
+      },
+      {
+        "href": "\/grid5000\/sites\/orsay\/versions\/747d2af24c5f3c2578a96626e0b00413c8484f04",
+        "title": "version",
+        "rel": "member"
+      },
+      {
+        "href": "\/grid5000\/sites\/orsay\/versions",
+        "title": "versions",
+        "rel": "collection"
+      },
+      {
+        "href": "\/grid5000\/sites\/orsay\/clusters",
+        "resolvable": true,
+        "title": "clusters",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000\/sites\/orsay\/environments",
+        "resolvable": true,
+        "title": "environments",
+        "rel": "collection",
+        "resolved": false
+      },
+      {
+        "href": "\/grid5000",
+        "rel": "parent"
+      },
+      {
+        "href": "\/grid5000\/sites\/orsay\/status",
+        "title": "status",
+        "rel": "collection"
+      }
+    ],
+    "description": "",
+    "longitude": 2.2,
+    "email_contact": null,
+    "web": null,
+    "sys_admin_contact": null
+  }
+}

@@ -1,11 +1,8 @@
 require 'uri'
 require 'logger'
-require 'restclient'
 require 'restfully/parsing'
 
 module Restfully
-  class Error < StandardError; end
-  class HTTPError < Error; end
   class NullLogger
     def method_missing(method, *args)
       nil
@@ -13,49 +10,52 @@ module Restfully
   end
   class Session
     include Parsing
-    attr_reader :base_url, :logger, :connection, :root
+    attr_reader :base_uri, :root_path, :logger, :connection, :root, :default_headers
     
     # TODO: use CacheableResource
-    def initialize(base_url, options = {})
-      options = options.stringify_keys
-      @base_url = base_url
-      @root = options['root'] || '/'
-      @logger = options['logger'] || NullLogger.new 
-      @username = options['username']
-      @password = options['password']
-      # TODO: generalize
-      # @connection = Patron::Session.new
-      # @connection.timeout = 10
-      # @connection.base_url = base_url
-      # @connection.headers['User-Agent'] = 'restfully'
-      # @connection.insecure = true
-      # @connection.username = @user
-      # @connection.password = @password      
-      @connection = RestClient::Resource.new(base_url || '', :user => @username, :password => @password)
-      yield Resource.new(root, self).load, self if block_given?
+    def initialize(base_uri, options = {})
+      options = options.symbolize_keys
+      @base_uri = base_uri
+      @root_path = options.delete(:root_path) || '/'
+      @logger = options.delete(:logger) || NullLogger.new
+      @default_headers = options.delete(:default_headers) || {'Accept' => 'application/json'}
+      @connection = Restfully.adapter.new(@base_uri, options.merge(:logger => @logger))
+      @root = Resource.new(URI.parse(@root_path), self)
+      yield @root.load, self if block_given?
     end
     
-    # TODO: uniformize headers hash (should accept symbols and strings in any capitalization format)
     # TODO: inspect response headers to determine which methods are available
-    def get(path, headers = {})
-      headers = headers.symbolize_keys
-      headers[:accept] ||= 'application/json'
-      logger.info "GET #{path} #{headers.inspect}"
-      # TODO: should be able to choose HTTP lib to use, so we must provide abstract interface for HTTP handlers
-      api = path.empty? ? connection : connection[path]
-      response = api.get(headers)
-      parse response#, :content_type => response.headers['Content-Type']
-      # response = connection.get(path, headers)
-      # logger.info response.headers
-      # logger.info response.status
-      # if (200..300).include?(response.status)
-        # parse response.body, :content_type => response.headers['Content-Type']
-      # else
-        # TODO: better error management ;-)
-        # raise HTTPError.new("Error: #{response.status}")
-      # end
+    def get(path, options = {})
+      path = path.to_s
+      options = options.symbolize_keys
+      uri = URI.parse(base_uri)
+      path_uri = URI.parse(path)
+      # if the given path is complete URL, forget the base_uri, else append the path to the base_uri
+      unless path_uri.scheme.nil?
+        uri = path_uri
+      else  
+        uri.path << path
+      end
+      request = HTTP::Request.new(uri, :headers => options.delete(:headers) || {}, :query => options.delete(:query) || {})
+      request.add_headers(@default_headers) unless @default_headers.empty?
+      logger.info "GET #{request.uri}, #{request.headers.inspect}"
+      response = connection.get(request)
+      logger.debug "Response to GET #{request.uri}: #{response.headers.inspect}"
+      response = deal_with_eventual_errors(response, request)
     end
-  
-    # TODO: add other HTTP methods
+    
+    protected
+    def deal_with_eventual_errors(response, request)
+      case response.status
+      when 400..499
+        # should retry on 406 with another Accept header
+        raise Restfully::HTTP::ClientError, response
+      when 500..599  
+        raise Restfully::HTTP::ServerError, response
+      else
+        response
+      end
+    end
+
   end
 end
