@@ -3,10 +3,12 @@ module Restfully
     module Adapters
       
       class AbstractAdapter
-
-        def initialize(base_url, options = {})
+        attr_reader :logger, :options
+        def initialize(base_uri, options = {})
           @options = options.symbolize_keys
-          @base_url = base_url
+          @logger = @options.delete(:logger) || Restfully::NullLogger.new
+          @base_uri = base_uri
+          logger.debug "base_uri = #{base_uri.inspect}, options = #{options.inspect}."
         end
         
         def get(request)

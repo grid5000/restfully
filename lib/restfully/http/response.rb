@@ -4,12 +4,15 @@ module Restfully
     # The body is automatically parsed into a ruby object based on the response's <tt>Content-Type</tt> header.
     class Response
       include Headers, Restfully::Parsing
-      attr_reader :status, :headers, :body
+      attr_reader :status, :headers
       def initialize(status, headers, body)
         @status = status.to_i
         @headers = sanitize_http_headers(headers)
         @body = (body.nil? || body.empty?) ? nil : body.to_s
-        @body = unserialize(@body, :content_type => @headers['Content-Type']) unless @body.nil?
+      end
+      
+      def body
+        @unserialized_body ||= unserialize(@body, :content_type => @headers['Content-Type']) unless @body.nil?
       end
     end
   end

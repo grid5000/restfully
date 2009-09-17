@@ -6,10 +6,11 @@ module Restfully
     attr_reader :state, :raw, :uri, :session, :title
     
     def initialize(uri, session, options = {})
+      options = options.symbolize_keys
       @uri = uri
-      @title = options['title']
+      @title = options[:title]
       @session = session
-      @raw = options['raw']
+      @raw = options[:raw]
       @state = :unloaded
       @items = {}
       super(@items)
@@ -19,25 +20,20 @@ module Restfully
     
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = options.delete(:reload) || false
-      path = uri
-      if options.has_key?(:query)
-        path, query_string = uri.split("?")
-        query_string ||= ""
-        query_string.concat(options.delete(:query).to_params)
-        path = "#{path}?#{query_string}"
-        force_reload = true
-      end      
-      if loaded? && force_reload == false
+      force_reload = !!options.delete(:reload) || options.has_key?(:query)
+      if loaded? && !force_reload
         self
-      else
-        @raw = session.get(path, options) if raw.nil? || force_reload
+      else  
         @items.clear
+        if raw.nil? || force_reload
+          response = session.get(uri, options)
+          @raw = response.body
+        end
         raw.each do |key, value|
           next if key == 'links'
           self_link = (value['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
           if self_link && self_link.valid?
-            @items.store(key, Resource.new(self_link.href, session, 'raw' => value).load)
+            @items.store(key, Resource.new(self_link.href, session, :raw => value).load)
           else
             session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
           end
@@ -47,7 +43,7 @@ module Restfully
       end
     end
     
-    def inspect(options = {:space => "     "})
+    def inspect(options = {:space => "\t"})
       output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
       if loaded?
         output += "\n#{options[:space]}------------ META ------------"

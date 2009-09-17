@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cyril Rohr"]
-  s.date = %q{2009-09-15}
+  s.date = %q{2009-09-17}
   s.default_executable = %q{restfully}
   s.description = %q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow HATEOAS principles and provide OPTIONS methods and/or Allow headers.}
   s.email = %q{cyril.rohr@gmail.com}
@@ -29,7 +29,16 @@ Gem::Specification.new do |s|
      "examples/grid5000.rb",
      "lib/restfully.rb",
      "lib/restfully/collection.rb",
+     "lib/restfully/error.rb",
      "lib/restfully/extensions.rb",
+     "lib/restfully/http.rb",
+     "lib/restfully/http/adapters/abstract_adapter.rb",
+     "lib/restfully/http/adapters/patron_adapter.rb",
+     "lib/restfully/http/adapters/rest_client_adapter.rb",
+     "lib/restfully/http/error.rb",
+     "lib/restfully/http/headers.rb",
+     "lib/restfully/http/request.rb",
+     "lib/restfully/http/response.rb",
      "lib/restfully/link.rb",
      "lib/restfully/parsing.rb",
      "lib/restfully/resource.rb",
@@ -38,7 +47,13 @@ Gem::Specification.new do |s|
      "lib/restfully/special_hash.rb",
      "restfully.gemspec",
      "spec/collection_spec.rb",
+     "spec/http/error_spec.rb",
+     "spec/http/headers_spec.rb",
+     "spec/http/request_spec.rb",
+     "spec/http/response_spec.rb",
+     "spec/http/rest_client_adapter_spec.rb",
      "spec/link_spec.rb",
+     "spec/parsing_spec.rb",
      "spec/resource_spec.rb",
      "spec/restfully_spec.rb",
      "spec/session_spec.rb",
@@ -52,7 +67,13 @@ Gem::Specification.new do |s|
   s.summary = %q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow some specific conventions.}
   s.test_files = [
     "spec/collection_spec.rb",
+     "spec/http/error_spec.rb",
+     "spec/http/headers_spec.rb",
+     "spec/http/request_spec.rb",
+     "spec/http/response_spec.rb",
+     "spec/http/rest_client_adapter_spec.rb",
      "spec/link_spec.rb",
+     "spec/parsing_spec.rb",
      "spec/resource_spec.rb",
      "spec/restfully_spec.rb",
      "spec/session_spec.rb",

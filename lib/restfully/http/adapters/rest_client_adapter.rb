@@ -5,8 +5,9 @@ module Restfully
   module HTTP
     module Adapters
       class RestClientAdapter < AbstractAdapter
-        def initialize(base_url, options = {})
-          super(base_url, options)
+        def initialize(base_uri, options = {})
+          super(base_uri, options)
+          @options[:user] = @options.delete(:username)
         end
         def get(request)
           begin
@@ -14,11 +15,12 @@ module Restfully
             response = resource.get(request.headers)
             headers = response.headers
             body = response.to_s
-            status = headers.delete(:status)
-          rescue RestClient::Exception => e
-            body = e.response.body.to_s
+            headers.delete(:status)
+            status = response.code
+          rescue RestClient::ExceptionWithResponse => e
+            body = e.http_body
             headers = e.response.to_hash
-            status = headers.delete('status') || e.response.code
+            status = e.http_code
           end
           Response.new(status, headers, body)
         end

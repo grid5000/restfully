@@ -9,7 +9,7 @@ module Restfully
           when Array 
             value.join(", ")
           else 
-            value.to_s
+            value
           end
           sanitized_headers[sanitized_key] = sanitized_value
         end

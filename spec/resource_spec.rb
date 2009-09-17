@@ -98,6 +98,7 @@ describe Resource do
       resource.raw.should be_nil
       session.should_receive(:get).with(uri, {}).and_return(@response_200)
       resource.load
+      resource.should be_loaded
     end
     it "should get the raw representation of the resource via the session if there are query parameters" do
       resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))

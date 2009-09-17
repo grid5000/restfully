@@ -10,9 +10,10 @@ module Restfully
     attr_reader :uri, :session, :state, :raw, :uid, :associations, :type
 
     def initialize(uri, session, options = {})
+      options = options.symbolize_keys
       @uri = uri
       @session = session
-      @raw = options['raw']
+      @raw = options[:raw]
       @state = :unloaded
       @attributes = {}
       super(@attributes)
@@ -35,11 +36,13 @@ module Restfully
       force_reload = !!options.delete(:reload) || options.has_key?(:query)
       if loaded? && !force_reload
         self
-      else
-        response = session.get(uri, options) if raw.nil? || force_reload
+      else  
         @associations.clear
         @attributes.clear
-        @raw = response.body
+        if raw.nil? || force_reload
+          response = session.get(uri, options) 
+          @raw = response.body
+        end
         (raw['links'] || []).each{|link| define_link(Link.new(link))}
         raw.each do |key, value|
           case key
@@ -66,7 +69,7 @@ module Restfully
       @associations.has_key?(method.to_s) || super(method, *args)
     end
     
-    def inspect(options = {:space => "     "})
+    def inspect(options = {:space => "\t"})
       output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
       if loaded?
         output += "\n#{options[:space]}------------ META ------------"

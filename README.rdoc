@@ -1,15 +1,15 @@
 = restfully
 
-An attempt at dynamically providing "clever" wrappers on top of RESTful APIs that follow the HATEOAS principle. For it to work, the API must follow certain conventions (to be explained later).
+An attempt at dynamically providing "clever" wrappers on top of RESTful APIs that follow the principle of Hyperlinks As The Engine Of Application State (HATEOAS). For it to work, the API must follow certain conventions (to be explained later).
 
-Alpha work, will probably only work against my API of reference :-)
+Alpha work.
 
 == Installation
   $ gem install crohr-restfully
 
 == Usage
 === Command line
-  $ resfully api_base_url root_uri [-u username] [-p password]
+  $ resfully api_base_uri relative_root_uri [-u username] [-p password]
   
 e.g., for the Grid5000 API:
   $ restfully https://api.grid5000.fr/sid /grid5000 -u username -p password
@@ -60,8 +60,8 @@ e.g.:
 
 You may also prefer to use a configuration file to avoid entering the command line options:
   $ echo '
-  base_url: https://api.grid5000.fr/sid
-  root_uri: /grid5000
+  base_uri: https://api.grid5000.fr/sid
+  relative_root_uri: /grid5000
   username: MYLOGIN
   password: MYPASSWORD
   ' > ~/somewhere/api.grid5000.fr.yml
