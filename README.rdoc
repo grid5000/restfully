@@ -5,7 +5,7 @@ An attempt at dynamically providing "clever" wrappers on top of RESTful APIs tha
 Alpha work.
 
 == Installation
-  $ gem install crohr-restfully
+  $ gem install restfully
 
 == Usage
 === Command line
