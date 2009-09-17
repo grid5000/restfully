@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{restfully}
-  s.version = "0.1.1"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cyril Rohr"]
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
      "LICENSE",
      "README.rdoc",
      "Rakefile",
+     "TODO.rdoc",
      "VERSION",
      "bin/restfully",
      "examples/grid5000.rb",
@@ -47,6 +48,7 @@ Gem::Specification.new do |s|
      "lib/restfully/special_hash.rb",
      "restfully.gemspec",
      "spec/collection_spec.rb",
+     "spec/fixtures/grid5000-sites.json",
      "spec/http/error_spec.rb",
      "spec/http/headers_spec.rb",
      "spec/http/request_spec.rb",
