@@ -7,6 +7,7 @@ require 'restfully'
 require 'optparse'
 require 'logger'
 require 'pp'
+require 'yaml'
 
 @options = {}
 option_parser = OptionParser.new do |opts|
