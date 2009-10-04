@@ -6,7 +6,7 @@ module Restfully
   
   class Resource < DelegateClass(Hash)
     
-    undef :type
+    undef :type if self.respond_to? :type
     attr_reader :uri, :session, :state, :raw, :uid, :associations, :type
 
     def initialize(uri, session, options = {})
