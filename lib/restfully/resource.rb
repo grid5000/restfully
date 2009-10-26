@@ -7,13 +7,12 @@ module Restfully
   class Resource < DelegateClass(Hash)
     
     undef :type if self.respond_to? :type
-    attr_reader :uri, :session, :state, :raw, :uid, :associations, :type
+    attr_reader :uri, :session, :state, :raw, :associations, :uid, :type
 
     def initialize(uri, session, options = {})
       options = options.symbolize_keys
       @uri = uri
       @session = session
-      @raw = options[:raw]
       @state = :unloaded
       @attributes = {}
       super(@attributes)
@@ -34,11 +33,12 @@ module Restfully
     def load(options = {})
       options = options.symbolize_keys
       force_reload = !!options.delete(:reload) || options.has_key?(:query)
-      if loaded? && !force_reload
+      if loaded? && !force_reload && options[:raw].nil?
         self
       else  
         @associations.clear
         @attributes.clear
+        @raw = options[:raw]
         if raw.nil? || force_reload
           response = session.get(uri, options) 
           @raw = response.body
@@ -46,9 +46,9 @@ module Restfully
         (raw['links'] || []).each{|link| define_link(Link.new(link))}
         raw.each do |key, value|
           case key
+          when "uid", "type"
+            instance_variable_set "@#{key}".to_sym, value
           when 'links'  then  next
-          when 'uid'    then  @uid = value
-          when 'type'   then  @type = value
           else
             case value
             when Hash

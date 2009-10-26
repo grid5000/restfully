@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+'/spec_helper'
+require File.expand_path(File.dirname(__FILE__)+'/spec_helper')
 
 include Restfully
 
@@ -29,9 +29,9 @@ describe Resource do
       resource.uri.should == "uri"
     end
     it "should have a reader on the raw property" do
-      resource = Resource.new("uri", session=mock("session"), 'raw' => {})
+      resource = Resource.new("uri", session=mock("session"))
       resource.should_not respond_to(:raw=)
-      resource.raw.should == {}
+      resource.load('raw' => {:a => :b}).raw.should == {:a => :b}
     end
     it "should have a reader on the state property" do
       resource = Resource.new("uri", session=mock("session"))

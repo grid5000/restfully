@@ -10,19 +10,19 @@ logger.level = Logger::INFO
 # Restfully.adapter = Restfully::HTTP::RestClientAdapter
 # Restfully.adapter = Patron::Session
 RestClient.log = 'stdout'
-Restfully::Session.new('https://localhost:3443/sid', 'root_path' => '/grid5000', 'logger' => logger) do |grid, session|
+Restfully::Session.new(:base_uri => 'http://api.local/sid', :root_path => '/grid5000', :logger => logger) do |grid, session|
   grid_stats = {'hardware' => {}, 'system' => {}}
-  grid.sites.each do |site_uid, site|
-    site_stats = site.status.inject({'hardware' => {}, 'system' => {}}) {|accu, (node_uid, node_status)|
+  grid.sites.each do |site|
+    site_stats = site.status.inject({'hardware' => {}, 'system' => {}}) {|accu, node_status|
       accu['hardware'][node_status['hardware_state']] = (accu['hardware'][node_status['hardware_state']] || 0) + 1
       accu['system'][node_status['system_state']] = (accu['system'][node_status['system_state']] || 0) + 1
       accu
-    }
+    } rescue {'hardware' => {}, 'system' => {}}
     grid_stats['hardware'].merge!(site_stats['hardware']) { |key,oldval,newval| oldval+newval }
     grid_stats['system'].merge!(site_stats['system']) { |key,oldval,newval| oldval+newval }
-    p [site_uid, site_stats]
+    p [site.uid, site_stats]
   end
   p [:total, grid_stats]
   puts "Getting status of a few nodes in rennes:"
-  pp grid.sites['rennes'].status(:query => {:only => ['paradent-1', 'paradent-10', 'paramount-3']})
+  pp grid.sites.by_uid('rennes').status(:query => {:only => ['paradent-1', 'paradent-10', 'paramount-3']})
 end

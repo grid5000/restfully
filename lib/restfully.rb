@@ -11,7 +11,8 @@ require 'restfully/resource'
 require 'restfully/collection'
 
 
-module Restfully  
+module Restfully
+  VERSION = "0.2.3"
   class << self
     attr_accessor :adapter
   end

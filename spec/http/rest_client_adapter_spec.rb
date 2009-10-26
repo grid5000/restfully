@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+'/../spec_helper'
+require File.expand_path(File.dirname(__FILE__)+'/../spec_helper')
 describe Restfully::HTTP::Adapters::RestClientAdapter do
   it "should correctly get the resource corresponding to the request" do
     adapter = Restfully::HTTP::Adapters::RestClientAdapter.new("https://api.grid5000.fr", :username => 'crohr', :password => 'password')

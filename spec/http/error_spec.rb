@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+'/../spec_helper'
+require File.expand_path(File.dirname(__FILE__)+'/../spec_helper')
 describe Restfully::HTTP::Error do
   it "should have a response reader" do
     response = mock("restfully response", :status => 404, :body => {'title' => 'Not Found', 'message' => 'The requested resource cannot be found.', 'code' => 404})

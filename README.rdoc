@@ -9,7 +9,8 @@ Alpha work.
 
 == Usage
 === Command line
-  $ resfully base_uri [root_path] [-u username] [-p password]
+  $ export RUBYOPT="-rubygems"
+  $ restfully base_uri [root_path] [-u username] [-p password]
   
 e.g., for the Grid5000 API:
   $ restfully https://api.grid5000.fr/sid /grid5000 -u username -p password
@@ -17,37 +18,74 @@ e.g., for the Grid5000 API:
 If the connection was successful, you should get a prompt. Call the +root+ function to see what are the available resources. <tt>@property</tt> means that you can call the +property+ method on the object. Other properties are available via the <tt>[]</tt> function.
 e.g.:
   irb(main):005:0> root
-  => #<Restfully::Resource:0x90bdd4
-       ------------ META ------------
-       @uri: "/grid5000"
-       @uid: "grid5000"
-       @type: "grid"
-       @environments: Restfully::Collection
-       @sites: Restfully::Collection
-       @version: Restfully::Resource
-       @versions: Restfully::Collection
-       ------------ PROPERTIES ------------
-       "version" => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827">
+  => #<Restfully::Resource:0x8848de
+      	------------ META ------------
+      	@uri: #<URI::Generic:0x11091a8 URL:/grid5000>
+      	@uid: "grid5000"
+      	@type: "grid"
+      	@environments: Restfully::Collection
+      	@sites: Restfully::Collection
+      	@version: Restfully::Resource
+      	@versions: Restfully::Collection
+      	------------ PROPERTIES ------------
+      	"version" => "4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8">
     
    irb(main):006:0> root.uri
-   => "/grid5000"
+   => #<URI::Generic:0x11091a8 URL:/grid5000>
    
    irb(main):007:0> root.sites
-   => #<Restfully::Collection:0x8faaf2
-        ------------ META ------------
-        @uri: "/grid5000/sites"
-        ------------ PROPERTIES ------------
-        "lille" => Restfully::Resource
-        "grenoble" => Restfully::Resource
-        "toulouse" => Restfully::Resource
-        "sophia" => Restfully::Resource
-        "rennes" => Restfully::Resource
-        "lyon" => Restfully::Resource
-        "nancy" => Restfully::Resource
-        "bordeaux" => Restfully::Resource
-        "orsay" => Restfully::Resource>
-   irb(main):008:0> root['version']
-   => "ee1f8111c8835496a9e4a6f7c9491c0238ee9827"
+   => #<Restfully::Collection:0x881f6c
+       	------------ META ------------
+       	@uri: "/grid5000/sites"
+       	@offset: 0
+       	@total: 9
+       	@version: Restfully::Resource
+       	@versions: Restfully::Collection
+       	------------ PROPERTIES ------------
+       	"version" => "4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8"
+       	------------ ITEMS ------------
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource
+       	Restfully::Resource>
+   
+   irb(main):008:0> root.sites.by_uid('rennes').clusters.by_uid('paradent').nodes.by_uid('paradent-1').metrics.by_uid('mem_free', 'cpu_idle', 'bytes_in')
+   => [#<Restfully::Resource:0x4259a
+       	------------ META ------------
+       	@uri: "/grid5000/sites/rennes/clusters/paradent/nodes/paradent-1/metrics/mem_free"
+       	@uid: "mem_free"
+       	@type: "metric"
+       	@parent: Restfully::Resource
+       	@timeseries: Restfully::Resource
+       	------------ PROPERTIES ------------
+       	"last_update" => -901639018
+       	"step" => 15
+       	"timeseries" => [{"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>1}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>24}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>168}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>672}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>374, "pdp_per_row"=>5760}]>, #<Restfully::Resource:0x12444
+       	------------ META ------------
+       	@uri: "/grid5000/sites/rennes/clusters/paradent/nodes/paradent-1/metrics/cpu_idle"
+       	@uid: "cpu_idle"
+       	@type: "metric"
+       	@parent: Restfully::Resource
+       	@timeseries: Restfully::Resource
+       	------------ PROPERTIES ------------
+       	"last_update" => -901639018
+       	"step" => 15
+       	"timeseries" => [{"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>1}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>24}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>168}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>672}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>374, "pdp_per_row"=>5760}]>, #<Restfully::Resource:0xe4c870
+       	------------ META ------------
+       	@uri: "/grid5000/sites/rennes/clusters/paradent/nodes/paradent-1/metrics/bytes_in"
+       	@uid: "bytes_in"
+       	@type: "metric"
+       	@parent: Restfully::Resource
+       	@timeseries: Restfully::Resource
+       	------------ PROPERTIES ------------
+       	"last_update" => -901639018
+       	"step" => 15
+       	"timeseries" => [{"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>1}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>24}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>168}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>244, "pdp_per_row"=>672}, {"xff"=>0.5, "cf"=>"AVERAGE", "rows"=>374, "pdp_per_row"=>5760}]>]
    
    irb(main):009:0> root.version
    => #<Restfully::Resource:0x8facf0
@@ -90,4 +128,4 @@ See the +examples+ directory for examples.
 
 == Copyright
 
-Copyright (c) 2009 Cyril Rohr. See LICENSE for details.
+Copyright (c) 2009 Cyril Rohr, INRIA Rennes - Bretagne Atlantique. See LICENSE for details.

@@ -9,16 +9,21 @@ module Restfully
     end
   end
   class Session
-    include Parsing
+    include Parsing, HTTP::Headers
     attr_reader :base_uri, :root_path, :logger, :connection, :root, :default_headers
     
     # TODO: use CacheableResource
-    def initialize(base_uri, options = {})
+    def initialize(options = {})
       options = options.symbolize_keys
-      @base_uri = base_uri
-      @root_path = options.delete(:root_path) || '/'
-      @logger = options.delete(:logger) || NullLogger.new
-      @default_headers = options.delete(:default_headers) || {'Accept' => 'application/json'}
+      if (config_filename = options.delete(:configuration_file)) && File.exists?(File.expand_path(config_filename))
+        config = YAML.load_file(File.expand_path(config_filename)).symbolize_keys
+        options.merge!(config)
+      end  
+      @base_uri               =   options.delete(:base_uri) || "http://localhost:8888"
+      @root_path              =   options.delete(:root_path) || "/"
+      @logger                 =   options.delete(:logger) || NullLogger.new
+      user_default_headers    =   sanitize_http_headers(options.delete(:default_headers) || {})
+      @default_headers        =   {'User-Agent' => "Restfully/#{Restfully::VERSION}", 'Accept' => 'application/json'}.merge(user_default_headers)
       @connection = Restfully.adapter.new(@base_uri, options.merge(:logger => @logger))
       @root = Resource.new(URI.parse(@root_path), self)
       yield @root.load, self if block_given?

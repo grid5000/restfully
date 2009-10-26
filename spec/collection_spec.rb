@@ -1,21 +1,24 @@
-require File.dirname(__FILE__)+'/spec_helper'
+require File.expand_path(File.dirname(__FILE__)+'/spec_helper')
 
 include Restfully
 describe Collection do
-
-  it "should have all methods of a hash" do
-    collection = Collection.new("uri", session=mock('session'))
-    collection.size.should == 0
-    collection.store("rennes", resource = mock(Resource))
-    collection.size.should == 1
-    collection.should == {'rennes' => resource}
-    collection.should respond_to(:each)
-    collection.should respond_to(:store)
-    collection.should respond_to(:[])
-    collection.should respond_to(:length)
-  end
+  describe "general behaviour" do
+    before do
+      @collection = Collection.new("uri", session=mock('session')).load(:raw => JSON.parse(fixture("grid5000-sites.json")))
+    end
+    it "should be enumerable" do
+      @collection.length.should == 9
+      @collection.map{|site| site.uid}.sort.should == ["bordeaux", "grenoble", "lille", "lyon", "nancy", "orsay", "rennes", "sophia", "toulouse"]
+    end
   
+    it "should have a :total method" do
+      @collection.total.should == 9
+    end
   
+    it "should have a :offset method" do
+      @collection.offset.should == 0
+    end
+  end  
   
   describe "loading" do
     before(:all) do
@@ -47,46 +50,48 @@ describe Collection do
     end
     it "should not initialize resources lacking a self link" do
       collection = Collection.new("uri", session = mock("session", :get => mock("restfully response", :body => {
-        'rennes' => {
-          'links' => [
-            {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
-          ],
-          'uid' => 'rennes'
-        }
+        "total" => 1,
+        "offset" => 0,
+        "items" => [
+          {
+            'links' => [
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
+            ],
+            'uid' => 'rennes'
+          }
+        ]
       }), :logger => @logger))
       Resource.should_not_receive(:new)
       collection.load
-      collection['rennes'].should be_nil
+      collection.by_uid('rennes').should be_nil
     end
     it "should initialize resources having a self link" do
       collection = Collection.new("uri", session = mock("session", :get => mock("restfully response", :body => {
-        'rennes' => {
-          'links' => [
-            {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
-            {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
-          ],
-          'uid' => 'rennes'
-        }
+        "total" => 1,
+        "offset" => 0,
+        "items" => [
+          {
+            'links' => [
+              {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'title' => 'versions'}
+            ],
+            'uid' => 'rennes'
+          }
+        ]
       }), :logger => @logger))
-      Resource.should_receive(:new).with('/grid5000/sites/rennes', session, :raw => {
-        'links' => [
-          {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
-          {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
-        ],
-        'uid' => 'rennes'
-      }).and_return(resource=mock("restfully resource"))
-      resource.should_receive(:load).and_return(resource)
       collection.load
-      collection['rennes'].should == resource
+      collection.length.should == 1
+      collection.by_uid('rennes').class.should == Restfully::Resource
     end
     it "should correctly initialize its resources [integration test]" do
       collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT), :get => @response_200))
       collection.load
       collection.should be_loaded
       collection.uri.should == "uri"
-      collection['rennes'].uid.should == 'rennes'
-      collection['rennes'].type.should == 'site'
-      collection.keys.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']
+      collection.by_uid('rennes').uid.should == 'rennes'
+      collection.by_uid('rennes').type.should == 'site'
+      collection.by_uid.keys.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']
+      collection.by_uid('rennes', 'bordeaux').length.should == 2
     end 
   end
   

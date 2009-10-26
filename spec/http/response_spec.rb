@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+'/../spec_helper'
+require File.expand_path(File.dirname(__FILE__)+'/../spec_helper')
 describe Restfully::HTTP::Response do
 
   it "should correctly initialize the attributes" do

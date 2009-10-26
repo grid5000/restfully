@@ -9,7 +9,7 @@ module Restfully
       content_type = options[:content_type]
       content_type ||= object.headers['Content-Type'] if object.respond_to?(:headers)
       case content_type
-      when /^application\/json/i
+      when /^application\/.*?json/i
         JSON.parse(object)
       else
         raise ParserNotFound.new("Content-Type '#{content_type}' is not supported. Cannot parse the given object.")
@@ -20,7 +20,7 @@ module Restfully
       content_type = options[:content_type]
       content_type ||= object.headers['Content-Type'] if object.respond_to?(:headers)
       case content_type
-      when /^application\/json/i
+      when /^application\/.*?json/i
         JSON.dump(object)
       else
         raise ParserNotFound, [object, content_type]
