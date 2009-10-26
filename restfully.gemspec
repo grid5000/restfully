@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{restfully}
-  s.version = "0.2.3"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cyril Rohr"]
-  s.date = %q{2009-10-06}
+  s.date = %q{2009-10-26}
   s.default_executable = %q{restfully}
   s.description = %q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow HATEOAS principles and provide OPTIONS methods and/or Allow headers.}
   s.email = %q{cyril.rohr@gmail.com}
@@ -61,12 +61,11 @@ Gem::Specification.new do |s|
      "spec/session_spec.rb",
      "spec/spec_helper.rb"
   ]
-  s.has_rdoc = true
   s.homepage = %q{http://github.com/crohr/restfully}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{restfully}
-  s.rubygems_version = %q{1.3.2}
+  s.rubygems_version = %q{1.3.5}
   s.summary = %q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow some specific conventions.}
   s.test_files = [
     "spec/collection_spec.rb",

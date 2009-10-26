@@ -76,7 +76,7 @@ describe Session do
     before(:each) do
       @session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', :root_path => '/grid5000', :user => 'crohr', :password => 'password', :default_headers => {})
       @request = mock("restfully http request", :uri => mock("uri"), :headers => mock("headers"))
-      @request.should_receive(:add_headers).with("User-Agent"=>"Restfully/0.2.3", "Accept"=>"application/json")
+      @request.should_receive(:add_headers).with("User-Agent"=>"Restfully/#{restfully_version}", "Accept"=>"application/json")
       @response = mock("restfully http response", :status => 200, :headers => mock("headers"))
     end
     it "should create a new Request object and pass it to the connection" do
