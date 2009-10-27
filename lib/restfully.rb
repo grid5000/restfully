@@ -12,7 +12,7 @@ require 'restfully/collection'
 
 
 module Restfully
-  VERSION = "0.3.0"
+  VERSION = "0.3.1"
   class << self
     attr_accessor :adapter
   end
