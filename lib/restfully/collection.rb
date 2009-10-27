@@ -4,22 +4,28 @@ module Restfully
   # Resource and Collection classes should clearly include a common module to deal with links, attributes, associations and loading
   class Collection < DelegateClass(Array)
     
-    attr_reader :state, :raw, :uri, :session, :title, :offset, :total
+    attr_reader :state, :raw, :uri, :session, :title, :offset, :total, :items
     
     def initialize(uri, session, options = {})
       options = options.symbolize_keys
       @uri = uri
       @title = options[:title]
       @session = session
-      @state = :unloaded
-      @items = []
-      @indexes = {}
-      @associations = {}
-      @attributes = {}
+      reset
       super(@items)
     end
     
     def loaded?;    @state == :loaded;    end
+    
+    def reset
+      @last_request_hash = nil
+      @associations = {}
+      @attributes = {}
+      @indexes = {}
+      @items = []
+      @raw = nil
+      @state = :unloaded
+    end
     
     def method_missing(method, *args)
       load
@@ -28,7 +34,7 @@ module Restfully
         association.load(*args)
       elsif method.to_s =~ /^by_(.+)$/
         key = $1
-        @indexes[method.to_s] ||= @items.inject({}) { |accu, item| 
+        @indexes[method.to_s] ||= self.inject({}) { |accu, item| 
           accu[item.has_key?(key) ? item[key] : item.send(key.to_sym)] = item
           accu
         }
@@ -46,14 +52,14 @@ module Restfully
     
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = !!options.delete(:reload) || options.has_key?(:query)
-      if loaded? && !force_reload && options[:raw].nil?
+      force_reload = !!options.delete(:reload)
+      request_hash = [:get, options].hash
+      if loaded? && !force_reload && request_hash == @last_request_hash
         self
       else
+        reset
+        @last_request_hash = request_hash
         @raw = options[:raw]
-        @associations.clear
-        @attributes.clear
-        @items.clear
         if raw.nil? || force_reload
           response = session.get(uri, options)
           @raw = response.body
@@ -68,7 +74,7 @@ module Restfully
             value.each do |item|
               self_link = (item['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
               if self_link && self_link.valid?
-                @items << Resource.new(self_link.href, session).load(:raw => item)
+                self.push Resource.new(self_link.href, session).load(:raw => item)
               else
                 session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
               end
@@ -83,7 +89,7 @@ module Restfully
               @attributes.store(key, value)
             end
           end
-        end       
+        end
         @state = :loaded
         self
       end
@@ -109,9 +115,9 @@ module Restfully
             output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
           end
         end
-        unless @items.empty?        
+        unless self.empty?        
           output += "\n#{options[:space]}------------ ITEMS ------------"
-          @items.each do |value|
+          self.each do |value|
             output += "\n#{options[:space]}#{value.class.name}"
           end
         end

@@ -29,6 +29,7 @@ describe Collection do
     it "should not load if already loaded and no :reload" do
       collection = Collection.new("uri", mock("session"))
       collection.should_receive(:loaded?).and_return(true)
+      collection.instance_variable_set(:@last_request_hash, [:get, {}].hash)
       collection.load(:reload => false).should == collection
     end
     it "should load when :reload param is true [already loaded]" do
