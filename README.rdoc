@@ -5,7 +5,7 @@ An attempt at dynamically providing "clever" wrappers on top of RESTful APIs tha
 Alpha work.
 
 == Installation
-  $ gem install restfully
+  $ gem install restfully --source http://gemcutter.org
 
 == Usage
 === Command line
