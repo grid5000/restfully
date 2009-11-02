@@ -7,7 +7,7 @@ module Restfully
   class Resource < DelegateClass(Hash)
     
     undef :type if self.respond_to? :type
-    attr_reader :uri, :session, :state, :raw, :associations, :uid, :type
+    attr_reader :uri, :session, :state, :raw, :associations
 
     def initialize(uri, session, options = {})
       options = options.symbolize_keys
@@ -46,8 +46,8 @@ module Restfully
         (raw['links'] || []).each{|link| define_link(Link.new(link))}
         raw.each do |key, value|
           case key
-          when "uid", "type"
-            instance_variable_set "@#{key}".to_sym, value
+          # when "uid", "type"
+            # instance_variable_set "@#{key}".to_sym, value
           when 'links'  then  next
           else
             case value
@@ -69,25 +69,26 @@ module Restfully
       @associations.has_key?(method.to_s) || super(method, *args)
     end
     
-    def inspect(options = {:space => "\t"})
-      output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-      if loaded?
-        output += "\n#{options[:space]}------------ META ------------"
-        output += "\n#{options[:space]}@uri: #{uri.inspect}"
-        output += "\n#{options[:space]}@uid: #{uid.inspect}"
-        output += "\n#{options[:space]}@type: #{type.inspect}"
-        @associations.each do |title, assoc|
-          output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
-        end
-        unless @attributes.empty?
-          output += "\n#{options[:space]}------------ PROPERTIES ------------"
-          @attributes.each do |key, value|
-            output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
-          end
-        end
-      end
-      output += ">"
-    end    
+    # Removed: use `y resource` to get pretty output
+    # def inspect(options = {:space => "\t"})
+    #   output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+    #   if loaded?
+    #     output += "\n#{options[:space]}------------ META ------------"
+    #     output += "\n#{options[:space]}@uri: #{uri.inspect}"
+    #     output += "\n#{options[:space]}@uid: #{uid.inspect}"
+    #     output += "\n#{options[:space]}@type: #{type.inspect}"
+    #     @associations.each do |title, assoc|
+    #       output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
+    #     end
+    #     unless @attributes.empty?
+    #       output += "\n#{options[:space]}------------ PROPERTIES ------------"
+    #       @attributes.each do |key, value|
+    #         output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
+    #       end
+    #     end
+    #   end
+    #   output += ">"
+    # end    
     
     protected
     def define_link(link)

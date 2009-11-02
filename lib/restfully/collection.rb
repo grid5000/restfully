@@ -27,6 +27,14 @@ module Restfully
       @state = :unloaded
     end
     
+    def [](key)
+      if key.is_a? Symbol
+        by_uid(key.to_s)
+      else
+        super(key)
+      end
+    end
+    
     def method_missing(method, *args)
       load
       if association = @associations[method.to_s]
@@ -99,31 +107,32 @@ module Restfully
       @associations.has_key?(method.to_s) || super(method, *args)
     end
     
-    def inspect(options = {:space => "\t"})
-      output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-      if loaded?
-        output += "\n#{options[:space]}------------ META ------------"
-        output += "\n#{options[:space]}@uri: #{uri.inspect}"
-        output += "\n#{options[:space]}@offset: #{offset.inspect}"
-        output += "\n#{options[:space]}@total: #{total.inspect}"
-        @associations.each do |title, assoc|
-          output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
-        end
-        unless @attributes.empty?
-          output += "\n#{options[:space]}------------ PROPERTIES ------------"
-          @attributes.each do |key, value|
-            output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
-          end
-        end
-        unless self.empty?        
-          output += "\n#{options[:space]}------------ ITEMS ------------"
-          self.each do |value|
-            output += "\n#{options[:space]}#{value.class.name}"
-          end
-        end
-      end
-      output += ">"
-    end
+    # Removed: use `y resource` to get pretty output
+    # def inspect(options = {:space => "\t"})
+    #   output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+    #   if loaded?
+    #     output += "\n#{options[:space]}------------ META ------------"
+    #     output += "\n#{options[:space]}@uri: #{uri.inspect}"
+    #     output += "\n#{options[:space]}@offset: #{offset.inspect}"
+    #     output += "\n#{options[:space]}@total: #{total.inspect}"
+    #     @associations.each do |title, assoc|
+    #       output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
+    #     end
+    #     unless @attributes.empty?
+    #       output += "\n#{options[:space]}------------ PROPERTIES ------------"
+    #       @attributes.each do |key, value|
+    #         output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
+    #       end
+    #     end
+    #     unless self.empty?        
+    #       output += "\n#{options[:space]}------------ ITEMS ------------"
+    #       self.each do |value|
+    #         output += "\n#{options[:space]}#{value.class.name}"
+    #       end
+    #     end
+    #   end
+    #   output += ">"
+    # end
     
     protected
     def define_link(link)

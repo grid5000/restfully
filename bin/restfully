@@ -6,7 +6,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'restfully'
 require 'optparse'
 require 'logger'
-require 'pp'
 require 'yaml'
 
 

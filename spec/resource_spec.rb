@@ -122,7 +122,7 @@ describe Resource do
       resource.load
       resource['whatever'].should == 'whatever'
       resource.uri.should == 'uri'
-      resource.uid.should == 'rennes'
+      resource["uid"].should == 'rennes'
       resource['an_array'].should be_a(SpecialArray)
       resource['an_array'].should == [1,2,3]
       lambda{resource.clusters}.should raise_error(NoMethodError)

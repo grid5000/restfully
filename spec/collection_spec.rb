@@ -8,7 +8,7 @@ describe Collection do
     end
     it "should be enumerable" do
       @collection.length.should == 9
-      @collection.map{|site| site.uid}.sort.should == ["bordeaux", "grenoble", "lille", "lyon", "nancy", "orsay", "rennes", "sophia", "toulouse"]
+      @collection.map{|site| site["uid"]}.sort.should == ["bordeaux", "grenoble", "lille", "lyon", "nancy", "orsay", "rennes", "sophia", "toulouse"]
     end
   
     it "should have a :total method" do
@@ -89,8 +89,8 @@ describe Collection do
       collection.load
       collection.should be_loaded
       collection.uri.should == "uri"
-      collection.by_uid('rennes').uid.should == 'rennes'
-      collection.by_uid('rennes').type.should == 'site'
+      collection.by_uid('rennes')["uid"].should == 'rennes'
+      collection.by_uid('rennes')["type"].should == 'site'
       collection.by_uid.keys.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']
       collection.by_uid('rennes', 'bordeaux').length.should == 2
     end 
