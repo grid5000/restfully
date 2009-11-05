@@ -1,3 +1,4 @@
+require 'backports'
 require 'restfully/error'
 require 'restfully/parsing'
 require 'restfully/http'

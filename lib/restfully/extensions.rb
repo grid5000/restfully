@@ -4,23 +4,6 @@ end unless defined?(BasicObject)
 
 # monkey patching:
 class Hash
-  # Taken from ActiveSupport
-  def symbolize_keys
-    inject({}) do |options, (key, value)|
-      options[(key.to_sym rescue key) || key] = value
-      options
-    end
-  end
-
-  # Taken from ActiveSupport  
-  def stringify_keys
-    inject({}) do |options, (key, value)|
-      options[key.to_s] = value
-      options
-    end
-  end
-
-
   # This is by no means the standard way to transform ruby objects into query parameters
   # but it is targeted at our own needs
   def to_params

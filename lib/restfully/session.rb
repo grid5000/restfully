@@ -31,10 +31,11 @@ module Restfully
     end
     
     # TODO: inspect response headers to determine which methods are available
+    # returns an HTTP::Response object
     def get(path, options = {})
       path = path.to_s
       options = options.symbolize_keys
-      uri = base_uri
+      uri = URI.parse base_uri.to_s # cloning is not enough... so we're better off creating the URI object from scratch
       path_uri = URI.parse(path)
       # if the given path is a complete URL, forget the base_uri, else append the path to the base_uri
       unless path_uri.scheme.nil?
@@ -43,7 +44,7 @@ module Restfully
         uri.path << path
       end
       request = HTTP::Request.new(uri, :headers => options.delete(:headers) || {}, :query => options.delete(:query) || {})
-      request.add_headers(@default_headers) unless @default_headers.empty?
+      request.add_headers(default_headers) unless default_headers.empty?
       logger.info "GET #{request.uri}, #{request.headers.inspect}"
       response = connection.get(request)
       logger.debug "Response to GET #{request.uri}: #{response.headers.inspect}"

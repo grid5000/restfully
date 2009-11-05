@@ -1,19 +1,24 @@
 #!/usr/bin/env ruby
 # The command line Restfully client
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib' unless $LOAD_PATH.include? File.dirname(__FILE__) + '/../lib'
 
 require 'restfully'
 require 'optparse'
 require 'logger'
 require 'yaml'
 
-
 logger = Logger.new(STDOUT)
 logger.level = Logger::WARN
 @options = {:logger => logger}
 option_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: restfully base_uri [root_path] [options]"
+  opts.banner = <<BANNER
+* Description
+  Restfully #{Restfully::VERSION} - Access REST APIs effortlessly
+* Usage
+  restfully [base_uri] [root_path] [options]
+* Options
+BANNER
 
   opts.on("-u=", "--username=", "Sets the username") do |u|
     @options[:username] = u
@@ -59,44 +64,4 @@ require 'irb'
 require 'irb/completion'
 ARGV.clear
 IRB.start
-exit!  
-
-
-# if (config_filename = @options.delete('configuration_file')) && File.exists?(File.expand_path(config_filename))
-#   config = YAML.load_file(File.expand_path(config_filename))
-#   @base_uri = config.delete('base_uri') || @base_uri
-#   @root_path = config.delete('root_path') || @root_path
-#   @options.merge!(config)
-# end
-# 
-# unless @base_uri
-#   $stderr.puts option_parser.help
-#   exit(-1)
-# else
-#   if (log_file=@options.delete('log'))
-#     @logger = Logger.new(File.expand_path(log_file))
-#   else
-#     @logger = Logger.new(STDOUT)
-#   end
-#   if @options.delete('verbose')
-#     @logger.level = Logger::DEBUG
-#   else
-#     @logger.level = Logger::WARN
-#   end
-# 
-#   def session
-#     @session ||= Restfully::Session.new(@base_uri, @options.merge('root_path' => @root_path, 'logger' => @logger))
-#   end
-#   def root 
-#     @root ||= Restfully::Resource.new(session.root_path, session).load
-#   end
-#   
-#   root # preloads
-#   
-#   require 'irb'
-#   require 'irb/completion'
-#   
-#   ARGV.clear
-#   IRB.start
-#   exit!
-# end
+exit!

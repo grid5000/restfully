@@ -86,7 +86,7 @@ describe Session do
       @session.connection.should_receive(:get).with(@request).and_return(@response)
       @session.get('/some/path', :headers => {:cache_control => 'max-age=0'}).should == @response
     end
-    it "should not use the base_url if the path is a complete url" do
+    it "should not use the base_uri if the path is a complete url" do
       Restfully::HTTP::Request.should_receive(:new).with(URI.parse('http://somehost.com/some/path'), :headers => {}, :query => {}).and_return(@request)
       @session.connection.should_receive(:get).with(@request).and_return(@response)
       @session.get('http://somehost.com/some/path').should == @response
