@@ -1,5 +1,4 @@
 require File.expand_path(File.dirname(__FILE__)+'/spec_helper')
-
 restfully_version = File.read(File.dirname(__FILE__)+'/../VERSION').strip
 
 include Restfully
@@ -13,7 +12,10 @@ describe Session do
     it "should have a base_uri reader" do
       session = Session.new(:base_uri => 'https://api.grid5000.fr')
       session.should_not respond_to(:base_uri=)
-      session.base_uri.should == 'https://api.grid5000.fr'
+      session.base_uri.should == URI.parse('https://api.grid5000.fr')
+    end
+    it "should raise an ArgumentError if the base_uri is not a valid URI" do
+      lambda{Session.new(:base_uri => '/home/crohr/whatever')}.should raise_error(ArgumentError, /\/home\/crohr\/whatever is not a valid URI/)
     end
     it "should have a root_path reader that returns the path of the root resource, relative to the base URI" do
       session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', 'root_path' => '/grid5000')

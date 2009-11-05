@@ -19,12 +19,13 @@ module Restfully
         config = YAML.load_file(File.expand_path(config_filename)).symbolize_keys
         options.merge!(config)
       end  
-      @base_uri               =   options.delete(:base_uri) || "http://localhost:8888"
+      @base_uri               =   URI.parse(options.delete(:base_uri) || "http://localhost:8888") rescue nil
+      raise ArgumentError.new("#{@base_uri} is not a valid URI") if @base_uri.nil? || @base_uri.scheme !~ /^http/i
       @root_path              =   options.delete(:root_path) || "/"
       @logger                 =   options.delete(:logger) || NullLogger.new
       user_default_headers    =   sanitize_http_headers(options.delete(:default_headers) || {})
       @default_headers        =   {'User-Agent' => "Restfully/#{Restfully::VERSION}", 'Accept' => 'application/json'}.merge(user_default_headers)
-      @connection = Restfully.adapter.new(@base_uri, options.merge(:logger => @logger))
+      @connection = Restfully.adapter.new(base_uri.to_s, options.merge(:logger => logger))
       @root = Resource.new(URI.parse(@root_path), self)
       yield @root.load, self if block_given?
     end
@@ -33,9 +34,9 @@ module Restfully
     def get(path, options = {})
       path = path.to_s
       options = options.symbolize_keys
-      uri = URI.parse(base_uri)
+      uri = base_uri
       path_uri = URI.parse(path)
-      # if the given path is complete URL, forget the base_uri, else append the path to the base_uri
+      # if the given path is a complete URL, forget the base_uri, else append the path to the base_uri
       unless path_uri.scheme.nil?
         uri = path_uri
       else  
