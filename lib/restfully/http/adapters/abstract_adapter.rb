@@ -21,7 +21,7 @@ module Restfully
           raise NotImplementedError, "PUT is not supported by your adapter."
         end
         def delete(request)
-          raise NotImplementedError, "DELETEis not supported by your adapter."
+          raise NotImplementedError, "DELETE is not supported by your adapter."
         end
       end
       

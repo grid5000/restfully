@@ -1,111 +1,164 @@
-require 'delegate'
-
 module Restfully
   
-  # Suppose that the load method has been called on the resource before trying to access its attributes or associations
-  
-  class Resource < DelegateClass(Hash)
+  # This class represents a Resource, which can be accessed and manipulated via HTTP methods.
+  # 
+  # The <tt>#load</tt> method must have been called on the resource before trying to access its attributes or links
+  # 
+  class Resource
     
-    undef :type if self.respond_to? :type
-    attr_reader :uri, :session, :state, :raw, :associations
-
+    attr_reader :uri, :session, :links, :title, :properties, :executed_requests
+    
+    # == Description
+    # Creates a new Resource.
+    # <tt>uri</tt>:: a URI object representing the URI of the resource (complete, absolute or relative URI)
+    # <tt>session</tt>:: an instantiated Restfully::Session object
+    # <tt>options</tt>:: a hash of options (see below)
+    # == Options
+    # <tt>:title</tt>:: an optional title for the resource
     def initialize(uri, session, options = {})
       options = options.symbolize_keys
       @uri = uri
       @session = session
-      @state = :unloaded
-      @attributes = {}
-      super(@attributes)
-      @associations = {}
+      @title = options[:title]
+      reset
+    end    
+    
+    # Reset all the inner objects of the resource
+    def reset
+      @executed_requests = Hash.new
+      @links = Hash.new
+      @properties = Hash.new
     end
     
-    def loaded?;    @state == :loaded;    end
+    # == Description
+    # Returns the value corresponding to the specified key, among the list of resource properties
+    # == Usage
+    #   resource["uid"]
+    # => "rennes"
+    def [](key)
+      @properties[key]
+    end
     
     def method_missing(method, *args)
-      if association = @associations[method.to_s]
-        session.logger.debug "Loading association #{method}, args=#{args.inspect}"
-        association.load(*args)
+      if link = @links[method.to_s]
+        session.logger.debug "Loading link #{method}, args=#{args.inspect}"
+        link.load(*args)
       else
         super(method, *args)
       end
     end
-  
+    
+    # == Description
+    # Executes a GET request on the resource, and populate the list of its properties and links
+    # <tt>options</tt>:: list of options to pass to the request (see below)
+    # == Options
+    # <tt>:reload</tt>:: if set to true, a GET request will be triggered even if the resource has already been loaded [default=false]
+    # <tt>:query</tt>:: a hash of query parameters to pass along the request. E.g. : resource.load(:query => {:from => (Time.now-3600).to_i, :to => Time.now.to_i})
+    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. E.g. : resource.load(:headers => {'Accept' => 'application/json'})
+    # <tt>:body</tt>:: if you already have the unserialized response body of this resource, you may pass it so that the GET request is not triggered.
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = !!options.delete(:reload) || options.has_key?(:query)
-      if loaded? && !force_reload && options[:raw].nil?
+      force_reload = !!options.delete(:reload)
+      if !force_reload && (request = executed_requests['GET']) && request['options'] == options && request['body']
         self
       else  
-        @associations.clear
-        @attributes.clear
-        @raw = options[:raw]
-        if raw.nil? || force_reload
-          response = session.get(uri, options) 
-          @raw = response.body
+        reset
+        executed_requests['GET'] = {
+          'options' => options, 
+          'body' => options[:body] || session.get(uri, options).body
+        }
+        executed_requests['GET']['body'].each do |key, value|
+          populate_object(key, value)
         end
-        (raw['links'] || []).each{|link| define_link(Link.new(link))}
-        raw.each do |key, value|
-          case key
-          # when "uid", "type"
-            # instance_variable_set "@#{key}".to_sym, value
-          when 'links'  then  next
-          else
-            case value
-            when Hash
-              @attributes.store(key, SpecialHash.new.replace(value)) unless @associations.has_key?(key)
-            when Array
-              @attributes.store(key, SpecialArray.new(value))
-            else
-              @attributes.store(key, value)
-            end
-          end
-        end
-        @state = :loaded
         self
       end
     end
-    
-    def respond_to?(method, *args)
-      @associations.has_key?(method.to_s) || super(method, *args)
+  
+    def submit(payload, options = {})
+      options = options.symbolize_keys
+      raise NotImplementedError, "The POST method is not allowed for this resource." unless http_methods.include?('POST')
+      raise ArgumentError, "You must pass a payload string" unless payload.kind_of?(String)
+      session.post(payload, options)
     end
     
-    # Removed: use `y resource` to get pretty output
-    # def inspect(options = {:space => "\t"})
-    #   output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-    #   if loaded?
-    #     output += "\n#{options[:space]}------------ META ------------"
-    #     output += "\n#{options[:space]}@uri: #{uri.inspect}"
-    #     output += "\n#{options[:space]}@uid: #{uid.inspect}"
-    #     output += "\n#{options[:space]}@type: #{type.inspect}"
-    #     @associations.each do |title, assoc|
-    #       output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
-    #     end
-    #     unless @attributes.empty?
-    #       output += "\n#{options[:space]}------------ PROPERTIES ------------"
-    #       @attributes.each do |key, value|
-    #         output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
-    #       end
-    #     end
-    #   end
-    #   output += ">"
-    # end    
+    # == Description
+    # Returns the list of allowed HTTP methods on the resource
+    # == Usage
+    #   resource.http_methods    
+    # => ['GET', 'POST']
+    # 
+    def http_methods
+      if executed_requests['HEAD'].nil?
+        response = session.head(uri)
+        executed_requests['HEAD'] = {'headers' => response.headers}
+      end
+      (executed_requests['HEAD']['headers']['Allow'] || "GET").split(/,\s*/)
+    end
+    
+    def respond_to?(method, *args)
+      @links.has_key?(method.to_s) || super(method, *args)
+    end
+    
+    def inspect(*args)
+      @properties.inspect(*args)
+    end
+    
+    def pretty_print(pp)
+      pp.text "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+      pp.nest 2 do
+        if @links.length > 0
+          pp.breakable
+          pp.text "LINKS"
+          pp.nest 2 do
+            @links.to_a.each_with_index do |(key, value), i|
+              pp.breakable
+              pp.text "@#{key}=#<#{value.class}:0x#{value.object_id.to_s(16)}>"
+              pp.text "," if i < @links.length-1
+            end
+          end  
+        end
+        if @properties.length > 0
+          pp.breakable
+          pp.text "PROPERTIES"
+          pp.nest 2 do
+            @properties.to_a.each_with_index do |(key, value), i|
+              pp.breakable
+              pp.text "#{key.inspect}=>"
+              value.pretty_print(pp)
+              pp.text "," if i < @properties.length-1
+            end
+          end
+        end
+        yield pp if block_given?
+      end
+      pp.text ">"
+    end   
     
     protected
+    def populate_object(key, value)
+      case key
+      when "links"
+        value.each{|link| define_link(Link.new(link))}
+      else
+        case value
+        when Hash
+          @properties.store(key, SpecialHash.new.replace(value)) unless @links.has_key?(key)
+        when Array
+          @properties.store(key, SpecialArray.new(value))
+        else
+          @properties.store(key, value)
+        end
+      end
+    end
     def define_link(link)
       if link.valid?
         case link.rel
         when 'parent'
-          @associations['parent'] = Resource.new(link.href, session)
+          @links['parent'] = Resource.new(link.href, session)
         when 'collection'
-          raw_included = link.resolved? ? raw[link.title] : nil
-          @associations[link.title] = Collection.new(link.href, session, 
-            :raw => raw_included,
-            :title => link.title)
+          @links[link.title] = Collection.new(link.href, session, :title => link.title)
         when 'member'
-          raw_included = link.resolved? ? raw[link.title] : nil
-          @associations[link.title] = Resource.new(link.href, session, 
-            :title => link.title,
-            :raw => raw_included)
+          @links[link.title] = Resource.new(link.href, session, :title => link.title)
         when 'self'
           # we do nothing
         end
@@ -113,6 +166,7 @@ module Restfully
         session.logger.warn link.errors.join("\n")
       end
     end
+
     
   end # class Resource
 end # module Restfully

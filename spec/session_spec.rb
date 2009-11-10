@@ -3,6 +3,11 @@ restfully_version = File.read(File.dirname(__FILE__)+'/../VERSION').strip
 
 include Restfully
 describe Session do
+  before do
+    @session = Session.new(:base_uri => 'https://api.grid5000.fr/sid/', :root_path => '/grid5000', :user => 'crohr', :password => 'password', :default_headers => {})
+    @request = mock("restfully http request", :uri => mock("uri"), :headers => mock("headers"), :body => nil)
+    @response = mock("restfully http response", :status => 200, :headers => mock("headers"))
+  end
   describe "initialization" do
     it "should have a logger reader" do
       session = Session.new(:base_uri => 'https://api.grid5000.fr')
@@ -22,18 +27,20 @@ describe Session do
       session.should_not respond_to(:root_path=)
       session.root_path.should == '/grid5000'
     end
-    it "should set the default root_path to /" do
-      session = Session.new(:base_uri => 'https://api.grid5000.fr')
-      session.root_path.should == '/'
+    it "should set the default root_path to ''" do
+      session = Session.new(:base_uri => 'https://api.grid5000.fr/sid/')
+      session.root_path.should == ''
     end
     it "should log to NullLogger by default" do
-      NullLogger.should_receive(:new).and_return(logger = mock(NullLogger, :debug => Proc.new{}))
+      NullLogger.should_receive(:new).and_return(logger = mock(NullLogger, :debug => Proc.new{}, :level => Logger::WARN))
+      logger.should_receive(:level=).with(Logger::WARN)
       session = Session.new(:base_uri => 'https://api.grid5000.fr')
       session.logger.should == logger
     end
     it "should use the given logger" do
       logger = mock("custom logger", :debug => Proc.new{})
-      session = Session.new(:base_uri => 'https://api.grid5000.fr', 'logger' => logger)
+      logger.should_receive(:level=).with(Logger::DEBUG)
+      session = Session.new(:base_uri => 'https://api.grid5000.fr', 'logger' => logger, :verbose => true)
       session.logger.should == logger
     end
     it "should set a default Accept HTTP header if no default headers are given" do
@@ -51,7 +58,8 @@ describe Session do
       }
     end
     it "should correctly initialize the connection" do
-      mock_logger = mock("logger", :debug => Proc.new{})
+      mock_logger = mock("logger", :debug => Proc.new{}, :level => Logger::DEBUG)
+      mock_logger.stub!(:level=)
       Restfully.adapter.should_receive(:new).with('https://api.grid5000.fr/sid', :user => 'crohr', :password => 'password', :logger => mock_logger).and_return(connection = mock("restfully connection"))
       session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', 'root_path' => '/grid5000', :user => 'crohr', :password => 'password', :logger => mock_logger)
       session.connection.should == connection
@@ -61,7 +69,6 @@ describe Session do
       session = Session.new(:base_uri => 'https://api.grid5000.fr', 'root_path' => '/grid5000', :user => 'crohr', :password => 'password')
       session.root.should be_a Restfully::Resource
       session.root.uri.to_s.should == '/grid5000'
-      session.root.should_not be_loaded
     end
   
     it "should yield the loaded root resource and the session object" do
@@ -74,37 +81,72 @@ describe Session do
     end
   end
   
-  describe "Getting resources" do
-    before(:each) do
-      @session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', :root_path => '/grid5000', :user => 'crohr', :password => 'password', :default_headers => {})
-      @request = mock("restfully http request", :uri => mock("uri"), :headers => mock("headers"))
+  describe "Transmitting requests" do
+    before do
       @request.should_receive(:add_headers).with("User-Agent"=>"Restfully/#{restfully_version}", "Accept"=>"application/json")
-      @response = mock("restfully http response", :status => 200, :headers => mock("headers"))
     end
-    it "should create a new Request object and pass it to the connection" do
-      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('https://api.grid5000.fr/sid/some/path'), :headers => {:cache_control => 'max-age=0'}, :query => {}).and_return(@request)
+    it "should send a head" do
+      @session.connection.should_receive(:head).with(@request).and_return(@response)
+      @session.should_receive(:deal_with_eventual_errors).with(@response, @request).and_return(@response)
+      @session.send(:transmit, :head, @request).should == @response
+    end
+    it "should send a get" do
       @session.connection.should_receive(:get).with(@request).and_return(@response)
-      @session.get('/some/path', :headers => {:cache_control => 'max-age=0'}).should == @response
+      @session.should_receive(:deal_with_eventual_errors).with(@response, @request).and_return(@response)
+      @session.send(:transmit, :get, @request).should == @response
     end
-    it "should not use the base_uri if the path is a complete url" do
-      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('http://somehost.com/some/path'), :headers => {}, :query => {}).and_return(@request)
-      @session.connection.should_receive(:get).with(@request).and_return(@response)
-      @session.get('http://somehost.com/some/path').should == @response
+    it "should send a post" do
+      @session.connection.should_receive(:post).with(@request).and_return(@response)
+      @session.should_receive(:deal_with_eventual_errors).with(@response, @request).and_return(@response)
+      @session.send(:transmit, :post, @request).should == @response
     end
-    it "should add the session's default headers to the request's headers" do
-      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('http://somehost.com/some/path'), :headers => {}, :query => {}).and_return(@request)
-      @session.connection.should_receive(:get).with(@request).and_return(@response)
-      @session.get('http://somehost.com/some/path').should == @response
+  end
+  
+  describe "URI construction" do
+    it "should not use the base_uri if the given path is a complete URI" do
+      @session.uri_for('http://somehost.com/some/path').should == URI.parse('http://somehost.com/some/path')
     end
+    it "should combine the base_uri with the given path (absolute) if it is not a complete URI" do
+      @session.uri_for('/some/path').should == URI.parse('https://api.grid5000.fr/some/path')
+    end
+    it "should combine the base_uri with the given path (relative) if it is not a complete URI" do
+      @session.uri_for('some/path').should == URI.parse('https://api.grid5000.fr/sid/some/path')
+    end
+  end
+  
+  describe "Dealing with errors" do    
     it "should raise a Restfully::HTTP::ClientError error on 4xx errors" do
-      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('http://somehost.com/some/path'), :headers => {}, :query => {}).and_return(@request)
-      @session.connection.should_receive(:get).with(@request).and_return(response = mock("404 response", :status => 404, :body => {'code' => 404, 'message' => 'The requested resource cannot be found.', 'title' => 'Not Found'}, :headers => mock("headers")))
-      lambda{ @session.get('http://somehost.com/some/path') }.should raise_error(Restfully::HTTP::ClientError, "404 Not Found. The requested resource cannot be found.")
+      response = mock("404 response", :status => 404, :body => {'code' => 404, 'message' => 'The requested resource cannot be found.', 'title' => 'Not Found'}, :headers => mock("headers"))
+      lambda{ @session.send(:deal_with_eventual_errors, response, @request) }.should raise_error(Restfully::HTTP::ClientError, "404 Not Found. The requested resource cannot be found.")
     end
-    it "should raise a Restfully::HTTP::ServerError error on 4xx errors" do
-      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('http://somehost.com/some/path'), :headers => {}, :query => {}).and_return(@request)
-      @session.connection.should_receive(:get).with(@request).and_return(response = mock("404 response", :status => 500, :body => {'code' => 500, 'message' => 'Something went wrong.', 'title' => 'Internal Server Error'}, :headers => mock("headers")))
-      lambda{ @session.get('http://somehost.com/some/path') }.should raise_error(Restfully::HTTP::ServerError, "500 Internal Server Error. Something went wrong.")
+    
+    it "should raise a Restfully::HTTP::ServerError error on 5xx errors" do
+      response = mock("500 response", :status => 500, :body => {'code' => 500, 'message' => 'Something went wrong.', 'title' => 'Internal Server Error'}, :headers => mock("headers"))
+      lambda{ @session.send(:deal_with_eventual_errors, response, @request) }.should raise_error(Restfully::HTTP::ServerError, "500 Internal Server Error. Something went wrong.")
+    end
+  end
+  
+  describe "HEADing resources" do
+    it "should create a new Request object and transmit it" do
+      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('https://api.grid5000.fr/sid/some/path'), :headers => nil, :query => nil).and_return(@request)
+      @session.should_receive(:transmit).with(:head, @request)
+      @session.head('some/path')
+    end
+  end
+  
+  describe "GETting resources" do
+    it "should create a new Request object and transmit it" do
+      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('https://api.grid5000.fr/sid/some/path'), :headers => {:cache_control => 'max-age=0'}, :query => nil).and_return(@request)
+      @session.should_receive(:transmit).with(:get, @request)
+      @session.get('some/path', 'headers' => {:cache_control => 'max-age=0'})
+    end
+  end
+  
+  describe "POSTing payload" do
+    it "should create a new Request object with a body, and transmit it" do
+      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('https://api.grid5000.fr/sid/some/path'), :body => '{"a":"b"}', :headers => {:content_type => 'application/json'}, :query => nil).and_return(@request)
+      @session.should_receive(:transmit).with(:post, @request)
+      @session.post('some/path', {"a" => "b"}.to_json, 'headers' => {:content_type => 'application/json'})
     end
   end
   

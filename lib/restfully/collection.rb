@@ -1,161 +1,107 @@
-require 'delegate'
 
 module Restfully
   # Resource and Collection classes should clearly include a common module to deal with links, attributes, associations and loading
-  class Collection < DelegateClass(Array)
-    
-    attr_reader :state, :raw, :uri, :session, :title, :offset, :total, :items
+  class Collection < Resource
+    include Enumerable
+    attr_reader :items
     
     def initialize(uri, session, options = {})
-      options = options.symbolize_keys
-      @uri = uri
-      @title = options[:title]
-      @session = session
-      reset
-      super(@items)
+      super(uri, session, options)
     end
-    
-    def loaded?;    @state == :loaded;    end
-    
+
     def reset
-      @last_request_hash = nil
-      @associations = {}
-      @attributes = {}
-      @indexes = {}
-      @items = []
-      @raw = nil
-      @state = :unloaded
+      super
+      @items = Array.new
+      @indexes = Hash.new
     end
     
+    # find the first or all items whose uid is :uid (actually, there should always be only one item per uid...)
+    # == Usage
+    #   find("whatever", :all)
+    # => [item1, item2]
+    #   find("doesntexist", :all)
+    # => []
+    #   find("whatever")
+    # => item1
+    #   find("doesnotexist")
+    # => nil
+    def find(uid, scope=:first)
+      @indexes[:by_uid] ||= @items.group_by{|i| i['uid']}
+      found_items = (@indexes[:by_uid][uid.to_s] || [])
+      if scope == :first
+        found_items.first
+      else
+        found_items
+      end
+    end
+    
+    # if key is a Numeric, it returns the item at the corresponding index in the collection 
+    # if key is a Symbol, it returns the item in the collection having uid == key.to_s
+    # else, returns the value corresponding to that key in the attributes hash
     def [](key)
-      if key.is_a? Symbol
-        by_uid(key.to_s)
+      if key.kind_of? Numeric
+        @items[key]
+      elsif key.kind_of? Symbol
+        find(key, :first)
       else
         super(key)
       end
     end
     
-    def method_missing(method, *args)
-      load
-      if association = @associations[method.to_s]
-        session.logger.debug "Loading association #{method}, args=#{args.inspect}"
-        association.load(*args)
-      elsif method.to_s =~ /^by_(.+)$/
-        key = $1
-        @indexes[method.to_s] ||= self.inject({}) { |accu, item| 
-          accu[item.has_key?(key) ? item[key] : item.send(key.to_sym)] = item
-          accu
-        }
-        if args.empty?
-          @indexes[method.to_s]
-        elsif args.length == 1
-          @indexes[method.to_s][args.first]
-        else
-          @indexes[method.to_s].values_at(*args)
+    # iterate over the collection of items
+    def each(*args, &block)
+      @items.each(*args, &block)
+    end
+
+    def populate_object(key, value)
+      case key
+      when "links"
+        value.each{|link| define_link(Link.new(link))}
+      when "items"
+        value.each do |item|
+          self_link = (item['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
+          if self_link && self_link.valid?
+            @items.push Resource.new(self_link.href, session).load(:body => item)
+          else
+            session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
+          end
         end
       else
-        super(method, *args)
+        case value
+        when Hash
+          @properties.store(key, SpecialHash.new.replace(value)) unless @links.has_key?(key)
+        when Array
+          @properties.store(key, SpecialArray.new(value))
+        else
+          @properties.store(key, value)
+        end
       end
+    end    
+
+    def inspect
+      @items.inspect
     end
     
-    def load(options = {})
-      options = options.symbolize_keys
-      force_reload = !!options.delete(:reload)
-      request_hash = [:get, options].hash
-      if loaded? && !force_reload && request_hash == @last_request_hash
-        self
-      else
-        reset
-        @last_request_hash = request_hash
-        @raw = options[:raw]
-        if raw.nil? || force_reload
-          response = session.get(uri, options)
-          @raw = response.body
-        end
-        raw.each do |key, value|
-          case key
-          when "total", "offset"
-            instance_variable_set("@#{key}".to_sym, value)
-          when "links"
-            value.each{|link| define_link(Link.new(link))}
-          when "items"
-            value.each do |item|
-              self_link = (item['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
-              if self_link && self_link.valid?
-                self.push Resource.new(self_link.href, session).load(:raw => item)
-              else
-                session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
-              end
-            end
-          else
-            case value
-            when Hash
-              @attributes.store(key, SpecialHash.new.replace(value)) unless @associations.has_key?(key)
-            when Array
-              @attributes.store(key, SpecialArray.new(value))
-            else
-              @attributes.store(key, value)
+    def length
+      @items.length
+    end
+    
+    def pretty_print(pp)
+      super(pp) do |pp|
+        if @items.length > 0
+          pp.breakable
+          pp.text "ITEMS (#{self["offset"]}..#{self["offset"]+@items.length})/#{self["total"]}"
+          pp.nest 2 do
+            @items.each_with_index do |item, i|
+              pp.breakable
+              pp.text "#<#{item.class}:0x#{item.object_id.to_s(16)} uid=#{item['uid'].inspect}>"            
+              pp.text "," if i < @items.length-1
             end
           end
         end
-        @state = :loaded
-        self
       end
     end
     
-    def respond_to?(method, *args)
-      @associations.has_key?(method.to_s) || super(method, *args)
-    end
-    
-    # Removed: use `y resource` to get pretty output
-    # def inspect(options = {:space => "\t"})
-    #   output = "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-    #   if loaded?
-    #     output += "\n#{options[:space]}------------ META ------------"
-    #     output += "\n#{options[:space]}@uri: #{uri.inspect}"
-    #     output += "\n#{options[:space]}@offset: #{offset.inspect}"
-    #     output += "\n#{options[:space]}@total: #{total.inspect}"
-    #     @associations.each do |title, assoc|
-    #       output += "\n#{options[:space]}@#{title}: #{assoc.class.name}"
-    #     end
-    #     unless @attributes.empty?
-    #       output += "\n#{options[:space]}------------ PROPERTIES ------------"
-    #       @attributes.each do |key, value|
-    #         output += "\n#{options[:space]}#{key.inspect} => #{value.inspect}"
-    #       end
-    #     end
-    #     unless self.empty?        
-    #       output += "\n#{options[:space]}------------ ITEMS ------------"
-    #       self.each do |value|
-    #         output += "\n#{options[:space]}#{value.class.name}"
-    #       end
-    #     end
-    #   end
-    #   output += ">"
-    # end
-    
-    protected
-    def define_link(link)
-      if link.valid?
-        case link.rel
-        when 'parent'
-          @associations['parent'] = Resource.new(link.href, session)
-        when 'collection'
-          raw_included = link.resolved? ? raw[link.title] : nil
-          @associations[link.title] = Collection.new(link.href, session, 
-            :raw => raw_included,
-            :title => link.title)
-        when 'member'
-          raw_included = link.resolved? ? raw[link.title] : nil
-          @associations[link.title] = Resource.new(link.href, session, 
-            :title => link.title,
-            :raw => raw_included)
-        when 'self'
-          # we do nothing
-        end
-      else 
-        session.logger.warn link.errors.join("\n")
-      end
-    end
+    alias_method :size, :length
   end
 end

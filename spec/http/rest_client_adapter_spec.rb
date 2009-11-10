@@ -19,7 +19,7 @@ describe Restfully::HTTP::Adapters::RestClientAdapter do
   end
   it "should raise a not implemented error when trying to use functions not implemented yet" do
     adapter = Restfully::HTTP::Adapters::RestClientAdapter.new("https://api.grid5000.fr")
-    lambda{adapter.post(mock("restfully request"))}.should raise_error NotImplementedError, "POST is not supported by your adapter."
+    lambda{adapter.delete(mock("restfully request"))}.should raise_error NotImplementedError, "DELETE is not supported by your adapter."
   end
   it "should rescue any RestClient::Exception and correctly populate the response" do
     res = mock(Net::HTTPResponse, :code => 404, :body => '{"message":"whatever"}', :to_hash => {'Content-Type' => 'application/json;charset=utf-8', 'Content-Length' => 22}, :[] => '')
@@ -28,6 +28,7 @@ describe Restfully::HTTP::Adapters::RestClientAdapter do
     response = adapter.get(mock("request", :uri => "uri"))
     response.status.should == 404
     response.headers.should == {'Content-Type' => 'application/json;charset=utf-8', 'Content-Length' => 22}
-    response.body.should == {'message' => 'whatever'}
+    response.raw_body.should == '{"message":"whatever"}'
+    response.body.should == {"message"=>"whatever"}
   end
 end

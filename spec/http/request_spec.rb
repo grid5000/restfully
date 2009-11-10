@@ -4,16 +4,20 @@ describe Restfully::HTTP::Request do
   it "should correctly initialize the attributes" do
     request = Restfully::HTTP::Request.new(
       'https://api.grid5000.fr/sid/grid5000?q1=v1&q2=v2', 
-      :headers => {'accept' => 'application/json', :cache_control => 'max-age=0'}, 
-      :query => {'custom_param1' => [3, 4, 5, 6], 'custom_param2' => 'value_custom_param2'}
+      :headers => {'accept' => 'application/json', :cache_control => 'max-age=0', 'Content-Type' => 'application/json'}, 
+      :query => {'custom_param1' => [3, 4, 5, 6], 'custom_param2' => 'value_custom_param2'},
+      :body => {"key" => "value"}.to_json
     )
     request.uri.should be_a URI
     request.uri.to_s.should == 'https://api.grid5000.fr/sid/grid5000?q1=v1&q2=v2&custom_param1=3,4,5,6&custom_param2=value_custom_param2'
     request.uri.query.should == "q1=v1&q2=v2&custom_param1=3,4,5,6&custom_param2=value_custom_param2"
     request.headers.should == {
+      "Content-Type"=>"application/json", 
       'Accept' => 'application/json',
       'Cache-Control' => 'max-age=0'
     }
+    request.body.should == {"key" => "value"}
+    request.raw_body.should == "{\"key\":\"value\"}"
     request.retries.should == 0
   end
   

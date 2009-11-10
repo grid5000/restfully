@@ -7,16 +7,6 @@ describe Resource do
     @logger = Logger.new(STDOUT)
   end
   
-  it "should have all the methods of a hash" do
-    resource = Resource.new("uri", session=mock('session'))
-    resource.size.should == 0
-    resource['whatever'] = 'thing'
-    resource.size.should == 1
-    resource.should == {'whatever' => 'thing'}
-    resource.should respond_to(:each)
-    resource.should respond_to(:length)
-  end
-  
   describe "accessors" do
     it "should have a reader on the session" do
       resource = Resource.new("uri", session=mock("session"))
@@ -27,16 +17,6 @@ describe Resource do
       resource = Resource.new("uri", session=mock("session"))
       resource.should_not respond_to(:uri=)
       resource.uri.should == "uri"
-    end
-    it "should have a reader on the raw property" do
-      resource = Resource.new("uri", session=mock("session"))
-      resource.should_not respond_to(:raw=)
-      resource.load('raw' => {:a => :b}).raw.should == {:a => :b}
-    end
-    it "should have a reader on the state property" do
-      resource = Resource.new("uri", session=mock("session"))
-      resource.should_not respond_to(:state=)
-      resource.state.should == :unloaded
     end
   end
   
@@ -85,34 +65,28 @@ describe Resource do
             'model' => 'XYZ1b'
           }
         }
-      }.to_json
-      @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw)
+      }
+      @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw.to_json)
     end
     it "should not be loaded in its initial state" do
       resource = Resource.new(mock("uri"), mock('session'))
-      resource.should_not be_loaded
+      resource.executed_requests.should == {}
     end
     it "should get the raw representation of the resource via the session if it doesn't have it" do
       resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      resource.raw.should be_nil
       session.should_receive(:get).with(uri, {}).and_return(@response_200)
       resource.load
-      resource.should be_loaded
     end
     it "should get the raw representation of the resource via the session if there are query parameters" do
       resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      resource.stub!(:loaded?).and_return(true) # should force reload even if already loaded
-      resource.raw.should be_nil
       session.should_receive(:get).with(uri, {:query => {:q1 => 'v1'}}).and_return(@response_200)
       resource.load(:query => {:q1 => 'v1'})
     end
     it "should get the raw representation of the resource if forced to do so" do
       resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      resource.stub!(:loaded?).and_return(true) # should force reload even if already loaded
-      resource.raw.should be_nil
       session.should_receive(:get).with(uri, {}).and_return(@response_200)
       resource.load(:reload => true)
     end
@@ -128,7 +102,7 @@ describe Resource do
       lambda{resource.clusters}.should raise_error(NoMethodError)
     end
     
-    it "should correctly define a collection association" do
+    it "should correctly define a collection link" do
       resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
@@ -136,9 +110,9 @@ describe Resource do
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      Collection.should_receive(:new).with('/grid5000/sites/rennes/versions', session, :title => 'versions', :raw => nil).and_return(collection=mock("restfully collection"))
+      Collection.should_receive(:new).with('/grid5000/sites/rennes/versions', session, :title => 'versions').and_return(collection=mock("restfully collection"))
       resource.load
-      resource.associations['versions'].should == collection
+      resource.links['versions'].should == collection
     end
     it "should NOT update the URI with the self link" do
       resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
@@ -158,9 +132,9 @@ describe Resource do
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      Resource.should_receive(:new).with('/grid5000/sites/rennes/versions/123', session, :title => 'version', :raw => nil).and_return(member=mock("restfully resource"))
+      Resource.should_receive(:new).with('/grid5000/sites/rennes/versions/123', session, :title => 'version').and_return(member=mock("restfully resource"))
       resource.load
-      resource.associations['version'].should == member
+      resource.links['version'].should == member
     end
     it "should correctly define a parent association" do
       resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
@@ -172,7 +146,7 @@ describe Resource do
       }), :logger => @logger))
       Resource.should_receive(:new).with('/grid5000', session).and_return(parent=mock("restfully resource"))
       resource.load
-      resource.associations['parent'].should == parent
+      resource.links['parent'].should == parent
     end
     it "should ignore bad links" do
       resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
@@ -184,7 +158,7 @@ describe Resource do
         'uid' => 'rennes'
       }), :logger => @logger))
       resource.load
-      resource.associations.should be_empty
+      resource.links.should be_empty
     end
     
     it "should correctly define the functions to access links [integration test]" do
@@ -192,7 +166,7 @@ describe Resource do
       @logger.should_receive(:warn).with(/collection \/has\/no\/title has no title/)
       @logger.should_receive(:warn).with(/invalid_rel is not a valid link relationship/)
       resource.load
-      resource.associations.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
+      resource.links.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
     end
   end
 end
