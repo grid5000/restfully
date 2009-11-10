@@ -1,54 +1,30 @@
 
 module Restfully
-  # Resource and Collection classes should clearly include a common module to deal with links, attributes, associations and loading
+  # This includes the <tt>Enumerable</tt> module, but does not have all the
+  # methods that you could expect from an <tt>Array</tt>.
+  # Remember that this class inherits from a <tt>Restfully::Resource</tt> and
+  # as such, the <tt>#[]</tt> method gives access to Resource properties, and
+  # not to an item in the collection.
+  # If you want to operate on the array of items, you MUST call <tt>#to_a</tt>
+  # first (or <tt>#items</tt>) on the Restfully::Collection.
   class Collection < Resource
     include Enumerable
     attr_reader :items
     
+    # See Resource#new
     def initialize(uri, session, options = {})
       super(uri, session, options)
     end
 
+    # See Resource#reset
     def reset
       super
       @items = Array.new
       @indexes = Hash.new
+      self
     end
     
-    # find the first or all items whose uid is :uid (actually, there should always be only one item per uid...)
-    # == Usage
-    #   find("whatever", :all)
-    # => [item1, item2]
-    #   find("doesntexist", :all)
-    # => []
-    #   find("whatever")
-    # => item1
-    #   find("doesnotexist")
-    # => nil
-    def find(uid, scope=:first)
-      @indexes[:by_uid] ||= @items.group_by{|i| i['uid']}
-      found_items = (@indexes[:by_uid][uid.to_s] || [])
-      if scope == :first
-        found_items.first
-      else
-        found_items
-      end
-    end
-    
-    # if key is a Numeric, it returns the item at the corresponding index in the collection 
-    # if key is a Symbol, it returns the item in the collection having uid == key.to_s
-    # else, returns the value corresponding to that key in the attributes hash
-    def [](key)
-      if key.kind_of? Numeric
-        @items[key]
-      elsif key.kind_of? Symbol
-        find(key, :first)
-      else
-        super(key)
-      end
-    end
-    
-    # iterate over the collection of items
+    # Iterates over the collection of items
     def each(*args, &block)
       @items.each(*args, &block)
     end
@@ -59,7 +35,8 @@ module Restfully
         value.each{|link| define_link(Link.new(link))}
       when "items"
         value.each do |item|
-          self_link = (item['links'] || []).map{|link| Link.new(link)}.detect{|link| link.self?}
+          self_link = (item['links'] || []).
+            map{|link| Link.new(link)}.detect{|link| link.self?}
           if self_link && self_link.valid?
             @items.push Resource.new(self_link.href, session).load(:body => item)
           else
@@ -82,6 +59,8 @@ module Restfully
       @items.inspect
     end
     
+    # Returns the current number of items (not the total number) 
+    # in the collection.
     def length
       @items.length
     end

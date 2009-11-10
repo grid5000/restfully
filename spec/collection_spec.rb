@@ -63,7 +63,7 @@ describe Collection do
       }), :logger => @logger))
       Resource.should_not_receive(:new)
       collection.load
-      collection.find('rennes').should be_nil
+      collection.find{|i| i['uid'] == 'rennes'}.should be_nil
     end
     it "should initialize resources having a self link" do
       collection = Collection.new("uri", session = mock("session", :get => mock("restfully response", :body => {
@@ -81,14 +81,14 @@ describe Collection do
       }), :logger => @logger))
       collection.load
       collection.length.should == 1
-      collection.find('rennes').class.should == Restfully::Resource
+      collection.find{|i| i['uid'] == 'rennes'}.class.should == Restfully::Resource
     end
     it "should correctly initialize its resources [integration test]" do
       collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT), :get => @response_200))
       collection.load
       collection.uri.should == "uri"
-      collection.find('rennes')["uid"].should == 'rennes'
-      collection.find('rennes')["type"].should == 'site'
+      collection.find{|i| i['uid'] == 'rennes'}["uid"].should == 'rennes'
+      collection.find{|i| i['uid'] == 'rennes'}["type"].should == 'site'
       collection.map{|s| s['uid']}.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']
     end 
   end

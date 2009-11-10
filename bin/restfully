@@ -9,6 +9,7 @@ require 'logger'
 require 'yaml'
 require 'pp'
 
+
 logger = Logger.new(STDOUT)
 logger.level = Logger::WARN
 @options = {:logger => logger}
@@ -58,7 +59,6 @@ end
 def root 
   @root ||= session.root.load
 end
-
 
 require 'irb'
 require 'irb/completion'

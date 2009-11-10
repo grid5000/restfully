@@ -1,16 +1,24 @@
 module Restfully
   
-  # This class represents a Resource, which can be accessed and manipulated via HTTP methods.
+  # This class represents a Resource, which can be accessed and manipulated
+  # via HTTP methods.
   # 
-  # The <tt>#load</tt> method must have been called on the resource before trying to access its attributes or links
+  # The <tt>#load</tt> method must have been called on the resource before
+  # trying to access its attributes or links.
   # 
   class Resource
     
-    attr_reader :uri, :session, :links, :title, :properties, :executed_requests
+    attr_reader :uri, 
+                :session, 
+                :links, 
+                :title, 
+                :properties, 
+                :executed_requests
     
     # == Description
     # Creates a new Resource.
-    # <tt>uri</tt>:: a URI object representing the URI of the resource (complete, absolute or relative URI)
+    # <tt>uri</tt>:: a URI object representing the URI of the resource
+    #                (complete, absolute or relative URI)
     # <tt>session</tt>:: an instantiated Restfully::Session object
     # <tt>options</tt>:: a hash of options (see below)
     # == Options
@@ -21,20 +29,24 @@ module Restfully
       @session = session
       @title = options[:title]
       reset
-    end    
+    end
     
-    # Reset all the inner objects of the resource
+    # Resets all the inner objects of the resource
+    # (you must call <tt>#load</tt> if you want to repopulate the resource).
     def reset
       @executed_requests = Hash.new
       @links = Hash.new
       @properties = Hash.new
+      self
     end
     
     # == Description
-    # Returns the value corresponding to the specified key, among the list of resource properties
+    # Returns the value corresponding to the specified key, 
+    # among the list of resource properties
+    # 
     # == Usage
     #   resource["uid"]
-    # => "rennes"
+    #   => "rennes"
     def [](key)
       @properties[key]
     end
@@ -49,7 +61,8 @@ module Restfully
     end
     
     # == Description
-    # Executes a GET request on the resource, and populate the list of its properties and links
+    # Executes a GET request on the resource, and populate the list of its
+    # properties and links
     # <tt>options</tt>:: list of options to pass to the request (see below)
     # == Options
     # <tt>:reload</tt>:: if set to true, a GET request will be triggered even if the resource has already been loaded [default=false]
@@ -82,10 +95,10 @@ module Restfully
     end
     
     # == Description
-    # Returns the list of allowed HTTP methods on the resource
+    # Returns the list of allowed HTTP methods on the resource.
     # == Usage
     #   resource.http_methods    
-    # => ['GET', 'POST']
+    #   => ['GET', 'POST']
     # 
     def http_methods
       if executed_requests['HEAD'].nil?
