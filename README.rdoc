@@ -19,19 +19,19 @@ If the connection was successful, you should get a prompt. You may enter
   irb(main):001:0> pp root
 
 to get back a pretty-printed output of the root resource:
-#<Restfully::Resource:0x91f08c
-  @uri=#<URI::HTTP:0x123e30c URL:http://api.local/sid/grid5000>
-  LINKS
-    @environments=#<Restfully::Collection:0x917666>,
-    @sites=#<Restfully::Collection:0x9170d0>,
-    @version=#<Restfully::Resource:0x91852a>,
-    @versions=#<Restfully::Collection:0x917e68>
-  PROPERTIES
-    "uid"=>"grid5000",
-    "type"=>"grid",
-    "version"=>"4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8">
+  #<Restfully::Resource:0x91f08c
+    @uri=#<URI::HTTP:0x123e30c URL:http://api.local/sid/grid5000>
+    LINKS
+      @environments=#<Restfully::Collection:0x917666>,
+      @sites=#<Restfully::Collection:0x9170d0>,
+      @version=#<Restfully::Resource:0x91852a>,
+      @versions=#<Restfully::Collection:0x917e68>
+    PROPERTIES
+      "uid"=>"grid5000",
+      "type"=>"grid",
+      "version"=>"4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8">
 
-You can see the LINKS and PROPERTIES headers that respectively indicate what links you can follow from there (by calling +root.link_name+) and what properties are available (by calling +root[property_name]+).
+You can see the LINKS and PROPERTIES headers that respectively indicate what links you can follow from there (by calling <tt>root.link_name</tt>) and what properties are available (by calling <tt>root[property_name]</tt>).
 
 Let's say you want to access the collection of +sites+, you would enter:
   irb(main):002:0> pp root.sites
