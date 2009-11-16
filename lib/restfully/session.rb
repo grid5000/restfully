@@ -10,7 +10,7 @@ module Restfully
   end
   class Session
     include Parsing, HTTP::Headers
-    attr_reader :base_uri, :root_path, :logger, :connection, :root, :default_headers
+    attr_reader :base_uri, :logger, :connection, :root, :default_headers
     
     # TODO: use CacheableResource
     def initialize(options = {})
@@ -21,13 +21,12 @@ module Restfully
       end
       @base_uri               =   URI.parse(options.delete(:base_uri) || "http://localhost:8888") rescue nil
       raise ArgumentError.new("#{@base_uri} is not a valid URI") if @base_uri.nil? || @base_uri.scheme !~ /^http/i
-      @root_path              =   options.delete(:root_path) || ""
       @logger                 =   options.delete(:logger) || NullLogger.new
       @logger.level           =   options.delete(:verbose) ? Logger::DEBUG : @logger.level
       user_default_headers    =   sanitize_http_headers(options.delete(:default_headers) || {})
       @default_headers        =   {'User-Agent' => "Restfully/#{Restfully::VERSION}", 'Accept' => 'application/json'}.merge(user_default_headers)
       @connection             =   Restfully.adapter.new(base_uri.to_s, options.merge(:logger => logger))
-      @root                   =   Resource.new(URI.parse(@root_path), self)
+      @root                   =   Resource.new(@base_uri, self)
       yield @root.load, self if block_given?
     end
     

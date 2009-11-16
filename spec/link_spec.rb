@@ -2,7 +2,9 @@ require File.expand_path(File.dirname(__FILE__)+'/spec_helper')
 
 include Restfully
 describe Link do
-
+  before do
+    @uri = URI.parse('/x/y/z')
+  end
   it "should have a rel reader" do
     link = Link.new
     link.should_not respond_to(:rel=)
@@ -28,7 +30,7 @@ describe Link do
     link.should respond_to(:valid?)    
   end
   it "should respond to resolved?" do
-    link = Link.new
+    link = Link.new("href" => @uri)
     link.should respond_to(:resolved?)
   end
   it "should respond to resolvable?" do
@@ -43,9 +45,10 @@ describe Link do
     link = Link.new
     link.should_not be_resolved
   end
-  it "should not be valid if there is no href" do
+  it "should be valid even if the href is ''" do
     link = Link.new 'rel' => 'collection', 'title' => 'my collection'
-    link.should_not be_valid
+    link.should be_valid
+    link.href.should == URI.parse("")
   end
   it "should not be valid if there is no rel" do
     link = Link.new 'href' => '/', 'title' => 'my collection'

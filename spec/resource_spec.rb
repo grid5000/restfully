@@ -16,7 +16,7 @@ describe Resource do
     it "should have a reader on the uri" do
       resource = Resource.new("uri", session=mock("session"))
       resource.should_not respond_to(:uri=)
-      resource.uri.should == "uri"
+      resource.uri.should == URI.parse("uri")
     end
   end
   
@@ -67,35 +67,36 @@ describe Resource do
         }
       }
       @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw.to_json)
+      @uri = URI.parse("http://api.local/x/y/z")
     end
     it "should not be loaded in its initial state" do
-      resource = Resource.new(mock("uri"), mock('session'))
+      resource = Resource.new(@uri, mock('session'))
       resource.executed_requests.should == {}
     end
     it "should get the raw representation of the resource via the session if it doesn't have it" do
-      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
+      resource = Resource.new(@uri, session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      session.should_receive(:get).with(uri, {}).and_return(@response_200)
+      session.should_receive(:get).with(@uri, {}).and_return(@response_200)
       resource.load
     end
     it "should get the raw representation of the resource via the session if there are query parameters" do
-      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
+      resource = Resource.new(@uri, session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      session.should_receive(:get).with(uri, {:query => {:q1 => 'v1'}}).and_return(@response_200)
+      session.should_receive(:get).with(@uri, {:query => {:q1 => 'v1'}}).and_return(@response_200)
       resource.load(:query => {:q1 => 'v1'})
     end
     it "should get the raw representation of the resource if forced to do so" do
-      resource = Resource.new(uri=mock("uri"), session = mock("session", :logger => Logger.new(STDOUT)))
+      resource = Resource.new(@uri, session = mock("session", :logger => Logger.new(STDOUT)))
       resource.stub!(:define_link) # do not define links
-      session.should_receive(:get).with(uri, {}).and_return(@response_200)
+      session.should_receive(:get).with(@uri, {}).and_return(@response_200)
       resource.load(:reload => true)
     end
     it "should correctly define the functions to access simple values" do
-      resource = Resource.new("uri", session = mock("session", :get => @response_200, :logger => @logger))
+      resource = Resource.new(@uri, session = mock("session", :get => @response_200, :logger => @logger))
       resource.stub!(:define_link) # do not define links
       resource.load
       resource['whatever'].should == 'whatever'
-      resource.uri.should == 'uri'
+      resource.uri.should == @uri
       resource["uid"].should == 'rennes'
       resource['an_array'].should be_a(SpecialArray)
       resource['an_array'].should == [1,2,3]
@@ -103,53 +104,53 @@ describe Resource do
     end
     
     it "should correctly define a collection link" do
-      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      resource = Resource.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
           {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      Collection.should_receive(:new).with('/grid5000/sites/rennes/versions', session, :title => 'versions').and_return(collection=mock("restfully collection"))
+      Collection.should_receive(:new).with(@uri.merge('/grid5000/sites/rennes/versions'), session, :title => 'versions').and_return(collection=mock("restfully collection"))
       resource.load
       resource.links['versions'].should == collection
     end
     it "should NOT update the URI with the self link" do
-      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      resource = Resource.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'}
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      resource.uri.should == "uri"
+      resource.uri.should == @uri
       resource.load
-      resource.uri.should == "uri"
+      resource.uri.should == @uri
     end
     it "should correctly define a member association" do
-      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      resource = Resource.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'member', 'href' => '/grid5000/sites/rennes/versions/123', 'title' => 'version'}
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      Resource.should_receive(:new).with('/grid5000/sites/rennes/versions/123', session, :title => 'version').and_return(member=mock("restfully resource"))
+      Resource.should_receive(:new).with(@uri.merge('/grid5000/sites/rennes/versions/123'), session, :title => 'version').and_return(member=mock("restfully resource"))
       resource.load
       resource.links['version'].should == member
     end
     it "should correctly define a parent association" do
-      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      resource = Resource.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
           {'rel' => 'parent', 'href' => '/grid5000'}
         ],
         'uid' => 'rennes'
       }), :logger => @logger))
-      Resource.should_receive(:new).with('/grid5000', session).and_return(parent=mock("restfully resource"))
+      Resource.should_receive(:new).with(@uri.merge('/grid5000'), session).and_return(parent=mock("restfully resource"))
       resource.load
       resource.links['parent'].should == parent
     end
     it "should ignore bad links" do
-      resource = Resource.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      resource = Resource.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
           {'rel' => 'invalid_rel', 'href' => '/whatever'},
@@ -162,7 +163,7 @@ describe Resource do
     end
     
     it "should correctly define the functions to access links [integration test]" do
-      resource = Resource.new("uri", session = mock("session", :get => @response_200, :logger => @logger))
+      resource = Resource.new(@uri, session = mock("session", :get => @response_200, :logger => @logger))
       @logger.should_receive(:warn).with(/collection \/has\/no\/title has no title/)
       @logger.should_receive(:warn).with(/invalid_rel is not a valid link relationship/)
       resource.load

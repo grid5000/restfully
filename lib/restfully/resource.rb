@@ -25,7 +25,7 @@ module Restfully
     # <tt>:title</tt>:: an optional title for the resource
     def initialize(uri, session, options = {})
       options = options.symbolize_keys
-      @uri = uri
+      @uri = uri.kind_of?(URI) ? uri : URI.parse(uri.to_s)
       @session = session
       @title = options[:title]
       reset
@@ -119,6 +119,9 @@ module Restfully
     def pretty_print(pp)
       pp.text "#<#{self.class}:0x#{self.object_id.to_s(16)}"
       pp.nest 2 do
+        pp.breakable
+        pp.text "@uri="
+        uri.pretty_print(pp)
         if @links.length > 0
           pp.breakable
           pp.text "LINKS"
@@ -167,11 +170,11 @@ module Restfully
       if link.valid?
         case link.rel
         when 'parent'
-          @links['parent'] = Resource.new(link.href, session)
+          @links['parent'] = Resource.new(uri.merge(link.href), session)
         when 'collection'
-          @links[link.title] = Collection.new(link.href, session, :title => link.title)
+          @links[link.title] = Collection.new(uri.merge(link.href), session, :title => link.title)
         when 'member'
-          @links[link.title] = Resource.new(link.href, session, :title => link.title)
+          @links[link.title] = Resource.new(uri.merge(link.href), session, :title => link.title)
         when 'self'
           # we do nothing
         end

@@ -22,15 +22,6 @@ describe Session do
     it "should raise an ArgumentError if the base_uri is not a valid URI" do
       lambda{Session.new(:base_uri => '/home/crohr/whatever')}.should raise_error(ArgumentError, /\/home\/crohr\/whatever is not a valid URI/)
     end
-    it "should have a root_path reader that returns the path of the root resource, relative to the base URI" do
-      session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', 'root_path' => '/grid5000')
-      session.should_not respond_to(:root_path=)
-      session.root_path.should == '/grid5000'
-    end
-    it "should set the default root_path to ''" do
-      session = Session.new(:base_uri => 'https://api.grid5000.fr/sid/')
-      session.root_path.should == ''
-    end
     it "should log to NullLogger by default" do
       NullLogger.should_receive(:new).and_return(logger = mock(NullLogger, :debug => Proc.new{}, :level => Logger::WARN))
       logger.should_receive(:level=).with(Logger::WARN)
@@ -61,14 +52,15 @@ describe Session do
       mock_logger = mock("logger", :debug => Proc.new{}, :level => Logger::DEBUG)
       mock_logger.stub!(:level=)
       Restfully.adapter.should_receive(:new).with('https://api.grid5000.fr/sid', :user => 'crohr', :password => 'password', :logger => mock_logger).and_return(connection = mock("restfully connection"))
-      session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', 'root_path' => '/grid5000', :user => 'crohr', :password => 'password', :logger => mock_logger)
+      session = Session.new(:base_uri => 'https://api.grid5000.fr/sid', :user => 'crohr', :password => 'password', :logger => mock_logger)
       session.connection.should == connection
     end
   
     it "should initialize the root resource" do
-      session = Session.new(:base_uri => 'https://api.grid5000.fr', 'root_path' => '/grid5000', :user => 'crohr', :password => 'password')
+      session = Session.new(:base_uri => 'https://api.grid5000.fr/grid5000', :user => 'crohr', :password => 'password')
       session.root.should be_a Restfully::Resource
-      session.root.uri.to_s.should == '/grid5000'
+      session.root.uri.to_s.should == 'https://api.grid5000.fr/grid5000'
+      session.root.uri.path.should == '/grid5000'
     end
   
     it "should yield the loaded root resource and the session object" do

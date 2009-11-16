@@ -50,7 +50,6 @@ end
 option_parser.parse!
 
 @options[:base_uri] = ARGV.shift
-@options[:root_path] = ARGV.shift || "/"
 
 def session
   @session ||= Restfully::Session.new(@options)

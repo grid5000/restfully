@@ -4,7 +4,8 @@ include Restfully
 describe Collection do
   describe "general behaviour" do
     before do
-      @collection = Collection.new("uri", session=mock('session')).load(:body => JSON.parse(fixture("grid5000-sites.json")))
+      @uri = URI.parse('http://api.local/x/y/z')
+      @collection = Collection.new(@uri, session=mock('session')).load(:body => JSON.parse(fixture("grid5000-sites.json")))
     end
     it "should be enumerable" do
       @collection.length.should == 9
@@ -23,33 +24,34 @@ describe Collection do
   
   describe "loading" do
     before(:all) do
+      @uri = URI.parse('http://api.local/x/y/z')
       @raw = fixture("grid5000-sites.json")
       @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;charset=utf-8', 'Content-Length' => @raw.length}, @raw)
       @logger = Logger.new(STDOUT)
     end
     it "should not load if already loaded and no :reload" do
-      collection = Collection.new("uri", mock("session"))
+      collection = Collection.new(@uri, mock("session"))
       options = {:headers => {'key' => 'value'}}
       collection.should_receive(:executed_requests).and_return({'GET' => {'options' => options, 'body' => {"key", "value"}}})
       collection.load(options.merge(:reload => false)).should == collection
     end
     it "should load when :reload param is true [already loaded]" do
-      collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT)))
+      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
       session.should_receive(:get).and_return(@response_200)
       collection.load(:reload => true).should == collection    
     end
     it "should load when force_reload is true [not loaded]" do
-      collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT)))
+      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
       session.should_receive(:get).and_return(@response_200)
       collection.load(:reload => true).should == collection    
     end
     it "should force reload when query parameters are given" do
-      collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT)))
+      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
       session.should_receive(:get).and_return(@response_200)
       collection.load(:query => {:q1 => 'v1'}).should == collection
     end
     it "should not initialize resources lacking a self link" do
-      collection = Collection.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      collection = Collection.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         "total" => 1,
         "offset" => 0,
         "items" => [
@@ -66,7 +68,7 @@ describe Collection do
       collection.find{|i| i['uid'] == 'rennes'}.should be_nil
     end
     it "should initialize resources having a self link" do
-      collection = Collection.new("uri", session = mock("session", :get => mock("restfully response", :body => {
+      collection = Collection.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
         "total" => 1,
         "offset" => 0,
         "items" => [
@@ -84,9 +86,9 @@ describe Collection do
       collection.find{|i| i['uid'] == 'rennes'}.class.should == Restfully::Resource
     end
     it "should correctly initialize its resources [integration test]" do
-      collection = Collection.new("uri", session=mock("session", :logger => Logger.new(STDOUT), :get => @response_200))
+      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT), :get => @response_200))
       collection.load
-      collection.uri.should == "uri"
+      collection.uri.should == @uri
       collection.find{|i| i['uid'] == 'rennes'}["uid"].should == 'rennes'
       collection.find{|i| i['uid'] == 'rennes'}["type"].should == 'site'
       collection.map{|s| s['uid']}.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']

@@ -1,3 +1,4 @@
+require 'uri'
 module Restfully
   class Link
     
@@ -9,7 +10,7 @@ module Restfully
     def initialize(attributes = {})
       @rel = attributes['rel']
       @title = attributes['title']
-      @href = attributes['href']
+      @href = URI.parse(attributes['href'].to_s)
       @resolvable = attributes['resolvable'] || false
       @resolved = attributes['resolved'] || false
     end
@@ -20,8 +21,8 @@ module Restfully
     
     def valid?
       @errors = []
-      if href.nil? || href.empty?
-        errors << "href cannot be empty."
+      if href.nil?
+        errors << "href cannot be nil."
       end
       unless VALID_RELATIONSHIPS.include?(rel)
         errors << "#{rel} is not a valid link relationship."

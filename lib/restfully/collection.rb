@@ -38,7 +38,7 @@ module Restfully
           self_link = (item['links'] || []).
             map{|link| Link.new(link)}.detect{|link| link.self?}
           if self_link && self_link.valid?
-            @items.push Resource.new(self_link.href, session).load(:body => item)
+            @items.push Resource.new(uri.merge(self_link.href), session).load(:body => item)
           else
             session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
           end
