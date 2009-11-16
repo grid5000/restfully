@@ -1,0 +1,6 @@
+0.4.0
+* removed 'root_path' option: 'base_uri' must point to the starting resource;
+* objects can now be pretty printed using 'pp object';
+* Restfully::Collection now include the Enumerable module;
+* Restfully::Collection inherits from Restfully::Resource;
+* 'object.uid' is no longer valid. Use 'object["uid"]' instead;
