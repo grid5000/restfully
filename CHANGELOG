@@ -1,6 +1,6 @@
 0.4.1
 * added a require 'yaml' in restfully.rb (priteau);
-* added an introductory message when suing the command-line tool;
+* added an introductory message when using the command-line tool;
 * removed [root_path] from the list of options in command-line client 'Usage' banner (priteau);
 * added test for :configuration_file option;
 * tests are no longer failing on ruby1.9;
