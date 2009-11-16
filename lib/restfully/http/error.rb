@@ -1,13 +1,21 @@
 module Restfully
   module HTTP
     class Error < Restfully::Error
+      STATUS_CODES = {
+        400 => "Bad Request",
+        401 => "Authorization Required",
+        403 => "Forbiden",
+        406 => "Not Acceptable"        
+      }
+      
       attr_reader :response
       def initialize(response)
         @response = response
-        if response.body.kind_of?(Hash)
-          message = "#{response.status} #{response.body['title']}. #{response.body['message']}"
+        response_body = response.body rescue response.raw_body
+        if response_body.kind_of?(Hash)
+          message = "#{response.status} #{response_body['title']}. #{response_body['message']}"
         else
-          message = response.body
+          message = "#{response.status} #{STATUS_CODES[response.status] || (response_body[0..100]+"...")}"
         end
         super(message)
       end

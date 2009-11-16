@@ -1,4 +1,5 @@
 require 'backports'
+require 'yaml'
 require 'restfully/error'
 require 'restfully/parsing'
 require 'restfully/http'
@@ -13,7 +14,7 @@ require 'restfully/collection'
 
 
 module Restfully
-  VERSION = "0.4.0"
+  VERSION = "0.4.1"
   class << self
     attr_accessor :adapter
   end

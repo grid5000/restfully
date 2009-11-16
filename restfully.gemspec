@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{restfully}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cyril Rohr"]
@@ -49,6 +49,7 @@ Gem::Specification.new do |s|
      "lib/restfully/special_hash.rb",
      "restfully.gemspec",
      "spec/collection_spec.rb",
+     "spec/fixtures/configuration_file.yml",
      "spec/fixtures/grid5000-sites.json",
      "spec/http/error_spec.rb",
      "spec/http/headers_spec.rb",

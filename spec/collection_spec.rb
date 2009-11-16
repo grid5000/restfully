@@ -32,7 +32,7 @@ describe Collection do
     it "should not load if already loaded and no :reload" do
       collection = Collection.new(@uri, mock("session"))
       options = {:headers => {'key' => 'value'}}
-      collection.should_receive(:executed_requests).and_return({'GET' => {'options' => options, 'body' => {"key", "value"}}})
+      collection.should_receive(:executed_requests).and_return({'GET' => {'options' => options, 'body' => {"key" => "value"}}})
       collection.load(options.merge(:reload => false)).should == collection
     end
     it "should load when :reload param is true [already loaded]" do

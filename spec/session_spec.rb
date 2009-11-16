@@ -4,7 +4,7 @@ restfully_version = File.read(File.dirname(__FILE__)+'/../VERSION').strip
 include Restfully
 describe Session do
   before do
-    @session = Session.new(:base_uri => 'https://api.grid5000.fr/sid/', :root_path => '/grid5000', :user => 'crohr', :password => 'password', :default_headers => {})
+    @session = Session.new(:base_uri => 'https://api.grid5000.fr/sid/', :user => 'crohr', :password => 'password', :default_headers => {})
     @request = mock("restfully http request", :uri => mock("uri"), :headers => mock("headers"), :body => nil)
     @response = mock("restfully http response", :status => 200, :headers => mock("headers"))
   end
@@ -66,15 +66,23 @@ describe Session do
     it "should yield the loaded root resource and the session object" do
       Restfully::Resource.stub!(:new).and_return(root_resource = mock(Restfully::Resource))
       root_resource.should_receive(:load).and_return(root_resource)
-      Session.new(:base_uri => 'https://api.grid5000.fr', :root_path => '/grid5000', :user => 'crohr', :password => 'password') do |root, session|
+      Session.new(:base_uri => 'https://api.grid5000.fr', :user => 'crohr', :password => 'password') do |root, session|
         session.root.should == root
         root.should == root_resource
       end
+    end
+    
+    it "should use the options defined in the given configuration file" do
+      config_file = 
+      session = Session.new(:base_uri => 'https://api.grid5000.fr', :username => 'x', :password => 'y', :verbose => true, :configuration_file => (File.dirname(__FILE__)+'/fixtures/configuration_file.yml'))
+      session.base_uri.should == URI.parse('http://somewhere.net/x/y/z')
+      session.logger.should_not == Logger::DEBUG
     end
   end
   
   describe "Transmitting requests" do
     before do
+      Session.send(:public, :transmit)  
       @request.should_receive(:add_headers).with("User-Agent"=>"Restfully/#{restfully_version}", "Accept"=>"application/json")
     end
     it "should send a head" do
@@ -106,7 +114,10 @@ describe Session do
     end
   end
   
-  describe "Dealing with errors" do    
+  describe "Dealing with errors" do   
+    before do      
+      Session.send(:public, :deal_with_eventual_errors)
+    end 
     it "should raise a Restfully::HTTP::ClientError error on 4xx errors" do
       response = mock("404 response", :status => 404, :body => {'code' => 404, 'message' => 'The requested resource cannot be found.', 'title' => 'Not Found'}, :headers => mock("headers"))
       lambda{ @session.send(:deal_with_eventual_errors, response, @request) }.should raise_error(Restfully::HTTP::ClientError, "404 Not Found. The requested resource cannot be found.")

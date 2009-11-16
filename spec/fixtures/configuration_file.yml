@@ -1,0 +1,4 @@
+base_uri: http://somewhere.net/x/y/z
+username: u
+password: p
+verbose: false

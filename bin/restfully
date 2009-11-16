@@ -1,12 +1,12 @@
 #!/usr/bin/env ruby
 # The command line Restfully client
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib' unless $LOAD_PATH.include? File.dirname(__FILE__) + '/../lib'
+lib_dir = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift lib_dir unless $LOAD_PATH.include? lib_dir
 
 require 'restfully'
 require 'optparse'
 require 'logger'
-require 'yaml'
 require 'pp'
 
 
@@ -18,7 +18,7 @@ option_parser = OptionParser.new do |opts|
 * Description
   Restfully #{Restfully::VERSION} - Access REST APIs effortlessly
 * Usage
-  restfully [base_uri] [root_path] [options]
+  restfully [base_uri] [options]
 * Options
 BANNER
 
