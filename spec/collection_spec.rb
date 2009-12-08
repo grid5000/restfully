@@ -20,79 +20,70 @@ describe Collection do
     it "should have a :offset attribute" do
       @collection["offset"].should == 0
     end
+    
+    it "should try to find the matching item in the collection when calling [] with a symbol" do
+      rennes = @collection[:rennes]
+      rennes.class.should == Restfully::Resource
+      rennes['uid'].should == 'rennes'
+    end
   end  
   
-  describe "loading" do
-    before(:all) do
-      @uri = URI.parse('http://api.local/x/y/z')
-      @raw = fixture("grid5000-sites.json")
-      @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;charset=utf-8', 'Content-Length' => @raw.length}, @raw)
-      @logger = Logger.new(STDOUT)
+  describe "populating collection" do
+    before do
+      @uri = "http://server.com/path/to/collection"
+      @session = mock("session", :logger => Logger.new($stderr))
+      @collection = Collection.new(@uri, @session)
     end
-    it "should not load if already loaded and no :reload" do
-      collection = Collection.new(@uri, mock("session"))
-      options = {:headers => {'key' => 'value'}}
-      collection.should_receive(:executed_requests).and_return({'GET' => {'options' => options, 'body' => {"key" => "value"}}})
-      collection.load(options.merge(:reload => false)).should == collection
+    it "should define links" do
+      Link.should_receive(:new).with({"rel" => "self", "href" => "/path/to/collection"}).and_return(link1=mock("link1"))
+      Link.should_receive(:new).with({"rel" => "member", "href" => "/path/to/member", "title" => "member_title"}).and_return(link2=mock("link2"))
+      @collection.should_receive(:define_link).with(link1)
+      @collection.should_receive(:define_link).with(link2)
+      @collection.populate_object("links", [
+        {"rel" => "self", "href" => "/path/to/collection"},
+        {"rel" => "member", "href" => "/path/to/member", "title" => "member_title"}
+      ])
     end
-    it "should load when :reload param is true [already loaded]" do
-      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
-      session.should_receive(:get).and_return(@response_200)
-      collection.load(:reload => true).should == collection    
+    it "should create a new resource for each item" do
+      items = [
+        {
+          'links' => [
+            {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
+            {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'title' => 'versions'}
+          ],
+          'uid' => 'rennes'
+        }
+      ]
+      @collection.populate_object("items", items)
+      @collection.find{|i| i['uid'] == 'rennes'}.class.should == Restfully::Resource
     end
-    it "should load when force_reload is true [not loaded]" do
-      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
-      session.should_receive(:get).and_return(@response_200)
-      collection.load(:reload => true).should == collection    
-    end
-    it "should force reload when query parameters are given" do
-      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT)))
-      session.should_receive(:get).and_return(@response_200)
-      collection.load(:query => {:q1 => 'v1'}).should == collection
-    end
+
     it "should not initialize resources lacking a self link" do
-      collection = Collection.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
-        "total" => 1,
-        "offset" => 0,
-        "items" => [
-          {
-            'links' => [
-              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
-            ],
-            'uid' => 'rennes'
-          }
-        ]
-      }), :logger => @logger))
-      Resource.should_not_receive(:new)
-      collection.load
-      collection.find{|i| i['uid'] == 'rennes'}.should be_nil
+      items = [
+        {
+          'links' => [
+            {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
+          ],
+          'uid' => 'rennes'
+        }
+      ]
+      @collection.populate_object("items", items)
+      @collection.items.should be_empty
     end
-    it "should initialize resources having a self link" do
-      collection = Collection.new(@uri, session = mock("session", :get => mock("restfully response", :body => {
-        "total" => 1,
-        "offset" => 0,
-        "items" => [
-          {
-            'links' => [
-              {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
-              {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'title' => 'versions'}
-            ],
-            'uid' => 'rennes'
-          }
-        ]
-      }), :logger => @logger))
-      collection.load
-      collection.length.should == 1
-      collection.find{|i| i['uid'] == 'rennes'}.class.should == Restfully::Resource
+    it "should store its properties in the internal hash" do
+      @collection.populate_object("uid", "rennes")
+      @collection.populate_object("list_of_values", [1,2,"whatever", {:x => :y}])
+      @collection.populate_object("hash", {"a" => [1,2], "b" => "c"})
+      @collection.properties.should == {
+        "hash"=>{"a"=>[1, 2], "b"=>"c"}, 
+        "list_of_values"=>[1, 2, "whatever", {:x=>:y}], 
+        "uid"=>"rennes"
+      }
+      @collection["uid"].should == "rennes"
+      @collection["hash"].should == {"a"=>[1, 2], "b"=>"c"}
+      @collection["list_of_values"].should == [1, 2, "whatever", {:x=>:y}]
     end
-    it "should correctly initialize its resources [integration test]" do
-      collection = Collection.new(@uri, session=mock("session", :logger => Logger.new(STDOUT), :get => @response_200))
-      collection.load
-      collection.uri.should == @uri
-      collection.find{|i| i['uid'] == 'rennes'}["uid"].should == 'rennes'
-      collection.find{|i| i['uid'] == 'rennes'}["type"].should == 'site'
-      collection.map{|s| s['uid']}.should =~ ['rennes', 'lille', 'bordeaux', 'nancy', 'sophia', 'toulouse', 'lyon', 'grenoble', 'orsay']
-    end 
   end
+
   
 end

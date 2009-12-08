@@ -37,6 +37,7 @@ module Restfully
       @executed_requests = Hash.new
       @links = Hash.new
       @properties = Hash.new
+      @status = :stale
       self
     end
     
@@ -65,33 +66,84 @@ module Restfully
     # properties and links
     # <tt>options</tt>:: list of options to pass to the request (see below)
     # == Options
-    # <tt>:reload</tt>:: if set to true, a GET request will be triggered even if the resource has already been loaded [default=false]
-    # <tt>:query</tt>:: a hash of query parameters to pass along the request. E.g. : resource.load(:query => {:from => (Time.now-3600).to_i, :to => Time.now.to_i})
-    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. E.g. : resource.load(:headers => {'Accept' => 'application/json'})
-    # <tt>:body</tt>:: if you already have the unserialized response body of this resource, you may pass it so that the GET request is not triggered.
+    # <tt>:reload</tt>:: if set to true, a GET request will be triggered 
+    #                    even if the resource has already been loaded [default=false]
+    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
+    #                   E.g. : resource.load(:query => {:from => (Time.now-3600).to_i, :to => Time.now.to_i})
+    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
+    #                     E.g. : resource.load(:headers => {'Accept' => 'application/json'})
+    # <tt>:body</tt>:: if you already have the unserialized response body of this resource, 
+    #                  you may pass it so that the GET request is not triggered.
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = !!options.delete(:reload)
+      force_reload = !!options.delete(:reload) || stale?
       if !force_reload && (request = executed_requests['GET']) && request['options'] == options && request['body']
         self
       else  
         reset
+        if options[:body]
+          body = options[:body]
+          headers = nil
+        else
+          response = session.get(uri, options)
+          body = response.body
+          headers = response.headers
+        end
         executed_requests['GET'] = {
           'options' => options, 
-          'body' => options[:body] || session.get(uri, options).body
+          'body' =>  body,
+          'headers' => headers
         }
         executed_requests['GET']['body'].each do |key, value|
           populate_object(key, value)
         end
+        @status = :loaded
         self
       end
     end
   
+    # == Description
+    # Executes a POST request on the resource, reload it and returns self if successful.
+    # If the response status is different than 2xx, raises a HTTP::ClientError or HTTP::ServerError.
+    # <tt>payload</tt>:: the input body of the request.
+    #                    It may be a serialized string, or a ruby object 
+    #                    (that will be serialized according to the given or default content-type).
+    # <tt>options</tt>:: list of options to pass to the request (see below)
+    # == Options
+    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
+    #                   E.g. : resource.submit("body", :query => {:param1 => "value1"})
+    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
+    #                     E.g. : resource.submit("body", :headers => {:accept => 'application/json', :content_type => 'application/json'})
     def submit(payload, options = {})
       options = options.symbolize_keys
       raise NotImplementedError, "The POST method is not allowed for this resource." unless http_methods.include?('POST')
-      raise ArgumentError, "You must pass a payload string" unless payload.kind_of?(String)
-      session.post(payload, options)
+      raise ArgumentError, "You must pass a payload" if payload.nil?
+      headers = {
+        :content_type => (executed_requests['GET']['headers']['Content-Type'] || "application/x-www-form-urlencoded").split(/,/).sort{|a,b| a.length <=> b.length}[0],
+        :accept => (executed_requests['GET']['headers']['Content-Type'] || "text/plain")
+      }.merge(options[:headers] || {})
+      options = {:headers => headers}
+      options.merge!(:query => options[:query]) unless options[:query].nil?
+      response = session.post(self.uri, payload, options) # raises an exception if there is an error
+      stale!
+      if [201, 202].include?(response.status)
+        Resource.new(uri_for(response.headers['Location']), session).load
+      else
+        reload
+      end
+    end
+    
+    
+    def stale!; @status = :stale;  end
+    def stale?; @status == :stale; end
+    
+    def uri_for(path)
+      uri.merge(URI.parse(path.to_s))
+    end
+    
+    def reload
+      current_options = executed_requests['GET']['options'] rescue {}
+      self.load(current_options.merge(:reload => true))
     end
     
     # == Description
@@ -101,11 +153,8 @@ module Restfully
     #   => ['GET', 'POST']
     # 
     def http_methods
-      if executed_requests['HEAD'].nil?
-        response = session.head(uri)
-        executed_requests['HEAD'] = {'headers' => response.headers}
-      end
-      (executed_requests['HEAD']['headers']['Allow'] || "GET").split(/,\s*/)
+      reload if executed_requests['GET'].nil? || executed_requests['GET']['headers'].nil?
+      (executed_requests['GET']['headers']['Allow'] || "GET").split(/,\s*/)
     end
     
     def respond_to?(method, *args)
@@ -118,6 +167,7 @@ module Restfully
     
     def pretty_print(pp)
       pp.text "#<#{self.class}:0x#{self.object_id.to_s(16)}"
+      pp.text " uid=#{self['uid'].inspect}" if self.class == Resource
       pp.nest 2 do
         pp.breakable
         pp.text "@uri="

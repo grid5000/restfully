@@ -7,10 +7,15 @@ require File.dirname(__FILE__)+'/../lib/restfully'
 logger = Logger.new(STDOUT)
 logger.level = Logger::WARN
 
-# Restfully.adapter = Restfully::HTTP::RestClientAdapter
-# Restfully.adapter = Patron::Session
 RestClient.log = 'stdout'
-Restfully::Session.new(:base_uri => 'http://api.local/sid/grid5000', :logger => logger) do |grid, session|
+
+# This yaml file contains the following attributes:
+# username: my_username
+# password: my_password
+options = YAML.load_file(File.expand_path('~/.restfully/api.grid5000.fr.yml')) 
+options[:base_uri] = 'https://api.grid5000.fr/sid/grid5000'
+options[:logger] = logger
+Restfully::Session.new(options) do |grid, session|
   grid_stats = {'hardware' => {}, 'system' => {}}
   grid.sites.each do |site|
     site_stats = site.status.inject({'hardware' => {}, 'system' => {}}) {|accu, node_status|

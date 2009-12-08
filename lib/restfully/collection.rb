@@ -28,6 +28,16 @@ module Restfully
     def each(*args, &block)
       @items.each(*args, &block)
     end
+    
+    # if property is a Symbol, it tries to find the corresponding item whose uid.to_sym is matching the property
+    # else, returns the result of calling <tt>[]</tt> on its superclass.
+    def [](property)
+      if property.kind_of?(Symbol)
+        find{|i| i['uid'] == property.to_s}
+      else
+        super(property)
+      end
+    end
 
     def populate_object(key, value)
       case key
@@ -38,7 +48,7 @@ module Restfully
           self_link = (item['links'] || []).
             map{|link| Link.new(link)}.detect{|link| link.self?}
           if self_link && self_link.valid?
-            @items.push Resource.new(uri.merge(self_link.href), session).load(:body => item)
+            @items.push Resource.new(uri_for(self_link.href), session).load(:body => item)
           else
             session.logger.warn "Resource #{key} does not have a 'self' link. skipped."
           end

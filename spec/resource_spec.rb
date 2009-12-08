@@ -5,6 +5,7 @@ include Restfully
 describe Resource do
   before do
     @logger = Logger.new(STDOUT)
+    @uri = URI.parse("http://api.local/x/y/z")
   end
   
   describe "accessors" do
@@ -67,7 +68,6 @@ describe Resource do
         }
       }
       @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw.to_json)
-      @uri = URI.parse("http://api.local/x/y/z")
     end
     it "should not be loaded in its initial state" do
       resource = Resource.new(@uri, mock('session'))
@@ -110,7 +110,7 @@ describe Resource do
           {'rel' => 'collection', 'href' => '/grid5000/sites/rennes/versions', 'resolvable' => false, 'title' => 'versions'}
         ],
         'uid' => 'rennes'
-      }), :logger => @logger))
+      }, :headers => {}), :logger => @logger))
       Collection.should_receive(:new).with(@uri.merge('/grid5000/sites/rennes/versions'), session, :title => 'versions').and_return(collection=mock("restfully collection"))
       resource.load
       resource.links['versions'].should == collection
@@ -121,7 +121,7 @@ describe Resource do
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'}
         ],
         'uid' => 'rennes'
-      }), :logger => @logger))
+      }, :headers => {}), :logger => @logger))
       resource.uri.should == @uri
       resource.load
       resource.uri.should == @uri
@@ -132,7 +132,7 @@ describe Resource do
           {'rel' => 'member', 'href' => '/grid5000/sites/rennes/versions/123', 'title' => 'version'}
         ],
         'uid' => 'rennes'
-      }), :logger => @logger))
+      }, :headers => {}), :logger => @logger))
       Resource.should_receive(:new).with(@uri.merge('/grid5000/sites/rennes/versions/123'), session, :title => 'version').and_return(member=mock("restfully resource"))
       resource.load
       resource.links['version'].should == member
@@ -144,7 +144,7 @@ describe Resource do
           {'rel' => 'parent', 'href' => '/grid5000'}
         ],
         'uid' => 'rennes'
-      }), :logger => @logger))
+      }, :headers => {}), :logger => @logger))
       Resource.should_receive(:new).with(@uri.merge('/grid5000'), session).and_return(parent=mock("restfully resource"))
       resource.load
       resource.links['parent'].should == parent
@@ -157,7 +157,7 @@ describe Resource do
           {'rel' => 'collection', 'href' => '/has/no/title'} 
         ],
         'uid' => 'rennes'
-      }), :logger => @logger))
+      }, :headers => {}), :logger => @logger))
       resource.load
       resource.links.should be_empty
     end
@@ -168,6 +168,64 @@ describe Resource do
       @logger.should_receive(:warn).with(/invalid_rel is not a valid link relationship/)
       resource.load
       resource.links.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
+    end
+  end
+  
+  
+  describe "submitting" do
+    before do
+      @resource = Resource.new(@uri, @session = mock("session", :logger => @logger))
+      @resource.stub!(:http_methods).and_return(['GET', 'POST'])
+      @resource.stub!(:executed_requests).and_return({
+        'GET' => {'headers' => {'Content-Type' => 'application/vnd.fr.grid5000.api.Job+json;level=1,application/json'}, 'options' => {:query => {:q1 => 'v1'}}}
+      })
+    end
+    describe "setting input body and options" do
+      before do
+        @resource.stub!(:reload).and_return(@resource)
+        @response = mock("http response", :status => 200)
+      end
+      it "should raise a NotImplementedError if the resource does not allow POST" do
+        @resource.should_receive(:http_methods).and_return(['GET'])
+        lambda{@resource.submit("whatever")}.should raise_error(NotImplementedError, /POST method is not allowed for this resource/)
+      end
+      it "should raise an error if the input body is nil" do
+        lambda{@resource.submit(nil)}.should raise_error(ArgumentError, /You must pass a payload/)
+      end
+      it "should pass the body as-is if the given body is a string" do
+        @session.should_receive(:post).with(@resource.uri, "whatever", :headers => {
+          :accept => 'application/vnd.fr.grid5000.api.Job+json;level=1,application/json', 
+          :content_type => 'application/json'}
+          ).and_return(@response)
+        @resource.submit("whatever")
+      end
+      it "should also pass the body as-is if the given body is an object" do
+        body = {:key => 'value'}
+        @session.should_receive(:post).with(@resource.uri, body, :headers => {
+          :accept => 'application/vnd.fr.grid5000.api.Job+json;level=1,application/json', 
+          :content_type => 'application/json'}).and_return(@response)
+        @resource.submit(body)
+      end
+      it "should set the Content-Type header to the specified mime-type if given" do
+        @session.should_receive(:post).with(@resource.uri, "whatever", :headers => {
+          :accept => 'application/vnd.fr.grid5000.api.Job+json;level=1,application/json', 
+          :content_type => 'application/xml'}).and_return(@response)
+        @resource.submit("whatever", :headers => {:content_type => 'application/xml'})
+      end
+    end
+    [201, 202].each do |status|
+      it "should return the resource referenced in the Location header after a successful submit (status=#{status})" do
+        @session.should_receive(:post).and_return(response = mock("http response", :status => status, :headers => {'Location' => '/path/to/new/resource'}))
+        @resource.should_receive(:uri_for).with('/path/to/new/resource').and_return(new_resource_uri = mock("uri"))
+        Resource.should_receive(:new).with(new_resource_uri, @session).and_return(new_resource = mock("resource"))
+        new_resource.should_receive(:load).and_return(new_resource)
+        @resource.submit("whatever").should == new_resource
+      end
+    end
+    it "should reload the resource if the response status is 2xx (and not 201 or 202)" do
+      @session.should_receive(:post).and_return(response = mock("http response", :status => 200, :headers => {'Location' => '/path/to/new/resource'}))
+      @resource.should_receive(:reload).and_return(@resource)
+      @resource.submit("whatever").should == @resource
     end
   end
 end
