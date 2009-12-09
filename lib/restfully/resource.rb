@@ -76,14 +76,13 @@ module Restfully
     #                  you may pass it so that the GET request is not triggered.
     def load(options = {})
       options = options.symbolize_keys
-      force_reload = !!options.delete(:reload) || stale?
-      if !force_reload && (request = executed_requests['GET']) && request['options'] == options && request['body']
-        self
-      else  
+      force_reload = !!options.delete(:reload)
+      stale! unless (request = executed_requests['GET']) && request['options'] == options && request['body']
+      if stale?
         reset
-        if options[:body]
+        if !force_reload && options[:body]
           body = options[:body]
-          headers = nil
+          headers = {}
         else
           response = session.get(uri, options)
           body = response.body
@@ -98,8 +97,8 @@ module Restfully
           populate_object(key, value)
         end
         @status = :loaded
-        self
       end
+      self
     end
   
     # == Description
@@ -143,6 +142,7 @@ module Restfully
     
     def reload
       current_options = executed_requests['GET']['options'] rescue {}
+      stale!
       self.load(current_options.merge(:reload => true))
     end
     
@@ -232,7 +232,6 @@ module Restfully
         session.logger.warn link.errors.join("\n")
       end
     end
-
     
   end # class Resource
 end # module Restfully

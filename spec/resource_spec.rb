@@ -21,9 +21,15 @@ describe Resource do
     end
   end
   
+  describe "reloading" do
+    it "should reload the resource" do
+      resource = Resource.new(@uri, mock('session'))
+      resource.should_receive(:load).with(:reload => true)
+      resource.reload
+    end
+  end
   
   describe "loading" do
-  
     before do
       @raw = {
         'links' => [
@@ -69,6 +75,7 @@ describe Resource do
       }
       @response_200 = Restfully::HTTP::Response.new(200, {'Content-Type' => 'application/json;utf-8', 'Content-Length' => @raw.length}, @raw.to_json)
     end
+    
     it "should not be loaded in its initial state" do
       resource = Resource.new(@uri, mock('session'))
       resource.executed_requests.should == {}
@@ -168,6 +175,12 @@ describe Resource do
       @logger.should_receive(:warn).with(/invalid_rel is not a valid link relationship/)
       resource.load
       resource.links.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
+    end
+    
+    it "should reload the resource if user forces reload" do
+      resource = Resource.new(@uri, session = mock("session"))
+      session.should_receive(:get).and_return(response = mock("response", :headers => {}, :body => {}))
+      resource.load(:reload => true, :body => mock("body"))
     end
   end
   
