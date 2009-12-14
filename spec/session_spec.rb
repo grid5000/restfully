@@ -153,4 +153,12 @@ describe Session do
     end
   end
   
+  describe "DELETEing resources" do
+    it "should create a new Request object and transmit it" do
+      Restfully::HTTP::Request.should_receive(:new).with(URI.parse('https://api.grid5000.fr/sid/some/path'), :headers => {:accept => 'application/json'}, :query => nil).and_return(@request)
+      @session.should_receive(:transmit).with(:delete, @request)
+      @session.delete('some/path', 'headers' => {:accept => 'application/json'})
+    end
+  end
+  
 end

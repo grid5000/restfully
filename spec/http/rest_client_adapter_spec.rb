@@ -19,7 +19,7 @@ describe Restfully::HTTP::Adapters::RestClientAdapter do
   end
   it "should raise a not implemented error when trying to use functions not implemented yet" do
     adapter = Restfully::HTTP::Adapters::RestClientAdapter.new("https://api.grid5000.fr")
-    lambda{adapter.delete(mock("restfully request"))}.should raise_error NotImplementedError, "DELETE is not supported by your adapter."
+    lambda{adapter.put(mock("restfully request"))}.should raise_error NotImplementedError, "PUT is not supported by your adapter."
   end
   it "should rescue any RestClient::Exception and correctly populate the response" do
     res = mock(Net::HTTPResponse, :code => 404, :body => '{"message":"whatever"}', :to_hash => {'Content-Type' => 'application/json;charset=utf-8', 'Content-Length' => 22}, :[] => '')

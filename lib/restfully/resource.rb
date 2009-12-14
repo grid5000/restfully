@@ -52,6 +52,10 @@ module Restfully
       @properties[key]
     end
     
+    def respond_to?(method, *args)
+      @links.has_key?(method.to_s) || super(method, *args)
+    end
+    
     def method_missing(method, *args)
       if link = @links[method.to_s]
         session.logger.debug "Loading link #{method}, args=#{args.inspect}"
@@ -77,7 +81,7 @@ module Restfully
     def load(options = {})
       options = options.symbolize_keys
       force_reload = !!options.delete(:reload)
-      stale! unless (request = executed_requests['GET']) && request['options'] == options && request['body']
+      stale! unless !force_reload && (request = executed_requests['GET']) && request['options'] == options && request['body']
       if stale?
         reset
         if !force_reload && options[:body]
@@ -100,10 +104,17 @@ module Restfully
       end
       self
     end
+    
+    # Convenience function to make a resource.load(:reload => true)
+    def reload
+      current_options = executed_requests['GET']['options'] rescue {}
+      stale!
+      self.load(current_options.merge(:reload => true))
+    end
   
     # == Description
     # Executes a POST request on the resource, reload it and returns self if successful.
-    # If the response status is different than 2xx, raises a HTTP::ClientError or HTTP::ServerError.
+    # If the response status is different from 2xx, raises a HTTP::ClientError or HTTP::ServerError.
     # <tt>payload</tt>:: the input body of the request.
     #                    It may be a serialized string, or a ruby object 
     #                    (that will be serialized according to the given or default content-type).
@@ -132,19 +143,27 @@ module Restfully
       end
     end
     
+    # == Description
+    # Executes a DELETE request on the resource, and returns true if successful.
+    # If the response status is different from 2xx or 3xx, raises an HTTP::ClientError or HTTP::ServerError.
+    # <tt>options</tt>:: list of options to pass to the request (see below)
+    # == Options
+    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
+    #                   E.g. : resource.delete(:query => {:param1 => "value1"})
+    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
+    #                     E.g. : resource.delete(:headers => {:accept => 'application/json'})
+    def delete(options = {})
+      options = options.symbolize_keys
+      raise NotImplementedError, "The DELETE method is not allowed for this resource." unless http_methods.include?('DELETE')
+      response = session.delete(self.uri, options) # raises an exception if there is an error
+      stale!
+      (200..399).include?(response.status)
+    end
+    
     
     def stale!; @status = :stale;  end
     def stale?; @status == :stale; end
-    
-    def uri_for(path)
-      uri.merge(URI.parse(path.to_s))
-    end
-    
-    def reload
-      current_options = executed_requests['GET']['options'] rescue {}
-      stale!
-      self.load(current_options.merge(:reload => true))
-    end
+
     
     # == Description
     # Returns the list of allowed HTTP methods on the resource.
@@ -157,8 +176,8 @@ module Restfully
       (executed_requests['GET']['headers']['Allow'] || "GET").split(/,\s*/)
     end
     
-    def respond_to?(method, *args)
-      @links.has_key?(method.to_s) || super(method, *args)
+    def uri_for(path)
+      uri.merge(URI.parse(path.to_s))
     end
     
     def inspect(*args)

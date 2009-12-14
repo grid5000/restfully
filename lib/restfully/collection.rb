@@ -38,6 +38,12 @@ module Restfully
         super(property)
       end
     end
+    
+    # Returns the current number of items (not the total number) 
+    # in the collection.
+    def length
+      @items.length
+    end
 
     def populate_object(key, value)
       case key
@@ -68,12 +74,7 @@ module Restfully
     def inspect
       @items.inspect
     end
-    
-    # Returns the current number of items (not the total number) 
-    # in the collection.
-    def length
-      @items.length
-    end
+
     
     def pretty_print(pp)
       super(pp) do |pp|

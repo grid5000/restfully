@@ -49,6 +49,12 @@ module Restfully
       transmit :post, HTTP::Request.new(uri_for(path), :body => body, :headers => options.delete(:headers), :query => options.delete(:query))
     end
     
+    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def delete(path, options = {})
+      options = options.symbolize_keys
+      transmit :delete, HTTP::Request.new(uri_for(path), :headers => options.delete(:headers), :query => options.delete(:query))
+    end
+    
     # builds the complete URI, based on the given path and the session's base_uri
     def uri_for(path)
       URI.join(base_uri.to_s, path.to_s)

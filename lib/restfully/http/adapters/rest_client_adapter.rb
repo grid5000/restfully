@@ -23,6 +23,13 @@ module Restfully
           end
         end # def get
         
+
+        def delete(request)
+          in_order_to_get_the_response_to(request) do |resource|
+            resource.delete(request.headers)
+          end
+        end # def delete
+        
         def post(request)
           in_order_to_get_the_response_to(request) do |resource|
             resource.post(request.raw_body, request.headers)

@@ -9,15 +9,16 @@ describe Resource do
   end
   
   describe "accessors" do
+    before(:each) do
+      @resource = Resource.new(@uri, @session=mock("session"))
+    end
     it "should have a reader on the session" do
-      resource = Resource.new("uri", session=mock("session"))
-      resource.should_not respond_to(:session=)
-      resource.session.should == session
+      @resource.should_not respond_to(:session=)
+      @resource.session.should == @session
     end
     it "should have a reader on the uri" do
-      resource = Resource.new("uri", session=mock("session"))
-      resource.should_not respond_to(:uri=)
-      resource.uri.should == URI.parse("uri")
+      @resource.should_not respond_to(:uri=)
+      @resource.uri.should == @uri
     end
   end
   
@@ -177,10 +178,20 @@ describe Resource do
       resource.links.keys.should =~ ['versions', 'clusters', 'environments', 'status', 'parent', 'version']
     end
     
-    it "should reload the resource if user forces reload" do
+    it "should reload the resource if user forces reload [first loading]" do
       resource = Resource.new(@uri, session = mock("session"))
       session.should_receive(:get).and_return(response = mock("response", :headers => {}, :body => {}))
       resource.load(:reload => true, :body => mock("body"))
+    end
+    it "should reload the resource when user forces reload [has been loaded at least once before]" do
+      resource = Resource.new(@uri, session = mock("session"))
+      resource.instance_variable_set "@status", :loaded
+      resource.should_not be_stale
+      resource.should_receive(:executed_requests).at_least(1).and_return({
+        'GET' => {'options' => {:query => {:q=>1}}, 'body' => {'a' => 'b'}}
+      })
+      session.should_receive(:get).and_return(response = mock("response", :headers => {}, :body => {}))
+      resource.load(:reload => true, :query => {:q => 1})
     end
   end
   
@@ -239,6 +250,21 @@ describe Resource do
       @session.should_receive(:post).and_return(response = mock("http response", :status => 200, :headers => {'Location' => '/path/to/new/resource'}))
       @resource.should_receive(:reload).and_return(@resource)
       @resource.submit("whatever").should == @resource
+    end
+  end
+  
+  describe "deleting" do
+    before do
+      @resource = Resource.new(@uri, @session = mock("session", :logger => @logger))
+      @resource.stub!(:http_methods).and_return(['GET', 'DELETE'])
+    end
+    it "should raise an error if the DELETE method is not supported by the service" do
+      @resource.stub!(:http_methods).and_return(['GET'])
+      lambda{@resource.delete}.should raise_error(NotImplementedError, /DELETE method is not allowed/)
+    end
+    it "should send a DELETE request to the resource URI" do
+      @session.should_receive(:delete).with(@uri, :query => {:q => 'v'}, :headers => {'Accept' => 'application/json'}).and_return(response = mock("http response", :status => 204))
+      @resource.delete(:query => {:q => 'v'}, :headers => {'Accept' => 'application/json'}).should be_true
     end
   end
 end

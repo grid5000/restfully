@@ -1,3 +1,13 @@
+0.5.2
+* support for DELETE requests. Use resource.delete(options)
+* fixed bug in resource.load(:reload => true)
+
+0.5.1
+* fixed bug in resource.reload
+
+0.5.0
+* support for POST requests. Use resource.submit(payload, options)
+
 0.4.1
 * added a require 'yaml' in restfully.rb (priteau);
 * added an introductory message when using the command-line tool;
