@@ -77,15 +77,15 @@ module Restfully
 
     
     def pretty_print(pp)
-      super(pp) do |pp|
+      super(pp) do |inner_pp|
         if @items.length > 0
-          pp.breakable
-          pp.text "ITEMS (#{self["offset"]}..#{self["offset"]+@items.length})/#{self["total"]}"
-          pp.nest 2 do
+          inner_pp.breakable
+          inner_pp.text "ITEMS (#{self["offset"]}..#{self["offset"]+@items.length})/#{self["total"]}"
+          inner_pp.nest 2 do
             @items.each_with_index do |item, i|
-              pp.breakable
-              pp.text "#<#{item.class}:0x#{item.object_id.to_s(16)} uid=#{item['uid'].inspect}>"            
-              pp.text "," if i < @items.length-1
+              inner_pp.breakable
+              inner_pp.text "#<#{item.class}:0x#{item.object_id.to_s(16)} uid=#{item['uid'].inspect}>"            
+              inner_pp.text "," if i < @items.length-1
             end
           end
         end
