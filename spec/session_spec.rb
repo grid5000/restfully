@@ -83,7 +83,9 @@ describe Session do
   describe "Transmitting requests" do
     before do
       Session.send(:public, :transmit)  
-      @request.should_receive(:add_headers).with("User-Agent"=>"Restfully/#{restfully_version}", "Accept"=>"application/json")
+      @request.headers.stub!(:[]).and_return(nil)
+      @request.headers.should_receive(:[]=).with("User-Agent", "Restfully/#{restfully_version}")
+      @request.headers.should_receive(:[]=).with("Accept", "application/json")
     end
     it "should send a head" do
       @session.connection.should_receive(:head).with(@request).and_return(@response)

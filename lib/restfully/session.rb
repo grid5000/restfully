@@ -62,7 +62,9 @@ module Restfully
     
     protected
     def transmit(method, request)
-      request.add_headers(default_headers) unless default_headers.empty?
+      default_headers.each do |header, value|
+        request.headers[header] ||= value
+      end
       logger.info "#{method.to_s.upcase} #{request.uri}"  +
                   "\nHeaders: #{request.headers.inspect}" +
                   "#{request.body ? "\nBody: #{request.body.length} bytes" : ""}"
