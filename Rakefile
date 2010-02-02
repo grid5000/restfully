@@ -10,7 +10,7 @@ begin
     gem.email = "cyril.rohr@gmail.com"
     gem.homepage = "http://github.com/crohr/restfully"
     gem.authors = ["Cyril Rohr"]
-    gem.add_dependency "rest-client", '>= 1.0'
+    gem.add_dependency "rest-client", '>= 1.3'
     gem.add_dependency "backports"
     gem.rubyforge_project = 'restfully'
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings

@@ -46,8 +46,8 @@ module Restfully
             headers.delete(:status)
             status = response.code
           rescue RestClient::ExceptionWithResponse => e
-            body = e.http_body
-            headers = e.response.to_hash
+            body = e.response.to_s
+            headers = e.response.headers
             status = e.http_code
           end
           Response.new(status, headers, body)
