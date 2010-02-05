@@ -22,4 +22,8 @@ describe Restfully::Parsing do
     object = {'p1' => 'v1'}
     serialize(object, :content_type => 'application/json;charset=utf-8').should == object.to_json
   end
+  it "should correctly unserialize text content" do
+    object = "anything"
+    unserialize(object, :content_type => 'text/plain;charset=utf-8').should == object
+  end
 end

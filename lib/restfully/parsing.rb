@@ -11,6 +11,8 @@ module Restfully
       case content_type
       when /^application\/.*?json/i
         JSON.parse(object)
+      when /^text\/.*?(plain|html)/i
+        object.to_s
       else
         raise ParserNotFound.new("Content-Type '#{content_type}' is not supported. Cannot parse the given object.")
       end
