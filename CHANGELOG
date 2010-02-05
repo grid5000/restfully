@@ -1,3 +1,9 @@
+0.5.3
+* can handle text/* content, useful when using low-level methods on a session object (session.{get,post,delete,put})
+* can now find a collection item using collection[:symbol] even if item uid is an integer: collection[:'12345']
+* default_headers no longer overwrite custom headers set by user
+* fixed bug with latest version of rest-client
+
 0.5.2
 * support for DELETE requests. Use resource.delete(options)
 * fixed bug in resource.load(:reload => true)
