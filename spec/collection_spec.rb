@@ -6,6 +6,7 @@ describe Collection do
     before do
       @uri = URI.parse('http://api.local/x/y/z')
       @collection = Collection.new(@uri, session=mock('session')).load(:body => JSON.parse(fixture("grid5000-sites.json")))
+      @jobs_collection = Collection.new(@uri, session=mock('session')).load(:body => JSON.parse(fixture("grid5000-rennes-jobs.json")))
     end
     it "should be enumerable" do
       @collection.length.should == 9
@@ -25,6 +26,11 @@ describe Collection do
       rennes = @collection[:rennes]
       rennes.class.should == Restfully::Resource
       rennes['uid'].should == 'rennes'
+    end
+    it "should try to find the matching item in the collection when calling [] with a symbol" do
+      job = @jobs_collection[:'319482']
+      job.class.should == Restfully::Resource
+      job['uid'].should == 319482
     end
   end  
   
