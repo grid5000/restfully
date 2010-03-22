@@ -5,6 +5,9 @@ require 'spec'
 require 'spec/autorun'
 require 'json'
 
+require 'webmock/rspec'
+include WebMock
+
 def fixture(filename)
   File.read(File.join(File.dirname(__FILE__), "fixtures", filename))
 end

@@ -54,6 +54,7 @@ module Restfully
     end
     
     def select_parser_for(content_type)
+      raise ParserNotFound.new("The Content-Type HTTP header of the resource is empty. Cannot find a parser.") if content_type.nil? || content_type.empty?
       content_type.split(",").each do |type|
         parser = PARSERS.find{|parser| parser[:supported_types].find{|supported_type| type =~ (supported_type.kind_of?(String) ? Regexp.new(supported_type) : supported_type) }}
         return parser unless parser.nil?

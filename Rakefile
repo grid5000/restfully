@@ -12,6 +12,9 @@ begin
     gem.authors = ["Cyril Rohr"]
     gem.add_dependency "rest-client", '>= 1.3'
     gem.add_dependency "backports"
+    gem.add_development_dependency "webmock"
+    gem.add_development_dependency "rspec"
+    gem.add_development_dependency "json"
     gem.rubyforge_project = 'restfully'
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end

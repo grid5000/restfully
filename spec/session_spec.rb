@@ -57,6 +57,11 @@ describe Session do
     end
   
     it "should initialize the root resource" do
+      stub_request(:get, "https://api.grid5000.fr/grid5000").to_return(
+        :status => 200, 
+        :body => {"property1" => "value1"}.to_json, 
+        :headers => {'Content-Type' => 'text/plain', 'Content-Length' => 4}
+      )
       session = Session.new(:base_uri => 'https://api.grid5000.fr/grid5000', :user => 'crohr', :password => 'password')
       session.root.should be_a Restfully::Resource
       session.root.uri.to_s.should == 'https://api.grid5000.fr/grid5000'
@@ -65,7 +70,7 @@ describe Session do
   
     it "should yield the loaded root resource and the session object" do
       Restfully::Resource.stub!(:new).and_return(root_resource = mock(Restfully::Resource))
-      root_resource.should_receive(:load).and_return(root_resource)
+      root_resource.should_receive(:load).at_least(1).and_return(root_resource)
       Session.new(:base_uri => 'https://api.grid5000.fr', :user => 'crohr', :password => 'password') do |root, session|
         session.root.should == root
         root.should == root_resource
