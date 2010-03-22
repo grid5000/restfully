@@ -1,32 +1,64 @@
-require 'json'
+
 
 module Restfully
   
   module Parsing
-  
+    
     class ParserNotFound < Restfully::Error; end
+    
+    PARSERS = [
+      {
+        :supported_types => [/^application\/.*?json/i], 
+        :parse => lambda{|object, options| 
+          require 'json'
+          JSON.parse(object)
+        }, 
+        :dump => lambda{|object, options|
+          require 'json' 
+          JSON.dump(object)
+        },
+        :object => true
+      },
+      {
+        :supported_types => [/^text\/.*?(plain|html)/i], 
+        :parse => lambda{|object, options| object}, 
+        :dump => lambda{|object, options| object}
+      },
+      { # just store the binary data in a 'raw' property
+        :supported_types => ["application/zip"],
+        :parse => lambda{|object, options| {'raw' => object}},
+        :dump => lambda{|object, options| object['raw']}
+      }
+    ]
+    
     def unserialize(object, options = {})
       content_type = options[:content_type]
       content_type ||= object.headers['Content-Type'] if object.respond_to?(:headers)
-      case content_type
-      when /^application\/.*?json/i
-        JSON.parse(object)
-      when /^text\/.*?(plain|html)/i
-        object.to_s
+      parser = select_parser_for(content_type)
+      if parser
+        parser[:parse].call(object, options)
       else
-        raise ParserNotFound.new("Content-Type '#{content_type}' is not supported. Cannot parse the given object.")
+        raise ParserNotFound.new("Cannot find a parser to parse '#{content_type}' content.")
       end
     end
   
     def serialize(object, options = {})
       content_type = options[:content_type]
       content_type ||= object.headers['Content-Type'] if object.respond_to?(:headers)
-      case content_type
-      when /^application\/.*?json/i
-        JSON.dump(object)
+      parser = select_parser_for(content_type)
+      if parser
+        parser[:dump].call(object, options)
       else
-        raise ParserNotFound, [object, content_type]
+        raise ParserNotFound.new("Cannot find a parser to dump object into '#{content_type}' content.")
       end
+    end
+    
+    def select_parser_for(content_type)
+      content_type.split(",").each do |type|
+        parser = PARSERS.find{|parser| parser[:supported_types].find{|supported_type| type =~ (supported_type.kind_of?(String) ? Regexp.new(supported_type) : supported_type) }}
+        return parser unless parser.nil?
+      end
+      nil
     end
 
   end

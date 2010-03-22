@@ -56,7 +56,7 @@ def session
 end
 
 def root 
-  @root ||= session.root.load
+  @root ||= session.root
 end
 
 puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."

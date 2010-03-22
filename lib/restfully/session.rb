@@ -30,7 +30,7 @@ module Restfully
     end
     
     def root
-      @root ||= @root.load
+      @root.load
     end
     
     # returns an HTTP::Response object or raise a Restfully::HTTP::Error
