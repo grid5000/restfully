@@ -10,9 +10,8 @@ module Restfully
   end
   class Session
     include Parsing, HTTP::Headers
-    attr_reader :base_uri, :logger, :connection, :root, :default_headers
+    attr_reader :base_uri, :logger, :connection, :default_headers
     
-    # TODO: use CacheableResource
     def initialize(options = {})
       options = options.symbolize_keys
       if (config_filename = options.delete(:configuration_file)) && File.exists?(File.expand_path(config_filename))
@@ -28,6 +27,10 @@ module Restfully
       @connection             =   Restfully.adapter.new(base_uri.to_s, options.merge(:logger => logger))
       @root                   =   Resource.new(@base_uri, self)
       yield @root.load, self if block_given?
+    end
+    
+    def root
+      @root ||= @root.load
     end
     
     # returns an HTTP::Response object or raise a Restfully::HTTP::Error
