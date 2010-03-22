@@ -15,7 +15,7 @@ module Restfully
           in_order_to_get_the_response_to(request) do |resource|
             resource.head(request.headers)
           end
-        end # def get
+        end # def head
         
         def get(request)
           in_order_to_get_the_response_to(request) do |resource|
