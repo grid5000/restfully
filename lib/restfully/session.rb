@@ -29,6 +29,7 @@ module Restfully
       yield @root.load, self if block_given?
     end
     
+    # returns the root resource
     def root
       @root.load
     end
@@ -53,6 +54,13 @@ module Restfully
     end
     
     # returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def put(path, body, options = {})
+      options = options.symbolize_keys
+      uri = uri_for(path)
+      transmit :put, HTTP::Request.new(uri_for(path), :body => body, :headers => options.delete(:headers), :query => options.delete(:query))
+    end
+    
+    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
     def delete(path, options = {})
       options = options.symbolize_keys
       transmit :delete, HTTP::Request.new(uri_for(path), :headers => options.delete(:headers), :query => options.delete(:query))
@@ -68,9 +76,6 @@ module Restfully
       default_headers.each do |header, value|
         request.headers[header] ||= value
       end
-      logger.info "#{method.to_s.upcase} #{request.uri}"  +
-                  "\nHeaders: #{request.headers.inspect}" +
-                  "#{request.body ? "\nBody: #{request.body.length} bytes" : ""}"
       response = connection.send(method.to_sym, request)
       response = deal_with_eventual_errors(response, request)
     end

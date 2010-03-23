@@ -32,6 +32,7 @@ describe Resource do
   
   describe "loading" do
     before do
+      @session = Restfully::Session.new(:base_uri => "http://api.local")
       @raw = {
         'links' => [
           {'rel' => 'self', 'href' => '/grid5000/sites/rennes'},
@@ -100,7 +101,12 @@ describe Resource do
       resource.load(:reload => true)
     end
     it "should correctly define the functions to access simple values" do
-      resource = Resource.new(@uri, session = mock("session", :get => @response_200, :logger => @logger))
+      stub_request(:get, @uri.to_s).to_return(
+        :status => 200,
+        :body => @raw.to_json,
+        :headers => {'Content-Type' => 'application/json', 'Content-Length' => @raw.length}
+      )
+      resource = Resource.new(@uri, @session)
       resource.stub!(:define_link) # do not define links
       resource.load
       resource['whatever'].should == 'whatever'
@@ -108,7 +114,20 @@ describe Resource do
       resource["uid"].should == 'rennes'
       resource['an_array'].should be_a(SpecialArray)
       resource['an_array'].should == [1,2,3]
-      lambda{resource.clusters}.should raise_error(NoMethodError)
+    end
+    
+    it "should correctly send custom headers" do
+      stub_request(:get, @uri.to_s).with(:headers => {
+        'User-Agent'=>"Restfully/#{Restfully::VERSION}", 
+        'Accept-Encoding'=>'gzip, deflate', 
+        'Accept'=>'application/json'
+      }).to_return(
+        :status => 200,
+        :body => @raw.to_json,
+        :headers => {'Content-Type' => 'application/json', 'Content-Length' => @raw.length}
+      )
+      resource = Resource.new(@uri, @session)
+      resource.load(:headers => {:accept => 'application/json'})
     end
     
     it "should correctly define a collection link" do
