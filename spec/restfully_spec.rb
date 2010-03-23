@@ -1,6 +1,9 @@
 require File.expand_path(File.dirname(__FILE__)+'/spec_helper')
 
 describe Restfully do
+  after do
+    Restfully.adapter = Restfully::HTTP::Adapters::RestClientAdapter
+  end
   it "should have a default adapter" do
     Restfully.adapter.should == Restfully::HTTP::Adapters::RestClientAdapter
   end
