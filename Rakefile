@@ -10,7 +10,7 @@ begin
     gem.email = "cyril.rohr@gmail.com"
     gem.homepage = "http://github.com/crohr/restfully"
     gem.authors = ["Cyril Rohr"]
-    gem.add_dependency "rest-client", '>= 1.3'
+    gem.add_dependency "rest-client", '>= 1.4'
     gem.add_dependency "backports"
     gem.add_development_dependency "webmock"
     gem.add_development_dependency "rspec"
