@@ -11,11 +11,11 @@ begin
     gem.homepage = "http://github.com/crohr/restfully"
     gem.authors = ["Cyril Rohr"]
     gem.add_dependency "rest-client", '>= 1.4'
+    gem.add_dependency "json", '>= 1.2.0'
     gem.add_dependency "backports"
     gem.add_development_dependency "webmock"
     gem.add_development_dependency "rspec"
     gem.add_development_dependency "json"
-    gem.rubyforge_project = 'restfully'
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
 
@@ -34,38 +34,6 @@ Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.pattern = 'spec/**/*_spec.rb'
   spec.rcov = true
 end
-
-# These are new tasks
-begin
-  require 'rake/contrib/sshpublisher'
-  namespace :rubyforge do
-
-    desc "Release gem and RDoc documentation to RubyForge"
-    task :release => ["rubyforge:release:gem", "rubyforge:release:docs"]
-
-    namespace :release do
-      desc "Publish RDoc to RubyForge."
-      task :docs => [:rdoc] do
-        config = YAML.load(
-            File.read(File.expand_path('~/.rubyforge/user-config.yml'))
-        )
-
-        host = "#{config['username']}@rubyforge.org"
-        remote_dir = "/var/www/gforge-projects/restfully/"
-        local_dir = 'rdoc'
-
-        Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
-      end
-    end
-  end
-rescue LoadError
-  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
-end
-
-Jeweler::RubyforgeTasks.new do |rubyforge|
-  rubyforge.doc_task = "rdoc"
-end
-
 
 task :default => :spec
 
