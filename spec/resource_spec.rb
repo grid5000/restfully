@@ -286,4 +286,35 @@ describe Resource do
       @resource.delete(:query => {:q => 'v'}, :headers => {'Accept' => 'application/json'}).should be_true
     end
   end
+  
+  describe "supported http methodes" do
+    before do
+      @resource = Resource.new(@uri, @session = mock("session", :logger => @logger))
+    end
+    it "should reload if a GET request has not been executed before" do
+      @resource.should_receive(:executed_requests).ordered.and_return({})
+      @resource.should_receive(:reload).ordered
+      @resource.should_receive(:executed_requests).ordered.and_return({
+        'GET' => {'body' => "xxx", "headers" => {'Allow' => 'POST, PUT'}}
+      })
+      @resource.http_methods.should == ['POST','PUT']
+    end
+    it "should reload if the headers are empty" do
+      @resource.should_receive(:executed_requests).exactly(3).ordered.and_return({
+        'GET' => {'body' => "xxx", "headers" => {}}
+      })
+      @resource.should_receive(:reload).ordered
+      @resource.should_receive(:executed_requests).once.ordered.and_return({
+        'GET' => {'body' => "xxx", "headers" => {'Allow' => 'POST, PUT'}}
+      })
+      @resource.http_methods.should == ['POST','PUT']
+    end
+    it "should not reload if the headers are not empty" do
+      @resource.should_receive(:executed_requests).exactly(4).and_return({
+        'GET' => {'body' => "xxx", "headers" => {'Allow' => 'POST, PUT'}}
+      })
+      @resource.should_not_receive(:reload)
+      @resource.http_methods.should == ['POST','PUT']
+    end
+  end
 end

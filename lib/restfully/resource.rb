@@ -172,7 +172,7 @@ module Restfully
     #   => ['GET', 'POST']
     # 
     def http_methods
-      reload if executed_requests['GET'].nil? || executed_requests['GET']['headers'].nil?
+      reload if executed_requests['GET'].nil? || executed_requests['GET']['headers'].nil? || executed_requests['GET']['headers'].empty?
       (executed_requests['GET']['headers']['Allow'] || "GET").split(/,\s*/)
     end
     
