@@ -32,6 +32,19 @@ describe Collection do
       job.class.should == Restfully::Resource
       job['uid'].should == 319482
     end
+    it "should make a direct request to collection_uri/resource_uid when calling [] and the searched item is not in the collection" do
+      Restfully::Resource.should_receive(:new).with('http://api.local/x/y/z/not_in_the_collection', @collection.session).and_return(resource = mock("resource"))
+      resource.should_receive(:load).and_return(resource)
+      @collection[:not_in_the_collection].should == resource
+    end
+    it "should go through the 'next' links (if any) to search for the requested item" do
+      pending
+    end
+    it "should always return nil if the searched item is not in the collection" do
+      Restfully::Resource.should_receive(:new).with('http://api.local/x/y/z/doesnotexist', @collection.session).and_return(resource = mock("resource"))
+      resource.should_receive(:load).and_raise Restfully::HTTP::ClientError.new(mock("response", :body => "Not Found", :status => 404))
+      @collection[:doesnotexist].should be_nil
+    end
   end  
   
   describe "populating collection" do

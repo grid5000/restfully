@@ -33,7 +33,9 @@ module Restfully
     # else, returns the result of calling <tt>[]</tt> on its superclass.
     def [](property)
       if property.kind_of?(Symbol)
-        find{|i| i['uid'] == property.to_s} || find{|i| i['uid'] == property.to_s.to_i}
+        item = find{|i| i['uid'] == property.to_s} || 
+          find{|i| i['uid'] == property.to_s.to_i} ||
+          Resource.new([uri, property].join("/"), session).load rescue nil
       else
         super(property)
       end
