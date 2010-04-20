@@ -1,3 +1,7 @@
+0.5.10
+* Direct lookup to the resource if it cannot be found in the collection (for APIs that do not return all the items in a collection) (priteau)
+* Automatically load next pages of a collection when iterating through it
+
 0.5.9
 * fixed bug in #http_methods that made a resource not removable unless force reloading it
 
