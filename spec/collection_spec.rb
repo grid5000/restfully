@@ -38,7 +38,19 @@ describe Collection do
       @collection[:not_in_the_collection].should == resource
     end
     it "should go through the 'next' links (if any) to search for the requested item" do
-      pending
+      body = JSON.parse(fixture("grid5000-rennes-jobs.json"))
+      body["total"] = 20
+      body1 = JSON.parse(fixture("grid5000-rennes-jobs.json"))
+      body["total"] = 20
+      body1["offset"] = 8
+      body2 = JSON.parse(fixture("grid5000-rennes-jobs.json"))
+      body["total"] = 20
+      body2["offset"] = 16
+      body2["items"][1]["uid"] = "18th item"
+      collection = Collection.new(@uri, session = mock('session')).load(:body => body)
+      session.should_receive(:get).with(@uri, :query => {:offset => 8}).ordered.and_return(response = mock("response", :body => body1, :status => 200, :headers => {}))
+      session.should_receive(:get).with(@uri, :query => {:offset => 16}).ordered.and_return(response = mock("response", :body => body2, :status => 200, :headers => {}))
+      collection.find{|item| item["uid"] == "18th item"}.should_not be_nil
     end
     it "should always return nil if the searched item is not in the collection" do
       Restfully::Resource.should_receive(:new).with('http://api.local/x/y/z/doesnotexist', @collection.session).and_return(resource = mock("resource"))

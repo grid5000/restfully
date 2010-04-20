@@ -26,7 +26,16 @@ module Restfully
     
     # Iterates over the collection of items
     def each(*args, &block)
-      @items.each(*args, &block)
+      @items.each_index{ |i|
+        block.call(@items[i])
+        if i == @items.length-1 && @items.length < self["total"]
+          # load next page
+          next_page = Collection.new(uri, session).load(:query => {:offset => self["offset"]+@items.length}) rescue nil
+          if next_page && next_page['offset'] != self["offset"]
+            @items.push(*next_page.to_a)
+          end
+        end
+      }
     end
     
     # if property is a Symbol, it tries to find the corresponding item whose uid.to_sym is matching the property
