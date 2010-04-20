@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{restfully}
-  s.version = "0.5.9"
+  s.version = "0.5.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cyril Rohr"]
-  s.date = %q{2010-03-31}
+  s.date = %q{2010-04-20}
   s.default_executable = %q{restfully}
   s.description = %q{Experimental code for auto-generation of wrappers on top of RESTful APIs that follow HATEOAS principles and provide OPTIONS methods and/or Allow headers.}
   s.email = %q{cyril.rohr@gmail.com}
