@@ -8,7 +8,6 @@ module Restfully
           @options = options.symbolize_keys
           @logger = @options.delete(:logger) || Restfully::NullLogger.new
           @base_uri = base_uri
-          logger.debug "base_uri = #{base_uri.inspect}, options = #{options.inspect}."
         end
         
         def get(request)
