@@ -9,8 +9,8 @@ describe Restfully::HTTP::Request do
       :body => {"key" => "value"}.to_json
     )
     request.uri.should be_a URI
-    request.uri.to_s.should == 'https://api.grid5000.fr/sid/grid5000?q1=v1&q2=v2&custom_param1=3,4,5,6&custom_param2=value_custom_param2'
-    request.uri.query.should == "q1=v1&q2=v2&custom_param1=3,4,5,6&custom_param2=value_custom_param2"
+    request.uri.to_s.should == 'https://api.grid5000.fr/sid/grid5000?q1=v1&q2=v2&custom_param1[]=3&custom_param1[]=4&custom_param1[]=5&custom_param1[]=6&custom_param2=value_custom_param2'
+    request.uri.query.should == "q1=v1&q2=v2&custom_param1[]=3&custom_param1[]=4&custom_param1[]=5&custom_param1[]=6&custom_param2=value_custom_param2"
     request.headers.should == {
       "Content-Type"=>"application/json", 
       'Accept' => 'application/xml',
