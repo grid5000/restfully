@@ -13,9 +13,12 @@ require 'restfully/resource'
 require 'restfully/collection'
 
 module Restfully
-  VERSION = "0.6.0"
+  # To be changed on version bump
+  VERSION = "0.6.1"
+  
   class << self
     attr_accessor :adapter
   end
+  
   self.adapter = Restfully::HTTP::Adapters::RestClientAdapter
 end

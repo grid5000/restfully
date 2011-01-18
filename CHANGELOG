@@ -1,3 +1,6 @@
+0.6.1
+* Removed unnecessary logging.
+
 0.6.0
 * Fixed collection traversal.
 * Query parameters that are Arrays are no longer joined.
