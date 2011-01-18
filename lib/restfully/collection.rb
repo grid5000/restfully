@@ -28,9 +28,12 @@ module Restfully
     def each(*args, &block)
       @items.each_index{ |i|
         block.call(@items[i])
-        if i == @items.length-1 && @items.length < self["total"]
+        if i == @items.length-1 && @items.length+self["offset"] < self["total"]
           # load next page
-          next_page = Collection.new(uri, session).load(:query => {:offset => self["offset"]+@items.length}) rescue nil
+          query_options = executed_requests['GET']['options'][:query] || {}
+          query_options[:offset] = self["offset"]+@items.length
+          query_options[:limit] ||= 200
+          next_page = Collection.new(uri, session).load(:query => query_options) rescue nil
           if next_page && next_page['offset'] != self["offset"]
             @items.push(*next_page.to_a)
           end

@@ -48,8 +48,8 @@ describe Collection do
       body2["offset"] = 16
       body2["items"][1]["uid"] = "18th item"
       collection = Collection.new(@uri, session = mock('session')).load(:body => body)
-      session.should_receive(:get).with(@uri, :query => {:offset => 8}).ordered.and_return(response = mock("response", :body => body1, :status => 200, :headers => {}))
-      session.should_receive(:get).with(@uri, :query => {:offset => 16}).ordered.and_return(response = mock("response", :body => body2, :status => 200, :headers => {}))
+      session.should_receive(:get).with(@uri, :query => {:offset => 8, :limit => 200}).ordered.and_return(response = mock("response", :body => body1, :status => 200, :headers => {}))
+      session.should_receive(:get).with(@uri, :query => {:offset => 16, :limit => 200}).ordered.and_return(response = mock("response", :body => body2, :status => 200, :headers => {}))
       collection.find{|item| item["uid"] == "18th item"}.should_not be_nil
     end
     it "should always return nil if the searched item is not in the collection" do
