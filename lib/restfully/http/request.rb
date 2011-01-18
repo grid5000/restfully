@@ -1,10 +1,12 @@
 require 'uri'
 module Restfully
   module HTTP
+    
     class Request
       include Headers, Restfully::Parsing
       attr_reader :headers, :uri
       attr_accessor :retries
+      
       def initialize(url, options = {})
         options = options.symbolize_keys
         @uri = url.kind_of?(URI) ? url : URI.parse(url)
@@ -15,7 +17,6 @@ module Restfully
         @body = options.delete(:body)
         @retries = 0
       end
-      
       
       def body
         if @body.kind_of?(String)

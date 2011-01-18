@@ -1,3 +1,8 @@
+0.6.0
+* Fixed collection traversal.
+* Query parameters that are Arrays are no longer joined.
+* Added 'next' as valid link relationship.
+
 0.5.10
 * Direct lookup to the resource if it cannot be found in the collection (for APIs that do not return all the items in a collection) (priteau)
 * Automatically load next pages of a collection when iterating through it
