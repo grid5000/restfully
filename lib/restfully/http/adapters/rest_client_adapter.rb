@@ -53,7 +53,7 @@ module Restfully
             status = response.code
           rescue RestClient::ExceptionWithResponse => e
             body = e.response.to_s
-            headers = e.response.headers
+            headers = e.response.headers rescue {}
             status = e.http_code
           end
           Response.new(status, headers, body)
