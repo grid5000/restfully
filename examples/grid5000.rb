@@ -5,7 +5,7 @@ require 'pp'
 require File.dirname(__FILE__)+'/../lib/restfully'
 
 logger = Logger.new(STDOUT)
-logger.level = Logger::WARN
+logger.level = Logger::DEBUG
 
 RestClient.log = 'stdout'
 
@@ -13,7 +13,7 @@ RestClient.log = 'stdout'
 # username: my_username
 # password: my_password
 options = YAML.load_file(File.expand_path('~/.restfully/api.grid5000.fr.yml')) 
-options[:base_uri] = 'https://api.grid5000.fr/sid/grid5000'
+options[:uri] = 'https://api.grid5000.fr/sid/grid5000'
 options[:logger] = logger
 Restfully::Session.new(options) do |grid, session|
   grid_stats = {'hardware' => {}, 'system' => {}}

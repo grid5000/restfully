@@ -1,42 +1,55 @@
-require 'uri'
 module Restfully
   module HTTP
     
     class Request
-      include Headers, Restfully::Parsing
-      attr_reader :headers, :uri
-      attr_accessor :retries
+      include Helper
       
-      def initialize(url, options = {})
-        options = options.symbolize_keys
-        @uri = url.kind_of?(URI) ? url : URI.parse(url)
-        @headers = sanitize_http_headers(options.delete(:headers) || {})
-        if query = options.delete(:query)
-          @uri.query = [@uri.query, query.to_params].compact.join("&")
+      attr_reader :method, :uri, :head, :body
+      
+      def initialize(session, method, path, options)
+        @session = session
+        
+        request = options.symbolize_keys
+        request[:method] = method
+
+        request[:head] = build_head(request)
+        request[:body] = if [:post, :put].include?(request[:method])
+          build_body(request)
         end
-        @body = options.delete(:body)
-        @retries = 0
+
+        request[:uri] = @session.uri_to(path)
+        if request[:query]
+          request[:uri].query = request[:query].to_params
+        end
+        request[:uri] = request[:uri].to_s
+
+        @method, @uri, @head, @body = request.values_at(
+          :method, :uri, :head, :body
+        )
       end
       
-      def body
-        if @body.kind_of?(String)
-          @unserialized_body ||= unserialize(@body, :content_type => @headers['Content-Type'])
+      protected
+      def build_head(options = {})
+        sanitize_head(@session.default_headers).merge(
+          sanitize_head(
+            options.delete(:headers) || options.delete(:head) || {}
+          )
+        )
+      end
+
+      def build_body(options = {})
+        if options[:body]
+          type = MediaType.find(options[:head]['Content-Type'])
+          if type.nil?
+            type = MediaType.find('application/x-www-form-urlencoded')
+            options[:head]['Content-Type'] = type.default_type
+          end
+          type.serialize(options[:body])
         else
-          @body
+          nil
         end
       end
       
-      def raw_body
-        if @body.kind_of?(String)
-          @body
-        else
-          @serialized_body ||= serialize(@body, :content_type => @headers['Content-Type'])
-        end
-      end
-      
-      def add_headers(headers = {})
-        @headers.merge!(sanitize_http_headers(headers || {}))
-      end
     end
   end
 end

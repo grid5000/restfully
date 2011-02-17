@@ -1,166 +1,1008 @@
 {
-  "items": [
-    {
-      "name": "test",
-      "submitted_at": 1265359473,
-      "uid": 319482,
-      "user_uid": "crohr",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319482",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+    "total": 366486,
+    "offset": 0,
+    "items": [{
+        "uid": 376505,
+        "user": "sbadia",
+        "start_time": 1297866066,
+        "predicted_start_time": "1297866066",
+        "walltime": 3600,
+        "queue": "default",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376505",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "running"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265359155,
-      "uid": 319481,
-      "user_uid": "rnou",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319481",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376504,
+        "user": "sbadia",
+        "start_time": 1297866010,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376504",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "running"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265359003,
-      "uid": 319480,
-      "user_uid": "ethome",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319480",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376503,
+        "user": "tvluong",
+        "start_time": 1297865716,
+        "walltime": 39600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376503",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "running"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265354868,
-      "uid": 319479,
-      "user_uid": "jarnaud",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319479",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376502,
+        "user": "jsilvabernardes",
+        "start_time": 0,
+        "predicted_start_time": "1297922461",
+        "walltime": 14400,
+        "queue": "default",
+        "state": "waiting",
+        "project": "default",
+        "name": "result1",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376502",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "running"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265312207,
-      "uid": 319462,
-      "user_uid": "acarpena",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319462",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376501,
+        "user": "oiegorov",
+        "start_time": 1297864644,
+        "predicted_start_time": "1297864644",
+        "walltime": 1794,
+        "queue": "default",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376501",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "waiting"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265292999,
-      "uid": 319432,
-      "user_uid": "acarpena",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319432",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376500,
+        "user": "tvluong",
+        "start_time": 1297864279,
+        "walltime": 39600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376500",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "waiting"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265218740,
-      "uid": 319355,
-      "user_uid": "bfnicola",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319355",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376499,
+        "user": "hchihoub",
+        "start_time": 1297863914,
+        "predicted_start_time": "1297863914",
+        "walltime": 14396,
+        "queue": "default",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376499",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "waiting"
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
     },
     {
-      "submitted_at": 1265148155,
-      "uid": 319332,
-      "user_uid": "akguyantoine",
-      "links": [
-        {
-          "href": "/sid/grid5000/sites/rennes/jobs/319332",
-          "rel": "self",
-          "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+        "uid": 376498,
+        "user": "sbadia",
+        "start_time": 1297863672,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376498",
+            "type": "application/vnd.grid5000+json"
         },
         {
-          "href": "/sid/grid5000/sites/rennes",
-          "rel": "parent",
-          "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
-        }
-      ],
-      "queue": "default",
-      "state": "waiting"
-    }
-  ],
-  "total": 8,
-  "links": [
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
     {
-      "href": "/sid/grid5000/sites/rennes/jobs",
-      "rel": "self",
-      "type": "application/vnd.fr.grid5000.api.Collection+json;level=1"
-    }
-  ],
-  "offset": 0
+        "uid": 376497,
+        "user": "tvluong",
+        "start_time": 1297863647,
+        "walltime": 39600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376497",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376496,
+        "user": "priteau",
+        "start_time": 1297861555,
+        "predicted_start_time": "1297861555",
+        "walltime": 10800,
+        "queue": "default",
+        "state": "running",
+        "project": "default",
+        "name": "Nimbus",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376496",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376495,
+        "user": "jsilvabernardes",
+        "start_time": 1297860565,
+        "walltime": 14400,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "result1",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376495",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376494,
+        "user": "jsilvabernardes",
+        "start_time": 1297859317,
+        "walltime": 14400,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "result1",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376494",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376493,
+        "user": "jsilvabernardes",
+        "start_time": 1297859255,
+        "walltime": 14400,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "result1",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376493",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376492,
+        "user": "mdorier",
+        "start_time": 1297858038,
+        "walltime": 18000,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376492",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376491,
+        "user": "priteau",
+        "start_time": 1297857976,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "Chef",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376491",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376489,
+        "user": "hdoghmen",
+        "start_time": 0,
+        "predicted_start_time": "1297922461",
+        "walltime": 54000,
+        "queue": "besteffort",
+        "state": "waiting",
+        "project": "default",
+        "name": "7big10b",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376489",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376490,
+        "user": "hdoghmen",
+        "start_time": 1297856515,
+        "walltime": 54000,
+        "queue": "besteffort",
+        "state": "error",
+        "project": "default",
+        "name": "big10",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376490",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376488,
+        "user": "hchihoub",
+        "start_time": 1297853436,
+        "walltime": 3597,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376488",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376487,
+        "user": "priteau",
+        "start_time": 1297853337,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "Grid5000::Campaign::Engine",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376487",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376486,
+        "user": "priteau",
+        "start_time": 1297852418,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Chef",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376486",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376485,
+        "user": "hchihoub",
+        "start_time": 1297852261,
+        "walltime": 2397,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376485",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376484,
+        "user": "priteau",
+        "start_time": 1297851824,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Grid5000::Campaign::Engine",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376484",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376483,
+        "user": "hchihoub",
+        "start_time": 1297851723,
+        "walltime": 2396,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376483",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376482,
+        "user": "priteau",
+        "start_time": 1297851712,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "g5k-campaign test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376482",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376481,
+        "user": "tviettrung",
+        "start_time": 1297863083,
+        "predicted_start_time": "1297863083",
+        "walltime": 7157,
+        "queue": "default",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376481",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376480,
+        "user": "priteau",
+        "start_time": 1297850726,
+        "walltime": 7200,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376480",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376479,
+        "user": "mimbert",
+        "start_time": 1297850005,
+        "walltime": 3515,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376479",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376478,
+        "user": "gbrand",
+        "start_time": 1297848877,
+        "predicted_start_time": "1297848877",
+        "walltime": 28800,
+        "queue": "testing",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376478",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376477,
+        "user": "gbrand",
+        "start_time": 1297848877,
+        "predicted_start_time": "1297848877",
+        "walltime": 28800,
+        "queue": "testing",
+        "state": "running",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376477",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376476,
+        "user": "tvluong",
+        "start_time": 1297846887,
+        "walltime": 39600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376476",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376475,
+        "user": "mdorier",
+        "start_time": 1297844954,
+        "walltime": 32400,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376475",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376473,
+        "user": "hdoghmen",
+        "start_time": 1297844750,
+        "predicted_start_time": "1297844750",
+        "walltime": 54000,
+        "queue": "besteffort",
+        "state": "running",
+        "project": "default",
+        "name": "7big10b",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376473",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376474,
+        "user": "hdoghmen",
+        "start_time": 1297844750,
+        "walltime": 54000,
+        "queue": "besteffort",
+        "state": "error",
+        "project": "default",
+        "name": "big10",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376474",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376472,
+        "user": "cfortina",
+        "start_time": 1297844732,
+        "walltime": 10800,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376472",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376471,
+        "user": "yparent",
+        "start_time": 1297844480,
+        "walltime": 10800,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376471",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376470,
+        "user": "fmarceteau",
+        "start_time": 1297843785,
+        "walltime": 10797,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376470",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376469,
+        "user": "fchuffart",
+        "start_time": 1297862106,
+        "walltime": 1794,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376469",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376468,
+        "user": "fchuffart",
+        "start_time": 1297926901,
+        "predicted_start_time": "1297926901",
+        "walltime": 1800,
+        "queue": "default",
+        "state": "waiting",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376468",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376467,
+        "user": "yhoarau",
+        "start_time": 0,
+        "predicted_start_time": "1297922461",
+        "walltime": 86400,
+        "queue": "default",
+        "state": "waiting",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376467",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376466,
+        "user": "tvluong",
+        "start_time": 1297812720,
+        "walltime": 39595,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376466",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376465,
+        "user": "tvluong",
+        "start_time": 1297809221,
+        "walltime": 39595,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376465",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376464,
+        "user": "sdelamare",
+        "start_time": 1297803365,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376464",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376463,
+        "user": "tvluong",
+        "start_time": 1297803159,
+        "walltime": 39594,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376463",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376462,
+        "user": "sdelamare",
+        "start_time": 1297802645,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376462",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376461,
+        "user": "sdelamare",
+        "start_time": 1297802165,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376461",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376460,
+        "user": "sdelamare",
+        "start_time": 1297801684,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376460",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376459,
+        "user": "sdelamare",
+        "start_time": 1297801205,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376459",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376458,
+        "user": "sdelamare",
+        "start_time": 1297800725,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376458",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376457,
+        "user": "sdelamare",
+        "start_time": 1297800006,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "error",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376457",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    },
+    {
+        "uid": 376456,
+        "user": "sdelamare",
+        "start_time": 1297799525,
+        "walltime": 3600,
+        "queue": "default",
+        "state": "terminated",
+        "project": "default",
+        "name": "Test",
+        "links": [{
+            "rel": "self",
+            "href": "/grid5000/sites/rennes/jobs/376456",
+            "type": "application/vnd.grid5000+json"
+        },
+        {
+            "rel": "parent",
+            "href": "/grid5000/sites/rennes",
+            "type": "application/vnd.grid5000+json"
+        }]
+    }],
+    "links": [{
+        "rel": "self",
+        "href": "/grid5000/sites/rennes/jobs",
+        "type": "application/vnd.grid5000+json"
+    },
+    {
+        "rel": "parent",
+        "href": "/grid5000/sites/rennes",
+        "type": "application/vnd.grid5000+json"
+    },
+    {
+        "rel": "next",
+        "href": "/grid5000/sites/rennes/jobs?offset=100",
+        "type": "application/vnd.grid5000+json"
+    },
+    {
+        "rel": "index",
+        "href": "/grid5000/sites/rennes/jobs?offset=0",
+        "type": "application/vnd.grid5000+json"
+    }]
 }

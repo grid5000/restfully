@@ -18,7 +18,7 @@ option_parser = OptionParser.new do |opts|
 * Description
   Restfully #{Restfully::VERSION} - Access REST APIs effortlessly
 * Usage
-  restfully [base_uri] [options]
+  restfully [uri] [options]
 * Options
 BANNER
 
@@ -49,10 +49,18 @@ end
 
 option_parser.parse!
 
-@options[:base_uri] = ARGV.shift
+@options[:uri] = ARGV.shift
+
+# Compatibility with restfully < 0.6
+@options[:uri] ||= @options[:base_uri]
+
+fail "You must pass a URI" if @options[:uri].nil?
+
+@session = Restfully::Session.new(@options)
+
 
 def session
-  @session ||= Restfully::Session.new(@options)
+  @session
 end
 
 def root 

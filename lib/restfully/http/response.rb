@@ -1,35 +1,65 @@
 module Restfully
   module HTTP
-    # Container for an HTTP Response. Has <tt>status</tt>, <tt>headers</tt> and <tt>body</tt> properties.
     class Response
-      include Headers, Restfully::Parsing
-      attr_reader :status, :headers
+      include Helper
       
-      # <tt>body</tt>:: may be a string (that will be parsed when calling the #body function), or an object (that will be returned as is when calling the #body function)
-      def initialize(status, headers, body)
-        @status = status.to_i
-        @headers = sanitize_http_headers(headers)
-        @body = body
+      attr_reader :io, :code, :head
+      
+      def initialize(session, code, head, body)
+        @session = session
+        @io = StringIO.new
+        case body
+        when String
+          @io << body
+        else
+          body.each{|chunk| @io << chunk}
+        end
+        @io.rewind
+        
+        @code = code
+        @head = sanitize_head(head)
       end
       
       def body
-        if @body.kind_of?(String)
-          if @body.empty?
-            nil
-          else
-            @unserialized_body ||= unserialize(@body, :content_type => @headers['Content-Type'])
-          end
-        else
-          @body
+        @io.rewind
+        @body = @io.read
+        @io.rewind
+        @body
+      end
+      
+      def io
+        @io
+      end
+      
+      def media_type
+        @media_type ||= begin
+          m = MediaType.find(head['Content-Type'])
+          raise Error, "Cannot find a media-type for content-type=#{head['Content-Type'].inspect}" if m.nil?
+          m.new(io)
         end
       end
       
-      def raw_body
-        if @body.kind_of?(String)
-          @body
-        else
-          @serialized_body ||= serialize(@body, :content_type => @headers['Content-Type']) unless @body.nil?
-        end
+      # TODO: we could also search for Link headers here.
+      def links
+        media_type.links
+      end
+      
+      def property(key)
+        media_type.property(key)
+      end
+      
+      def allow?(http_method)
+        http_method = http_method.to_sym
+        return true if http_method == :get
+        (
+          media_type.respond_to?(:allow?) && 
+          media_type.allow?(http_method)
+        ) || (
+          head['Allow'] &&
+          head['Allow'].split(/\s*,\s*/).map{|m| 
+            m.downcase.to_sym
+          }.include?(http_method)
+        )          
       end
       
     end
