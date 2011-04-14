@@ -14,7 +14,7 @@ require 'restfully/collection'
 
 module Restfully
   # To be changed on version bump
-  VERSION = "0.6.1"
+  VERSION = "0.6.3"
   
   class << self
     attr_accessor :adapter
