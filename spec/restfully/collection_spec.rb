@@ -36,7 +36,7 @@ describe Restfully::Collection do
     items = []
     @resource.load.each{|i| items << i}
     items.all?{|i| i.kind_of?(Restfully::Resource)}.should be_true
-    items[0].relationships.should == [:parent, :self]
+    items[0].relationships.map(&:to_s).sort.should == ["parent", "self"]
     items[0]['uid'].should == 376505
   end
 end
