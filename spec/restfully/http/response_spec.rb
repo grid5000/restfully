@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Restfully::HTTP::Response do
   before do
-    @session = mock(Restfully::Session)
+    @session = mock(Restfully::Session, :logger => Logger.new(STDERR))
     @io = StringIO.new(fixture('grid5000-rennes.json'))
   end
   it "should correctly initialize the response" do

@@ -9,6 +9,7 @@ module Restfully
         site
         cluster
         node
+        nodeStatus
         version
         collection
         timeseries
@@ -23,10 +24,10 @@ module Restfully
       }.push(
         "application/vnd.grid5000+json"
       )
-      set :parser, JSON
+      set :parser, ApplicationJson::JSONParser
 
       def extract_links
-        (property("links") || []).map do |link|
+        (property.delete("links") || []).map do |link|
           l = Link.new(
             :rel => link['rel'],
             :type => link['type'],
@@ -38,7 +39,7 @@ module Restfully
       end
 
       def collection?
-        property("items") && property("total") && property("offset")
+        !!(property("items") && property("total") && property("offset"))
       end
 
       def meta
@@ -56,11 +57,11 @@ module Restfully
       # Only for collections
       def each(*args, &block)
         (property("items") || []).map{|i|
-          self.class.new(self.class.serialize(i))
+          self.class.new(self.class.serialize(i), @session)
         }.each(*args, &block)
       end
 
     end
-    register Grid5000
+    
   end
 end

@@ -14,7 +14,7 @@ describe Restfully::Session do
   it "should initialize a session with the correct properties" do
     session = Restfully::Session.new(@config.merge("key" => "value"))
     session.logger.should == @logger
-    session.uri.should == URI.parse(@uri)
+    session.uri.should == Addressable::URI.parse(@uri)
     session.config.should == {:key => "value"}
   end
   
@@ -40,6 +40,20 @@ describe Restfully::Session do
       and_return(res = mock(Restfully::Resource))
     res.should_receive(:load).and_return(res)
     session.root.should == res
+  end
+  
+  it "should add or replace additional headers to the default set" do
+    session = Restfully::Session.new(
+      @config.merge(:default_headers => {
+        'Accept' => 'application/xml', 
+        'Cache-Control' => 'no-cache'
+      })
+    )
+    session.default_headers.should == {
+      'Accept' => 'application/xml', 
+      'Cache-Control' => 'no-cache',
+      'Accept-Encoding' => 'gzip, deflate'
+    }
   end
   
   describe "middleware" do
@@ -122,7 +136,8 @@ describe Restfully::Session do
         Restfully::HTTP::Request, 
         :method => :get, 
         :uri => @uri, 
-        :head => mock("head")
+        :head => mock("head"),
+        :update! => nil
       )
       @response = Restfully::HTTP::Response.new(
         @session,

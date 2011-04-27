@@ -34,42 +34,48 @@ module Restfully
       response.media_type
     end
 
+    def collection?
+      media_type.collection?
+    end
+    
+    def kind
+      collection? ? "Collection" : "Resource"
+    end
+    
+    def signature(closed=true)
+      s = "#<#{kind}:0x#{object_id.to_s(16)}"
+      s += " uri=#{uri.to_s}"
+      s += ">" if closed
+      s
+    end
 
-    def load
-      # only load once
-      if @associations.empty?
-        extend Collection if media_type.collection?
-
-        response.links.each do |link|
-          @associations[link.id] = nil
-          
-          self.class.class_eval do
-            define_method link.id do
-              @associations[link.id] ||= session.get(link.href, :head => {
-                'Accept' => link.type
-              }).load
-            end
-          end
-          
+    def load(options = {})
+      # Send a GET request only if given a different set of options
+      if @request.update!(options) || @request.no_cache?
+        @response = session.execute(@request)
+        if session.process(@response, @request)
+          @associations.clear
+        else
+          raise Error, "Cannot reload the resource"
         end
       end
       
-      self
+      build
     end
     
     def relationships
       @associations.keys
     end
     
+    def properties
+      media_type.property.reject{|k,v|        
+        # do not return keys used for internal use
+        k.to_s =~ /^\_\_(.+)\_\_$/
+      }
+    end
+    
     def reload
-      @request.head['Cache-Control'] = 'no-cache'
-      @response = session.execute(request)
-      if session.process(response, request)
-        @associations.clear
-        load
-      else
-        raise Error, "Cannot reload the resource"
-      end
+      load(:head => {'Cache-Control' => 'no-cache'})      
     end
 
     def submit(*args)
@@ -103,40 +109,41 @@ module Restfully
     end
 
     def inspect
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}" +
-      " : #{media_type.meta.inspect}" +
-      ">"
+      if media_type.complete?
+        properties.inspect
+      else
+        "{...}"
+      end
     end
     
     def pretty_print(pp)
-      pp.text "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-      # pp.text " uid=#{self['uid'].inspect}" if self.class == Resource
+      pp.text signature(false)
       pp.nest 2 do
-        pp.breakable
-        pp.text "@uri="
-        uri.pretty_print(pp)
         if relationships.length > 0
           pp.breakable
           pp.text "RELATIONSHIPS"
           pp.nest 2 do
-            relationships.each_with_index do |rel, i|
+            pp.breakable
+            pp.text "#{relationships.join(", ")}"
+          end
+        end  
+        pp.breakable
+        if collection?
+          # display items
+          pp.text "ITEMS (#{offset}..#{offset+length})/#{total}"
+          pp.nest 2 do
+            self.each do |item|
               pp.breakable
-              pp.text "@#{rel}=#<#{Resource.name}>"
-              pp.text "," if i < relationships.length-1
+              pp.text item.signature(true)
             end
           end
-        end
-        if media_type.collection?
-          # display items
         else
-          pp.breakable
           pp.text "PROPERTIES"
           pp.nest 2 do
-            media_type.meta.to_a.each_with_index do |(key, value), i|
+            properties.each do |key, value|
               pp.breakable
               pp.text "#{key.inspect}=>"
               value.pretty_print(pp)
-              pp.text "," if i < media_type.meta.length-1
             end
           end
         end
@@ -145,10 +152,31 @@ module Restfully
       pp.text ">"
     end
 
+    def build
+      # only build once
+      if @associations.empty?
+        extend Collection if collection?
+
+        response.links.each do |link|
+          @associations[link.id] = nil
+          
+          self.class.class_eval do
+            define_method link.id do |*args|
+              @associations[link.id] ||= session.get(link.href, :head => {
+                'Accept' => link.type
+              }).load(*args)
+            end
+          end
+          
+        end
+      end
+      self
+    end
+
     protected
     def extract_payload_from_args(args)
       options = args.extract_options!
-      head = options.delete(:headers)
+      head = options.delete(:headers) || options.delete(:head)
       query = options.delete(:query)
 
       payload = args.shift || options
@@ -159,5 +187,7 @@ module Restfully
       
       [payload, options]
     end
+    
+
   end
 end

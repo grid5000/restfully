@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe Restfully::Collection do
   before do
+    Restfully::MediaType.register Restfully::MediaType::ApplicationVndBonfireXml
+    
     @session = Restfully::Session.new(
       :uri => "https://api.grid5000.fr"
     )
@@ -39,4 +41,47 @@ describe Restfully::Collection do
     items[0].relationships.map(&:to_s).sort.should == ["parent", "self"]
     items[0]['uid'].should == 376505
   end
+  
+  it "should be empty if no item" do
+    @response = Restfully::HTTP::Response.new(
+      @session, 200, {
+        'Content-Type' => 'application/vnd.bonfire+xml; charset=utf-8'
+      }, fixture('bonfire-empty-collection.xml')
+    )
+    @resource = Restfully::Resource.new(@session, @response, @request).load
+    @resource.collection?.should be_true
+    @resource.should be_empty
+    @resource.total.should == 0
+    @resource.length.should == 0
+    @resource.offset.should == 0
+    @resource.map{|i| i}.should == []
+  end
+  
+  describe "finders" do
+    before do
+      @response = Restfully::HTTP::Response.new(
+        @session, 200, {
+          'Content-Type' => 'application/vnd.bonfire+xml; charset=utf-8'
+        }, fixture('bonfire-experiment-collection.xml')
+      )
+      @resource = Restfully::Resource.new(@session, @response, @request).load
+    end
+    it "should find an item by uid" do
+      @resource[:'3'].should_not be_nil
+    end
+    it "should find an item by index" do
+      @resource[0].should == @resource.first
+    end
+    it "should reload the item if not complete" do
+      @resource.map{|i| 
+        if i["id"] == "3"
+          i.media_type.should_receive(:complete?).and_return(false)
+          i.should_receive(:reload).once 
+        end
+      }
+      @resource[:'3'].should_not be_nil
+    end
+  end
+
+  
 end

@@ -22,7 +22,6 @@ module Restfully
       set :parser, IdentityParser
     end
 
-    register Wildcard
   end
 
 end

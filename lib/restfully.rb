@@ -12,5 +12,7 @@ require 'restfully/session'
 require 'restfully/media_type'
 
 module Restfully
-
+  MediaType.register MediaType::Grid5000
+  MediaType.register MediaType::ApplicationJson
+  MediaType.register MediaType::Wildcard
 end

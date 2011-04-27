@@ -1,6 +1,7 @@
 require 'spec_helper'
 
-describe Restfully::MediaType do
+describe Restfully::MediaType do  
+  
   class NewMediaType < Restfully::MediaType::AbstractMediaType
     set :signature, "application/whatever"
     set :parser, JSON
@@ -25,14 +26,22 @@ describe Restfully::MediaType do
       Restfully::MediaType.catalog.length.should == length_before+1
     end
 
-    it "should find the corresponding media_type" do
+    it "should find the corresponding media_type [application/json]" do
       Restfully::MediaType.register Restfully::MediaType::ApplicationJson
       Restfully::MediaType.find("application/json").should == Restfully::MediaType::ApplicationJson
     end
 
-    it "should find the corresponding media_type" do
+    it "should find the corresponding media_type [application/vnd.grid5000+json]" do
       Restfully::MediaType.register Restfully::MediaType::Grid5000
       Restfully::MediaType.find('application/vnd.grid5000+json; charset=utf-8').should == Restfully::MediaType::Grid5000
+    end
+    
+    it "should find the corresponding media_type from the less generic to the most generic [application/json]" do
+      Restfully::MediaType.catalog.clear
+      Restfully::MediaType.register Restfully::MediaType::Wildcard
+      Restfully::MediaType.register Restfully::MediaType::ApplicationJson
+      Restfully::MediaType.register Restfully::MediaType::Grid5000
+      Restfully::MediaType.find('application/json').should == Restfully::MediaType::ApplicationJson
     end
 
     it "should fall back to wildcard" do
@@ -50,7 +59,10 @@ describe Restfully::MediaType do
       Restfully::MediaType::Wildcard.supports?("whatever").should be_nil
     end
     it "should correctly initialize with a payload" do
-      media_type = Restfully::MediaType::Wildcard.new("some string")
+      media_type = Restfully::MediaType::Wildcard.new(
+        "some string", 
+        mock(Restfully::Session)
+      )
       media_type.property("some").should == "some"
       media_type.links.should == []
     end
@@ -58,8 +70,10 @@ describe Restfully::MediaType do
 
   describe Restfully::MediaType::Grid5000 do
     before do
+      @session = 
       @media_type =  Restfully::MediaType::Grid5000.new(
-        StringIO.new(fixture('grid5000-rennes.json'))
+        StringIO.new(fixture('grid5000-rennes.json')),
+        @session
       )
     end
     it "should correctly extract the links" do

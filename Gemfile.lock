@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     restfully (0.7.0)
+      addressable
       backports
       json (~> 1.5)
       rack-cache
@@ -20,8 +21,8 @@ GEM
     crack (0.1.8)
     diff-lcs (1.1.2)
     json (1.5.1)
+    libxml-ruby (2.0.2)
     mime-types (1.16)
-    patron (0.4.11)
     rack (1.2.1)
     rack-cache (1.0)
       rack (>= 0.4)
@@ -49,7 +50,7 @@ PLATFORMS
 DEPENDENCIES
   autotest
   autotest-growl
-  patron
+  libxml-ruby
   rake (~> 0.8)
   restfully!
   rspec (~> 2)

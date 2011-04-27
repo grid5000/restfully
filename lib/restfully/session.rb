@@ -3,6 +3,7 @@ require 'uri'
 require 'restclient'
 require 'restclient/components'
 require 'rack/cache'
+require 'addressable/uri'
 
 module Restfully
   class Session
@@ -20,8 +21,10 @@ module Restfully
       if @uri.nil? || @uri.empty?
         raise ArgumentError, "You must pass a :uri option."
       else
-        @uri = URI.parse(@uri)
+        @uri = Addressable::URI.parse(@uri)
       end
+
+      default_headers.merge!(@config.delete(:default_headers) || {})
 
       disable RestClient::Rack::Compatibility
       authenticate(@config)
@@ -56,13 +59,13 @@ module Restfully
 
     # Builds the complete URI, based on the given path and the session's uri
     def uri_to(path)
-      URI.join(uri.to_s, path.to_s)
+      Addressable::URI.join(uri.to_s, path.to_s)
     end
 
     def default_headers
       @default_headers ||= {
-        :accept => '*/*',
-        :accept_encoding => 'gzip, deflate'
+        'Accept' => '*/*',
+        'Accept-Encoding' => 'gzip, deflate'
       }
     end
 
@@ -108,7 +111,7 @@ module Restfully
 
     def execute(request)
       resource = RestClient::Resource.new(
-        request.uri,
+        request.uri.to_s,
         :headers => request.head
       )
 
@@ -121,16 +124,20 @@ module Restfully
     def process(response, request)
       case code=response.code
       when 200
-        Resource.new(self, response, request).load
+        Resource.new(self, response, request).build
       when 201,202
         get response.head['Location'], :head => request.head
       when 204
         true
       when 400..499
-        raise HTTP::ClientError, "Encountered error #{code} on #{request.method.upcase} #{request.uri} [Client error]"
+        msg = "Encountered error #{code} on #{request.method.upcase} #{request.uri}"
+        msg += " --- #{response.body[0..200]}" unless response.body.empty?
+        raise HTTP::ClientError, msg
       when 500..599
         # when 503, sleep 5, request.retry
-        raise HTTP::ServerError, "Encountered error #{code} on #{request.method.upcase} #{request.uri} [Server error]"
+        msg = "Encountered error #{code} on #{request.method.upcase} #{request.uri}"
+        msg += " --- #{response.body[0..200]}" unless response.body.empty?
+        raise HTTP::ServerError, msg
       else
         raise Error, "Restfully does not handle code #{code.inspect}."
       end

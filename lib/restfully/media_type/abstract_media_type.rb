@@ -5,6 +5,9 @@ module Restfully
 
     class AbstractMediaType
 
+      # 
+      # These class functions should NOT be overwritten by descendants.
+      # 
       class << self
         
         def parent(method)
@@ -25,18 +28,24 @@ module Restfully
           defaults[attribute.to_sym] = value
         end
         
+        # Returns the media-type signature, i.e. the list of metia-type it
+        # supports.
         def signature
           [(defaults[:signature] || [])].flatten
         end
         
+        # Returns the media-type parser.
         def parser
           defaults[:parser]
         end
         
+        # Returns the media-type default signature.
         def default_type
           signature.first
         end
         
+        # Returns the first supported media-type of the signature that matches
+        # one of the given <tt>types</tt>.
         def supports?(*types)
           types.each do |type|
             type = type.to_s.downcase.split(";")[0]
@@ -48,7 +57,8 @@ module Restfully
           nil
         end
         
-        
+        # Serialize an object into a String.
+        # Calls parser#dump.
         def serialize(object, *args)
           case object
           when String
@@ -57,27 +67,43 @@ module Restfully
             parser.dump(object, *args)
           end
         end
-
+        
+        # Unserialize an io object into a Hash.
+        # Calls parser#load.
         def unserialize(io, *args)
           parser.load(io, *args)
         end
         
       end
       
-      attr_reader :io
+      
+      attr_reader :io, :session
 
-      def initialize(io)
+      # A MediaType instance takes the original io object and the current
+      # session object as input.
+      def initialize(io, session)
         @io = io
+        @session = session
       end
 
+      # Returns an array of Link objects.
       # Do not overwrite directly. Overwrite #extract_links instead.
       def links
         @links ||= extract_links.select{|l| l.valid?}
       end
 
-      # Should be overwritten.
+      # Returns the unserialized version of the io object.
+      def unserialized
+        @unserialized ||= self.class.unserialize(@io)
+      end
+
+      # Without argument, returns the properties Hash obtained from calling
+      # #unserialized.
+      # With an argument, returns the value corresponding to that key.
+      #
+      # Should be overwritten if required.
       def property(key = nil)
-        @properties ||= self.class.unserialize(@io)
+        @properties ||= unserialized
         if key
           @properties[key]
         else
@@ -85,31 +111,47 @@ module Restfully
         end
       end
       
-      # Should return true if the current resource represented by this media-type can be designated with <tt>id</tt>.
+      # Should return true if the current resource represented by this
+      # media-type can be designated with <tt>id</tt>.
+      #
       # Should be overwritten.
       def represents?(id)
         false
       end
       
-      # Should be overwritten
+      # Returns true if the current io object must be handled as a Collection.
+      # 
+      # Should be overwritten.
       def collection?
         false
       end
       
+      # Returns true if the current io object is completely loaded.
+      # Overwrite and return false to force a reloading if your object is just
+      #  a URI reference.
+      def complete?
+        true
+      end
+      
       # An object to display on Resource#inspect.
+      #
       # Should be overwritten.
       def meta
-        self.class.unserialize(@io)
+        property
       end
 
       # How to iterate over a collection
-      # Should be overwritten
+      #
+      # Should be overwritten.
       def each(*args, &block)
         raise NotImplemented
       end
 
       
       protected
+      # The function that returns the array of Link object.
+      #
+      # Should be overwritten.
       def extract_links
         []
       end

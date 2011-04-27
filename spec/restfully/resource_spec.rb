@@ -20,7 +20,7 @@ describe Restfully::Resource do
   
   it "should correctly initialize a resource" do
     resource = Restfully::Resource.new(@session, @response, @request)
-    resource.uri.should == "https://api.grid5000.fr/grid5000/sites/rennes"
+    resource.uri.to_s.should == "https://api.grid5000.fr/grid5000/sites/rennes"
     resource.should be_a(Restfully::Resource)
     resource.load.should == resource
     resource.media_type.should be_a(Restfully::MediaType::Grid5000)
@@ -80,14 +80,17 @@ describe Restfully::Resource do
     end
     
     it "should reload the resource" do
-      @session.should_receive(:execute).with(@request).
-        and_return(res=mock(Restfully::HTTP::Response))
-      @session.should_receive(:process).with(res, @request).
-        and_return(mock(Restfully::Resource))
-      @resource.should_receive(:load).and_return(@resource)
+      @resource.should_receive(:load).
+        with(:head => {'Cache-Control' => 'no-cache'}).
+        and_return(@resource)
       @resource.reload.should == @resource
-      @resource.response.should == res
-      @resource.request.head['Cache-Control'].should == 'no-cache'
+    end
+    
+    it "should reload the resource even after having reloaded it once before" do
+      @session.should_receive(:execute).twice.with(@request).
+        and_return(@response)
+      @resource.reload
+      @resource.reload
     end
     
     it "should raise an error if it cannot reload the resource" do

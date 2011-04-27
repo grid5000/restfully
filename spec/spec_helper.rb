@@ -2,6 +2,7 @@ require 'webmock/rspec'
 require 'restfully'
 require 'json'
 
+require 'restfully/media_type/application_vnd_bonfire_xml'
 
 def fixture(filename)
   File.read(File.join(File.dirname(__FILE__), "fixtures", filename))

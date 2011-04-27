@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compute xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/locations/uk-epcc/computes/1">
+  <name>Compute name</name>
+  <description>Compute description</description>
+  <instance_type>small</instance_type>
+  <state>ACTIVE</state>
+  
+  <disk>
+    <storage href="/locations/fr-inria/storages/1" />
+    <type>OS</type>
+    <target>sda</target>
+  </disk>
+  <disk>
+    <storage href="/locations/fr-inria/storages/2" />
+    <type>CDROM</type>
+    <target>sdc</target>
+  </disk>
+  
+  <nic>
+    <network href="/locations/fr-inria/networks/1" />
+    <device>eth0</device>
+    <ip>123.123.123.123</ip>
+    <mac>AA:AA:AA:AA</mac>
+  </nic>
+  <nic>
+    <network href="/locations/fr-inria/networks/2" />
+    <device>eth1</device>
+    <ip>123.123.124.2</ip>
+    <mac>BB:BB:BB:BB</mac>
+  </nic>
+  
+  <context>
+    <monitoring_ip>123.123.123.2</monitoring_ip>
+    <bonfire_credentials>crohr:p4ssw0rd</bonfire_credentials>
+  </context>
+  
+  <!-- VWall specific: maybe this could be included in <context> element? -->
+  <startup href="file:///path/to/startup-script/sh" />
+  
+  <link rel="location"
+        href="/locations/fr-inria"
+        type="application/vnd.bonfire+xml" />
+</compute>

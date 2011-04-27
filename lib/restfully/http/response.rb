@@ -35,7 +35,8 @@ module Restfully
         @media_type ||= begin
           m = MediaType.find(head['Content-Type'])
           raise Error, "Cannot find a media-type for content-type=#{head['Content-Type'].inspect}" if m.nil?
-          m.new(io)
+          @session.logger.debug "Using media-type #{m.inspect}"
+          m.new(io, @session)
         end
       end
       

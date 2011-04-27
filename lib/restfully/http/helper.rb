@@ -22,6 +22,28 @@ module Restfully
         sanitized_headers
       end
     
+      def sanitize_query(h = {})
+        sanitized_query = {}
+        h.each do |key,value|
+          sanitized_query[key] = stringify(value)
+        end
+        sanitized_query
+      end
+      
+      protected
+      def stringify(value)
+        case value
+        when Hash
+          h = {}
+          value.each{|k,v| h[k] = stringify(v)}
+          h
+        when Array
+          value.map!{|v| stringify(v)}
+        else
+          value.to_s
+        end
+      end
+    
     end
   end
 end

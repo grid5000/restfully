@@ -22,13 +22,13 @@ Gem::Specification.new do |s|
   s.add_dependency('rest-client-components')
   s.add_dependency('rack-cache')
   s.add_dependency('backports')
+  s.add_dependency('addressable')
   
   s.add_development_dependency('rake', '~> 0.8')
   s.add_development_dependency('rspec', '~> 2')
   s.add_development_dependency('webmock')
   s.add_development_dependency('autotest')
   s.add_development_dependency('autotest-growl')
-  s.add_development_dependency('patron')
   
  
   s.files = Dir.glob("{bin,lib,spec,example}/**/*") + %w(Rakefile LICENSE README.md)

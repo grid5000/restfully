@@ -16,7 +16,7 @@ module Restfully
           match = media_type.supports?(*types)
           found[match] = media_type unless match.nil?
         }
-
+        
         if found.empty?
           nil
         else

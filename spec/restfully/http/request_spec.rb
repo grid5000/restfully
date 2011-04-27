@@ -19,11 +19,11 @@ describe Restfully::HTTP::Request do
       :body => {:hello => 'world'}
     }
     
+    @session.should_receive(:uri_to).with("/path").
+      and_return(Addressable::URI.parse("https://api.grid5000.fr/path"))
   end
   
   it "should correctly build the request [no body]" do
-    @session.should_receive(:uri_to).with("/path").
-      and_return(URI.parse("https://api.grid5000.fr/path"))
     
     request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
     request.head.should == {
@@ -35,12 +35,34 @@ describe Restfully::HTTP::Request do
     request.method.should == :get
   end
   
+  it "should correctly add the query parameters to the URI" do
+    @options[:query] = {:k1 => 'v1'}
+    request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
+    request.uri.to_s.should == "https://api.grid5000.fr/path?k1=v1"
+  end
+  
+  it "should correctly update the request with the given parameters" do
+    @options[:query] = {:k1 => 'v1', :k2 => [1,2,3]}
+    @options[:head]['Accept'] = 'text/plain'
+    request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
+    request.update!(:headers => {'whatever' => 'value'}, :query => {'k1' => 'xx'}).should_not be_nil
+    request.uri.to_s.should == 'https://api.grid5000.fr/path?k1=xx'
+    request.head.should include("Whatever"=>"value", 'Accept' => 'text/plain')
+  end
+  
+  it "should return nil if no changes were made when updating the request" do
+    @options[:query] = {:k1 => 'v1', :k2 => [1,2,3]}
+    request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
+    request.update!(@options).should be_nil
+  end
+  
+  it "should tell if the request is no-cache" do
+    @options[:head]['Cache-Control'] = 'no-cache, max-age=0'
+    request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
+    request.no_cache?.should be_true
+  end
+  
   describe "with body" do
-    before do
-      @session.should_receive(:uri_to).with("/path").
-        and_return(URI.parse("https://api.grid5000.fr/path"))
-      
-    end
     it "should correctly build the request [body as hash, no content-type]" do
       @options[:body] = {"k1" => 'value1', 'k2' => ['a','b','c']}
       request = Restfully::HTTP::Request.new(@session, :post, "/path", @options)
