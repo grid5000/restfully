@@ -88,7 +88,7 @@ module Restfully
     end
 
     def delete(options = {})
-      if response.allow?(:delete)
+      if allow?(:delete)
         session.delete(request.uri)
       else
         raise MethodNotAllowed

@@ -145,7 +145,7 @@ module Restfully
 
     protected
     def setup_cache
-      enable ::Rack::Cache
+      enable ::Rack::Cache, :verbose => (logger.level < Logger::INFO)
     end
 
   end
