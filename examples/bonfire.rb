@@ -1,7 +1,6 @@
-# Tested under ruby1.9.
 # Install the following ruby gems:
 #
-#   gem install restfully --prerelase
+#   gem install restfully --prerelease
 #   gem install libxml-ruby
 #
 
