@@ -1,3 +1,3 @@
 module Restfully
-  VERSION = "0.7.0.pre"
+  VERSION = "0.7.1.pre"
 end
