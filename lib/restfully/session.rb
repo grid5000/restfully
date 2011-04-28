@@ -115,6 +115,7 @@ module Restfully
         :headers => request.head
       )
 
+      logger.debug request.inspect
       code, head, body = resource.send(request.method, request.body || {})
 
       response = Restfully::HTTP::Response.new(self, code, head, body)

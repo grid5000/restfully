@@ -45,6 +45,7 @@ module Restfully
         end
         block.call @items[hash]
       end
+      self
     end
 
     def length
@@ -79,12 +80,7 @@ module Restfully
     #     resource.uri == uri_to_find
     #   }
     # end
-    
-    protected
-    def reload_if_empty(resource)
-      resource.reload if resource && !resource.media_type.complete?
-      resource
-    end
+
 
   end
 

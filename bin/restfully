@@ -9,6 +9,13 @@ require 'optparse'
 require 'logger'
 require 'pp'
 
+# Behaviour of pp in IRB is different on ruby1.9:
+# * pp(object) returns object#inspect.
+# * we prefer the behaviour of ruby1.8 where pp returns nil.
+alias :old_pp :pp 
+def pp(*args)
+  old_pp(*args); nil
+end
 
 logger = Logger.new(STDERR)
 logger.level = Logger::WARN
@@ -67,12 +74,11 @@ end
 if given_uri = ARGV.shift
   @options["uri"] = given_uri
 end
-# p @options
+
 # Compatibility with restfully < 0.6
 @options["uri"] ||= @options.delete("base_uri")
 
 @session = Restfully::Session.new(@options)
-
 
 def session
   @session

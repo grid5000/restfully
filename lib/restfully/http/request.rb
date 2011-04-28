@@ -49,8 +49,34 @@ module Restfully
         end
       end
       
+      def inspect
+        [
+          "#{method.to_s.upcase} #{uri.to_s}",
+          head.map{|(k,v)| "#{k}: #{v}"}.join("\n"),
+          body
+        ].compact.join("\n")
+      end
+      
       def no_cache?
         head['Cache-Control'] && head['Cache-Control'].include?('no-cache')
+      end
+      
+      def no_cache!
+        @forced_cache = true
+        head['Cache-Control'] = 'no-cache'
+      end
+      
+      def forced_cache?
+        !!@forced_cache
+      end
+      
+      def remove_no_cache!
+        @forced_cache = false
+        if head['Cache-Control']
+          head['Cache-Control'] = head['Cache-Control'].split(/\s+,\s+/).reject{|v| 
+            v =~ /no-cache/i
+          }.join(",")
+        end
       end
       
       protected
@@ -67,7 +93,7 @@ module Restfully
             type = MediaType.find('application/x-www-form-urlencoded')
             options[:head]['Content-Type'] = type.default_type
           end
-          type.serialize(options[:body], :uri => options[:uri])
+          type.serialize(options[:body], :serialization => options[:serialization])
         else
           nil
         end

@@ -56,7 +56,8 @@ describe Restfully::Resource do
         @resource.uri,
         'some payload',
         :head => {'Content-Type' => 'text/plain'},
-        :query => {:k1 => 'v1'}
+        :query => {:k1 => 'v1'},
+        :serialization => {}
       )
       @resource.submit(
         'some payload', 
@@ -70,7 +71,8 @@ describe Restfully::Resource do
         @resource.uri,
         {:key => 'value'},
         :head => {'Content-Type' => 'text/plain'},
-        :query => {:k1 => 'v1'}
+        :query => {:k1 => 'v1'},
+        :serialization => {}
       )
       @resource.submit(
         :key => 'value', 
@@ -78,10 +80,37 @@ describe Restfully::Resource do
         :query => {:k1 => 'v1'}
       )
     end
+    it "should pass hidden properties as serialization parameters" do
+      Restfully::MediaType.register Restfully::MediaType::ApplicationVndBonfireXml
+      @request = Restfully::HTTP::Request.new(
+        @session, :get, "/locations/de-hlrs/networks/29",
+        :head => {'Accept' => 'application/vnd.bonfire+xml'}
+      )
+      @response = Restfully::HTTP::Response.new(
+        @session, 200, {
+          'Content-Type' => 'application/vnd.bonfire+xml; charset=utf-8',
+          'Allow' => 'GET'
+        }, fixture('bonfire-network-existing.xml')
+      )
+      @resource = Restfully::Resource.new(@session, @response, @request).load
+      @resource.should_receive(:allow?).with(:put).and_return(true)
+      @session.should_receive(:put).with(
+        @resource.uri,
+        {:key => 'value'},
+        :head => {'Content-Type' => 'text/plain'},
+        :query => {:k1 => 'v1'},
+        :serialization => {"__type__"=>"network"}
+      )
+      @resource.update(
+        :key => 'value', 
+        :headers => {'Content-Type' => 'text/plain'},
+        :query => {:k1 => 'v1'}
+      )
+    end
     
     it "should reload the resource" do
+      @request.should_receive(:no_cache!)
       @resource.should_receive(:load).
-        with(:head => {'Cache-Control' => 'no-cache'}).
         and_return(@resource)
       @resource.reload.should == @resource
     end

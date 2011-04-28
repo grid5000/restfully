@@ -92,6 +92,15 @@ describe Restfully::HTTP::Request do
         should == 'application/json'
       request.body.should == @options[:body]
     end
+    
+    it "should correctly build the request [body as Hash, content-type=xml]" do
+      Restfully::MediaType.register Restfully::MediaType::ApplicationVndBonfireXml
+      @options[:body] = {"name" => "whatever"}
+      @options[:head][:content_type] = 'application/vnd.bonfire+xml'
+      @options[:serialization] = {"__type__" => "network"}
+      request = Restfully::HTTP::Request.new(@session, :post, "/path", @options)
+      request.body.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<network xmlns=\"http://api.bonfire-project.eu/doc/schemas/occi\">\n  <name>whatever</name>\n</network>\n"
+    end
   end
 
 end

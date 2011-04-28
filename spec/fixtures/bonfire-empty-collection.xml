@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<collection xmlns="http://api.bonfire-project.eu/doc/schemas/occi">
-  <items/>
+<collection xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/experiments/12/networks">
+  <items offset="0" total="0">
+  </items>
+  <link href="/experiments/12" rel="parent" type="application/vnd.bonfire+xml"/>
 </collection>

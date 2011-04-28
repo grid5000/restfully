@@ -17,19 +17,30 @@ module Restfully
               io = io.read
             end
             xml = XML::Document.string(io.to_s)
-            load_xml(xml.root).merge(HIDDEN_TYPE_KEY => xml.root.name)
+            h = load_xml(xml.root)
+            h[HIDDEN_TYPE_KEY] = if h['items']
+              if xml.root.attributes["href"]
+                xml.root.attributes["href"].
+                split("/").last.gsub(/s$/,'')+"_collection"
+              elsif h['items'].length > 0
+                h['items'][0][HIDDEN_TYPE_KEY]
+              else
+                nil
+              end
+            else
+              xml.root.name
+            end
+            h
           end
 
 
           def dump(object, opts = {})
-            root_name = if object[HIDDEN_TYPE_KEY]
+            root_name = if opts[:serialization]
+              opts[:serialization][HIDDEN_TYPE_KEY].gsub(/\_collection$/,'')
+            elsif object[HIDDEN_TYPE_KEY]
               object[HIDDEN_TYPE_KEY]
-            elsif opts[:uri]
-              # OK, this is ugly
-              opts[:uri].path.to_s.split("/").last.gsub(/s$/,'')
-            else
-              fail "Can't infer a name for the root element for object: #{object.inspect}"
             end
+            fail "Can't infer a root element name for object: #{object.inspect}" if root_name.nil?
             xml = XML::Document.new
             xml.root = XML::Node.new(root_name)
             xml.root["xmlns"] = NS
@@ -41,6 +52,8 @@ module Restfully
 
           def load_xml(element)
             h = {}
+
+
             element.each_element do |e|
               next if e.empty?
               if e.name == 'items' && element.name == 'collection'
@@ -66,7 +79,8 @@ module Restfully
             h
           end
 
-          # We use <tt>HIDDEN_TYPE_KEY</tt> property to keep track of the root name.
+          # We use <tt>HIDDEN_TYPE_KEY</tt> property to keep track of the root
+          # name.
           def load_xml_element(element, h)
             if element.attributes? && href = element.attributes.find{|attr|
               attr.name == "href"
@@ -75,7 +89,20 @@ module Restfully
               #build_resource(href.value))
             else
               if element.children.any?(&:element?)
-                single_or_array(h, element.name, load_xml(element))
+                # This includes ["computes", "networks", "storages"] section
+                # of an experiment.
+                if element.children.select(&:element?).map{|c|
+                   c.name
+                }.all?{|n| 
+                  "#{n}s" == element.name
+                }
+                  element.each_element {|e| 
+                    e.name = element.name
+                    load_xml_element(e, h)
+                  }
+                else
+                  single_or_array(h, element.name, load_xml(element))
+                end
               else
                 value = element.content.strip
                 unless value.empty?
@@ -92,7 +119,7 @@ module Restfully
               else
                 h[key] = [h[key], value]
               end
-            elsif ["disk", "nic", "link"].include?(key)
+            elsif ["disk", "nic", "link", "computes", "networks", "storages"].include?(key)
               h[key] = [value]
             else
               h[key] = value

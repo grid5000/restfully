@@ -8,6 +8,8 @@ module Restfully
   class Resource
     attr_reader :response, :request, :session
 
+    HIDDEN_PROPERTIES_REGEXP = /^\_\_(.+)\_\_$/
+
     def initialize(session, response, request)
       @session = session
       @response = response
@@ -23,6 +25,7 @@ module Restfully
     #   resource["uid"]
     #   => "rennes"
     def [](key)
+      reload_if_empty(self)
       media_type.property(key)
     end
 
@@ -53,6 +56,7 @@ module Restfully
       # Send a GET request only if given a different set of options
       if @request.update!(options) || @request.no_cache?
         @response = session.execute(@request)
+        @request.remove_no_cache! if @request.forced_cache?
         if session.process(@response, @request)
           @associations.clear
         else
@@ -64,22 +68,29 @@ module Restfully
     end
     
     def relationships
-      @associations.keys
+      response.links.map(&:id).sort
     end
     
     def properties
       media_type.property.reject{|k,v|        
         # do not return keys used for internal use
-        k.to_s =~ /^\_\_(.+)\_\_$/
+        k.to_s =~ HIDDEN_PROPERTIES_REGEXP
       }
     end
     
+    # For the following methods, maybe it's better to always go through the
+    # cache instead of explicitly saying @request.no_cache! (and update the
+    # #load method accordingly)
+    
+    # Force reloading of the request
     def reload
-      load(:head => {'Cache-Control' => 'no-cache'})      
+      @request.no_cache!
+      load
     end
 
     def submit(*args)
       if allow?(:post)
+        @request.no_cache!
         payload, options = extract_payload_from_args(args)
         session.post(request.uri, payload, options)
       else
@@ -89,6 +100,7 @@ module Restfully
 
     def delete(options = {})
       if allow?(:delete)
+        @request.no_cache!
         session.delete(request.uri)
       else
         raise MethodNotAllowed
@@ -97,6 +109,7 @@ module Restfully
 
     def update(*args)
       if allow?(:put)
+        @request.no_cache!
         payload, options = extract_payload_from_args(args)
         session.put(request.uri, payload, options)
       else
@@ -150,26 +163,26 @@ module Restfully
         yield pp if block_given?
       end
       pp.text ">"
+      nil
     end
 
+    
+
     def build
+      metaclass = class << self; self; end
       # only build once
-      if @associations.empty?
+      # if @associations.empty?
         extend Collection if collection?
 
         response.links.each do |link|
-          @associations[link.id] = nil
-          
-          self.class.class_eval do
-            define_method link.id do |*args|
-              @associations[link.id] ||= session.get(link.href, :head => {
-                'Accept' => link.type
-              }).load(*args)
-            end
+          metaclass.send(:define_method, link.id.to_sym) do |*args|
+            session.get(link.href, :head => {
+              'Accept' => link.type
+            }).load(*args)
           end
           
         end
-      end
+      # end
       self
     end
 
@@ -182,12 +195,18 @@ module Restfully
       payload = args.shift || options
       
       options = {
-        :head => head, :query => query
+        :head => head, :query => query,
+        :serialization => media_type.property.reject{|k,v| 
+          k !~ HIDDEN_PROPERTIES_REGEXP
+        }
       }
       
       [payload, options]
     end
     
-
+    def reload_if_empty(resource)
+      resource.reload if resource && !resource.media_type.complete?
+      resource
+    end
   end
 end
