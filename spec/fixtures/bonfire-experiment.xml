@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<experiment href="/experiments/12" xmlns="http://api.bonfire-project.eu/doc/schemas/occi">
+  <id>12</id>
+  <description>description expe1</description>
+  <name>expe1</name>
+  <walltime>2011-04-28T16:16:34Z</walltime>
+  <user_id>crohr</user_id>
+  <status>running</status>
+  <networks>
+  </networks>
+  <computes>
+    <compute href="/locations/fr-inria/computes/76" name="compute expe1"/>
+    <compute href="/locations/uk-epcc/computes/47" name="compute2 expe1"/>
+    <compute href="/locations/uk-epcc/computes/48" name="compute2 expe1"/>
+  </computes>
+  <storages>
+    <storage href="/locations/uk-epcc/storages/44" name="data"/>
+  </storages>
+  <link rel="parent" href="/"/>
+  <link rel="storages" href="/experiments/12/storages"/>
+  <link rel="networks" href="/experiments/12/networks"/>
+  <link rel="computes" href="/experiments/12/computes"/>
+</experiment>
