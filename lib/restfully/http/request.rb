@@ -50,11 +50,7 @@ module Restfully
       end
       
       def inspect
-        [
-          "#{method.to_s.upcase} #{uri.to_s}",
-          head.map{|(k,v)| "#{k}: #{v}"}.join("\n"),
-          body
-        ].compact.join("\n")
+        "#{method.to_s.upcase} #{uri.to_s}, head=#{head.inspect}, body=#{body.inspect}"
       end
       
       def no_cache?

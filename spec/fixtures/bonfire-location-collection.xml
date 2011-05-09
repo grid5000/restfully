@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/locations">
+  <items offset="0" total="5">
+<location href="/locations/be-ibbt">
+  <name>be-ibbt</name>
+  <url>https://bonfire.test.atlantis.ugent.be</url>
+  <link rel="parent" href="/" type="application/vnd.bonfire+xml"/>
+  <link rel="computes" href="/locations/be-ibbt/computes" type="application/vnd.bonfire+xml"/>
+  <link rel="networks" href="/locations/be-ibbt/networks" type="application/vnd.bonfire+xml"/>
+  <link rel="storages" href="/locations/be-ibbt/storages" type="application/vnd.bonfire+xml"/>
+</location>
+<location href="/locations/de-hlrs">
+  <name>de-hlrs</name>
+  <url>https://nebulosus.hlrs.de:8443</url>
+  <link rel="parent" href="/" type="application/vnd.bonfire+xml"/>
+  <link rel="computes" href="/locations/de-hlrs/computes" type="application/vnd.bonfire+xml"/>
+  <link rel="networks" href="/locations/de-hlrs/networks" type="application/vnd.bonfire+xml"/>
+  <link rel="storages" href="/locations/de-hlrs/storages" type="application/vnd.bonfire+xml"/>
+</location>
+<location href="/locations/fr-inria">
+  <name>fr-inria</name>
+  <url>https://bonfire.grid5000.fr:443</url>
+  <link rel="parent" href="/" type="application/vnd.bonfire+xml"/>
+  <link rel="computes" href="/locations/fr-inria/computes" type="application/vnd.bonfire+xml"/>
+  <link rel="networks" href="/locations/fr-inria/networks" type="application/vnd.bonfire+xml"/>
+  <link rel="storages" href="/locations/fr-inria/storages" type="application/vnd.bonfire+xml"/>
+</location>
+<location href="/locations/uk-epcc">
+  <name>uk-epcc</name>
+  <url>https://crockett.epcc.ed.ac.uk:8443</url>
+  <link rel="parent" href="/" type="application/vnd.bonfire+xml"/>
+  <link rel="computes" href="/locations/uk-epcc/computes" type="application/vnd.bonfire+xml"/>
+  <link rel="networks" href="/locations/uk-epcc/networks" type="application/vnd.bonfire+xml"/>
+  <link rel="storages" href="/locations/uk-epcc/storages" type="application/vnd.bonfire+xml"/>
+</location>
+<location href="/locations/uk-hplabs">
+  <name>uk-hplabs</name>
+  <url>https://occisvr-vif0.occi.ext8.bonfire.hpl.hp.com:8443</url>
+  <link rel="parent" href="/" type="application/vnd.bonfire+xml"/>
+  <link rel="computes" href="/locations/uk-hplabs/computes" type="application/vnd.bonfire+xml"/>
+  <link rel="networks" href="/locations/uk-hplabs/networks" type="application/vnd.bonfire+xml"/>
+  <link rel="storages" href="/locations/uk-hplabs/storages" type="application/vnd.bonfire+xml"/>
+</location>
+  </items>
+  <link href="/" rel="parent" type="application/vnd.bonfire+xml"/>
+</collection>

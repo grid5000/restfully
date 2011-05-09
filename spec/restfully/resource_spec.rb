@@ -17,7 +17,7 @@ describe Restfully::Resource do
     )
     Restfully::MediaType.register Restfully::MediaType::Grid5000
   end
-  
+
   it "should correctly initialize a resource" do
     resource = Restfully::Resource.new(@session, @response, @request)
     resource.uri.to_s.should == "https://api.grid5000.fr/grid5000/sites/rennes"
@@ -29,13 +29,13 @@ describe Restfully::Resource do
       resource.should respond_to(rel.to_sym)
     end
   end
-  
+
   describe "loaded" do
     before do
       @resource = Restfully::Resource.new(@session, @response, @request)
       @resource.load
     end
-    
+
     it "should load the requested association" do
       @session.should_receive(:get).once.with(
         URI.parse("/grid5000/sites/rennes/clusters"),
@@ -44,7 +44,7 @@ describe Restfully::Resource do
       association.should_receive(:load)
       @resource.clusters
     end
-    
+
     it "should not allow to submit if POST not allowed on the resource" do
       lambda{
         @resource.submit
@@ -60,7 +60,7 @@ describe Restfully::Resource do
         :serialization => {}
       )
       @resource.submit(
-        'some payload', 
+        'some payload',
         :headers => {'Content-Type' => 'text/plain'},
         :query => {:k1 => 'v1'}
       )
@@ -75,7 +75,7 @@ describe Restfully::Resource do
         :serialization => {}
       )
       @resource.submit(
-        :key => 'value', 
+        :key => 'value',
         :headers => {'Content-Type' => 'text/plain'},
         :query => {:k1 => 'v1'}
       )
@@ -102,26 +102,26 @@ describe Restfully::Resource do
         :serialization => {"__type__"=>"network"}
       )
       @resource.update(
-        :key => 'value', 
+        :key => 'value',
         :headers => {'Content-Type' => 'text/plain'},
         :query => {:k1 => 'v1'}
       )
     end
-    
+
     it "should reload the resource" do
       @request.should_receive(:no_cache!)
       @resource.should_receive(:load).
         and_return(@resource)
       @resource.reload.should == @resource
     end
-    
+
     it "should reload the resource even after having reloaded it once before" do
       @session.should_receive(:execute).twice.with(@request).
         and_return(@response)
       @resource.reload
       @resource.reload
     end
-    
+
     it "should raise an error if it cannot reload the resource" do
       @session.should_receive(:execute).with(@request).
         and_return(res=mock(Restfully::HTTP::Response))
@@ -132,7 +132,38 @@ describe Restfully::Resource do
       }.should raise_error(Restfully::Error, "Cannot reload the resource")
     end
   end
-  
-  
-  
+
+  describe "integration tests" do
+
+    it "should not interfere with another previously loaded resource" do
+      Restfully::MediaType.register Restfully::MediaType::ApplicationVndBonfireXml
+      @session = Restfully::Session.new(
+        :uri => "http://localhost:8000"
+      )
+      @request = Restfully::HTTP::Request.new(
+        @session, :get, "/locations",
+        :head => {'Accept' => 'application/vnd.bonfire+xml'}
+      )
+      @response = Restfully::HTTP::Response.new(
+        @session, 200, {
+          'Content-Type' => 'application/vnd.bonfire+xml; charset=utf-8',
+          'Allow' => 'GET'
+        }, fixture('bonfire-location-collection.xml')
+      )
+
+      resource = Restfully::Resource.new(@session, @response, @request).load
+      resource1 = resource[:'uk-epcc']
+      resource2 = resource[:'fr-inria']
+      stub_request(:get, "http://localhost:8000/locations/uk-epcc/networks").
+               with(:headers => {'Accept'=>'application/vnd.bonfire+xml', 'Accept-Encoding'=>'gzip, deflate'}).
+               to_return(:status => 200, :body => fixture("bonfire-network-collection.xml"), :headers => {'Content-Type' => 'application/vnd.bonfire+xml'})
+      stub_request(:get, "http://localhost:8000/locations/fr-inria/networks").
+               with(:headers => {'Accept'=>'application/vnd.bonfire+xml', 'Accept-Encoding'=>'gzip, deflate'}).
+               to_return(:status => 200, :body => fixture("bonfire-network-collection.xml"), :headers => {'Content-Type' => 'application/vnd.bonfire+xml'})
+      resource1.networks
+      resource2.networks
+    end
+
+  end # describe "integration tests"
+
 end
