@@ -68,6 +68,12 @@ module Restfully
       total == 0
     end
     
+    # Expand the items that 
+    def expand
+      each {|i| i.expand}
+      self
+    end
+    
     def inspect
       map{|item| item}.inspect
     end

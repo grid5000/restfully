@@ -36,6 +36,10 @@ module Restfully
     def media_type
       response.media_type
     end
+    
+    def complete?
+      media_type.complete?
+    end
 
     def collection?
       media_type.collection?
@@ -185,6 +189,10 @@ module Restfully
       # end
       self
     end
+    
+    def expand
+      reload_if_empty(self)
+    end
 
     protected
     def extract_payload_from_args(args)
@@ -205,7 +213,7 @@ module Restfully
     end
     
     def reload_if_empty(resource)
-      resource.reload if resource && !resource.media_type.complete?
+      resource.reload if resource && !resource.complete?
       resource
     end
   end

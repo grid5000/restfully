@@ -43,6 +43,21 @@ describe Restfully::Collection do
     items[0]['uid'].should == 376505
   end
   
+  it "should expand the items" do
+    @response = Restfully::HTTP::Response.new(
+      @session, 200, {
+        'Content-Type' => 'application/vnd.bonfire+xml; charset=utf-8'
+      }, fixture('bonfire-collection-with-fragments.xml')
+    )
+    @resource = Restfully::Resource.new(@session, @response, @request).load
+    @resource.all?{|i| i.complete?}.should be_false
+    stub_request(:get, "https://api.grid5000.fr/locations/de-hlrs/networks/29").
+      with(:headers => {'Accept'=>'application/vnd.bonfire+xml', 'Accept-Encoding'=>'gzip, deflate', 'Cache-Control'=>'no-cache'}).
+      to_return(:status => 200, :body => fixture("bonfire-network-existing.xml"), :headers => {'Content-Type' => 'application/vnd.bonfire+xml'})
+    @resource.expand
+    @resource.all?{|i| i.complete?}.should be_true
+  end
+  
   it "should be empty if no item" do
     @response = Restfully::HTTP::Response.new(
       @session, 200, {
