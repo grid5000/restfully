@@ -154,7 +154,21 @@ describe Restfully::MediaType::ApplicationVndBonfireXml do
         @expected_compute_hash,
         :serialization => {"__type__" => "compute"}
       )
-      serialized.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<compute xmlns=\"http://api.bonfire-project.eu/doc/schemas/occi\">\n  <startup href=\"file:///path/to/startup-script/sh\"/>\n  <name>Compute name</name>\n  <instance_type>small</instance_type>\n  <link href=\"/locations/fr-inria\" rel=\"location\" type=\"application/vnd.bonfire+xml\"/>\n  <link href=\"/locations/uk-epcc/computes/1\" rel=\"self\"/>\n  <context>\n    <bonfire_credentials>crohr:p4ssw0rd</bonfire_credentials>\n    <monitoring_ip>123.123.123.2</monitoring_ip>\n  </context>\n  <nic>\n    <device>eth0</device>\n    <mac>AA:AA:AA:AA</mac>\n    <network href=\"/locations/fr-inria/networks/1\"/>\n    <ip>123.123.123.123</ip>\n  </nic>\n  <nic>\n    <device>eth1</device>\n    <mac>BB:BB:BB:BB</mac>\n    <network href=\"/locations/fr-inria/networks/2\"/>\n    <ip>123.123.124.2</ip>\n  </nic>\n  <description>Compute description</description>\n  <disk>\n    <type>OS</type>\n    <storage href=\"/locations/fr-inria/storages/1\"/>\n    <target>sda</target>\n  </disk>\n  <disk>\n    <type>CDROM</type>\n    <storage href=\"/locations/fr-inria/storages/2\"/>\n    <target>sdc</target>\n  </disk>\n  <state>ACTIVE</state>\n</compute>\n"
+      serialized.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<compute xmlns=\"http://api.bonfire-project.eu/doc/schemas/occi\">\n  <startup href=\"file:///path/to/startup-script/sh\"/>\n  <name>Compute name</name>\n  <instance_type>small</instance_type>\n  <link id=\"0\" href=\"/locations/fr-inria\" rel=\"location\" type=\"application/vnd.bonfire+xml\"/>\n  <link id=\"1\" href=\"/locations/uk-epcc/computes/1\" rel=\"self\"/>\n  <context>\n    <bonfire_credentials>crohr:p4ssw0rd</bonfire_credentials>\n    <monitoring_ip>123.123.123.2</monitoring_ip>\n  </context>\n  <nic id=\"0\">\n    <device>eth0</device>\n    <mac>AA:AA:AA:AA</mac>\n    <network href=\"/locations/fr-inria/networks/1\"/>\n    <ip>123.123.123.123</ip>\n  </nic>\n  <nic id=\"1\">\n    <device>eth1</device>\n    <mac>BB:BB:BB:BB</mac>\n    <network href=\"/locations/fr-inria/networks/2\"/>\n    <ip>123.123.124.2</ip>\n  </nic>\n  <description>Compute description</description>\n  <disk id=\"0\">\n    <type>OS</type>\n    <storage href=\"/locations/fr-inria/storages/1\"/>\n    <target>sda</target>\n  </disk>\n  <disk id=\"1\">\n    <type>CDROM</type>\n    <storage href=\"/locations/fr-inria/storages/2\"/>\n    <target>sdc</target>\n  </disk>\n  <state>ACTIVE</state>\n</compute>\n"
+    end
+    
+    it "should correctly deal with SAVE_AS elements" do
+      serialized = Restfully::MediaType::ApplicationVndBonfireXml.serialize(
+        {
+          :name => "whatever", 
+          :disk => [{
+            :storage => {"href" => "/somewhere"}, 
+            :save_as => {:name => "name of storage"}
+          }]
+        },
+        :serialization => {"__type__" => "compute"}
+      )
+      serialized.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<compute xmlns=\"http://api.bonfire-project.eu/doc/schemas/occi\">\n  <name>whatever</name>\n  <disk id=\"0\">\n    <save_as name=\"name of storage\"/>\n    <storage href=\"/somewhere\"/>\n  </disk>\n</compute>\n"
     end
   end
 end

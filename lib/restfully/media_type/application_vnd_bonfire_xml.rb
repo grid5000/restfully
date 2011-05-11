@@ -135,7 +135,12 @@ module Restfully
             when Restfully::Resource
               dump_object({"href" => object.uri.to_s}, parent)
             when Hash
-              if object.has_key?("href")
+              object.stringify_keys!
+              if object.has_key?("href") || (
+                # or object.keys == ["name"] && parent.parent &&
+                # parent.parent.parent
+                ["save_as"].include?(parent.name)
+              )
                 # only attributes
                 object.each{|kattr,vattr|
                   parent.attributes[kattr.to_s] = vattr
@@ -149,9 +154,13 @@ module Restfully
                 end
               end
             when Array
+              i = 0
+              parent['id'] = i.to_s
               dump_object(object[0], parent)
               object[1..-1].each{|item|
+                i+=1
                 node = XML::Node.new(parent.name)
+                node['id'] = i.to_s
                 dump_object(item, node)
                 parent.parent << node
               }
