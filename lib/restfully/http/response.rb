@@ -63,6 +63,10 @@ module Restfully
         )          
       end
       
+      def inspect
+        "#{code}, head=#{head.inspect}, body=#{body.inspect}"
+      end
+      
     end
   end
 end

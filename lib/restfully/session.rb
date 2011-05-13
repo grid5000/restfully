@@ -119,14 +119,18 @@ module Restfully
       code, head, body = resource.send(request.method, request.body || {})
 
       response = Restfully::HTTP::Response.new(self, code, head, body)
+      logger.debug response.inspect
+      response
     end
 
     # Process a Restfully::HTTP::Response.
     def process(response, request)
       case code=response.code
       when 200
+        logger.debug "Building response..."
         Resource.new(self, response, request).build
       when 201,202
+        logger.debug "Following redirection to: #{response.head['Location'].inspect}"
         get response.head['Location'], :head => request.head
       when 204
         true

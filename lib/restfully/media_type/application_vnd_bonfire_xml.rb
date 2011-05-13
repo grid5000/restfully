@@ -187,7 +187,7 @@ module Restfully
       end
 
       def represents?(id)
-        property("id") == id.to_s || property("name") == id.to_s
+        property("id") == id.to_s || property("name") == id.to_s || links.find{|l| l.self? && l.href.to_s.split("/").last == id.to_s}
       end
       
       def complete?
