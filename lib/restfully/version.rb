@@ -1,3 +1,3 @@
 module Restfully
-  VERSION = "0.7.1.rc1"
+  VERSION = "0.7.1.rc2"
 end
