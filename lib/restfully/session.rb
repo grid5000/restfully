@@ -16,10 +16,26 @@ module Restfully
     def initialize(options = {})
       @config = options.symbolize_keys
       @logger = @config.delete(:logger) || Logger.new(STDERR)
+
+      # Read configuration from file:
+      config_file = @config.delete(:configuration_file) || ENV['RESTFULLY_CONFIG']
+      config_file = File.expand_path(config_file) if config_file
+      if config_file && File.file?(config_file) && File.readable?(config_file)
+        @logger.info "Using configuration file located at #{config_file}."
+        @config = YAML.load_file(config_file).symbolize_keys.merge(@config)
+      end
+
+      # Require additional media-types:
+      (@config[:require] || []).each do |r|
+        @logger.info "Requiring #{r} media-type..."
+        require "restfully/media_type/#{r.underscore}"
+      end
+
       @config[:retry_on_error] ||= 5
       @config[:wait_before_retry] ||= 5
 
-      @uri = @config.delete(:uri)
+      # Compatibility with :base_uri parameter of Restfully <= 0.6
+      @uri = @config.delete(:uri) || @config.delete(:base_uri)
       if @uri.nil? || @uri.empty?
         raise ArgumentError, "You must pass a :uri option."
       else

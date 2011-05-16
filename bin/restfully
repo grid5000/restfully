@@ -19,7 +19,7 @@ end
 
 logger = Logger.new(STDERR)
 logger.level = Logger::WARN
-@options = {"logger" => logger, "require" => []}
+@options = {"logger" => logger}
 
 option_parser = OptionParser.new do |opts|
   opts.banner = <<BANNER
@@ -40,6 +40,7 @@ BANNER
     @options["configuration_file"] = v
   end
   opts.on("-r=", "--require=", "Require an additional media-type") do |v|
+    @options["require"] ||= []
     @options["require"].push(v)
   end
   opts.on("--log=", "Outputs log messages to the given file. Defaults to stdout") do |v|
@@ -63,23 +64,9 @@ end
 
 option_parser.parse!
 
-if @options["configuration_file"]
-  @options.merge!(YAML.load_file(
-    File.expand_path(@options["configuration_file"])
-  ))
-end
-
-@options["require"].each do |r|
-  logger.info "Requiring #{r} media-type..."
-  require "restfully/media_type/#{r.underscore}"
-end
-
 if given_uri = ARGV.shift
   @options["uri"] = given_uri
 end
-
-# Compatibility with restfully < 0.6
-@options["uri"] ||= @options.delete("base_uri")
 
 @session = Restfully::Session.new(@options)
 
