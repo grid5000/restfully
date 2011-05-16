@@ -45,9 +45,18 @@ describe Restfully::Resource do
       @resource.clusters
     end
     {:update => "PUT", :submit => "POST", :delete => "DELETE"}.each do |method, http_method|
-      it "should reload the resource first, to get the Allowed HTTP methods when calling #{method.to_sym}" do
-        @resource.should_receive(:reload).once.and_return(@resource)
+      it "should get the Allowed HTTP methods when calling #{method.to_sym}" do
         @response.should_receive(:allow?).with(http_method).and_return(true)
+        @session.should_receive(http_method.downcase.to_sym).
+          and_return(mock(Restfully::HTTP::Response))
+        @resource.send(method.to_sym)
+      end
+    end
+    {:update => "PUT", :submit => "POST", :delete => "DELETE"}.each do |method, http_method|
+      it "should reload itself to get the Allowed HTTP methods when calling #{method.to_sym}" do
+        @response.should_receive(:allow?).with(http_method).and_return(false)
+        @response.should_receive(:allow?).with(http_method).and_return(true)
+        @resource.should_receive(:reload).once.and_return(@resource)
         @session.should_receive(http_method.downcase.to_sym).
           and_return(mock(Restfully::HTTP::Response))
         @resource.send(method.to_sym)
@@ -125,14 +134,14 @@ describe Restfully::Resource do
     end
 
     it "should reload the resource even after having reloaded it once before" do
-      @session.should_receive(:execute).twice.with(@request).
+      @request.should_receive(:execute!).twice.
         and_return(@response)
       @resource.reload
       @resource.reload
     end
 
     it "should raise an error if it cannot reload the resource" do
-      @session.should_receive(:execute).with(@request).
+      @request.should_receive(:execute!).
         and_return(res=mock(Restfully::HTTP::Response))
       @session.should_receive(:process).with(res, @request).
         and_return(false)

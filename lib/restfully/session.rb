@@ -16,6 +16,8 @@ module Restfully
     def initialize(options = {})
       @config = options.symbolize_keys
       @logger = @config.delete(:logger) || Logger.new(STDERR)
+      @config[:retry_on_error] ||= 5
+      @config[:wait_before_retry] ||= 5
 
       @uri = @config.delete(:uri)
       if @uri.nil? || @uri.empty?
@@ -100,27 +102,12 @@ module Restfully
       transmit :delete, path, options
     end
 
-    # Build and send the corresponding HTTP request, then process the response
+    # Build and execute the corresponding HTTP request,
+    # then process the response.
     def transmit(method, path, options)
       request = HTTP::Request.new(self, method, path, options)
-
-      response = execute(request)
-
+      response = request.execute!
       process(response, request)
-    end
-
-    def execute(request)
-      resource = RestClient::Resource.new(
-        request.uri.to_s,
-        :headers => request.head
-      )
-
-      logger.debug request.inspect
-      code, head, body = resource.send(request.method, request.body || {})
-
-      response = Restfully::HTTP::Response.new(self, code, head, body)
-      logger.debug response.inspect
-      response
     end
 
     # Process a Restfully::HTTP::Response.
@@ -135,14 +122,15 @@ module Restfully
       when 204
         true
       when 400..499
-        msg = "Encountered error #{code} on #{request.method.upcase} #{request.uri}"
-        msg += " --- #{response.body[0..200]}" unless response.body.empty?
-        raise HTTP::ClientError, msg
-      when 500..599
-        # when 503, sleep 5, request.retry
-        msg = "Encountered error #{code} on #{request.method.upcase} #{request.uri}"
-        msg += " --- #{response.body[0..200]}" unless response.body.empty?
-        raise HTTP::ServerError, msg
+        raise HTTP::ClientError, error_message(request, response)
+      when 502..504
+        if res = request.retry!
+          process(res, request)
+        else
+         raise(HTTP::ServerError, error_message(request, response))
+       end
+      when 500, 501
+        raise HTTP::ServerError, error_message(request, response)
       else
         raise Error, "Restfully does not handle code #{code.inspect}."
       end
@@ -150,7 +138,12 @@ module Restfully
 
     protected
     def setup_cache
-      enable ::Rack::Cache, :verbose => (logger.level < Logger::INFO)
+      enable ::Rack::Cache, :verbose => (logger.level <= Logger::INFO)
+    end
+
+    def error_message(request, response)
+      msg = "Encountered error #{response.code} on #{request.method.upcase} #{request.uri}"
+      msg += " --- #{response.body[0..200]}" unless response.body.empty?
     end
 
   end

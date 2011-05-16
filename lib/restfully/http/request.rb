@@ -2,27 +2,33 @@
 
 module Restfully
   module HTTP
-    
+
     class Request
       include Helper
-      
-      attr_reader :method, :uri, :head, :body
-      
-      def initialize(session, method, path, options)
+
+      attr_reader :session, :method, :uri, :head, :body, :attempts
+      attr_accessor :retry_on_error, :wait_before_retry
+
+      def initialize(session, method, path, options = {})
         @session = session
-        
+        @attempts = 0
+
         request = options.symbolize_keys
+
+        @retry_on_error = request[:retry_on_error] || session.config[:retry_on_error]
+        @wait_before_retry = request[:wait_before_retry] || session.config[:wait_before_retry]
+
         request[:method] = method
 
         request[:head] = sanitize_head(@session.default_headers).merge(
           build_head(request)
         )
-        
+
         request[:uri] = @session.uri_to(path)
         if request[:query]
           request[:uri].query_values = sanitize_query(request[:query])
         end
-        
+
         request[:body] = if [:post, :put].include?(request[:method])
           build_body(request)
         end
@@ -30,9 +36,10 @@ module Restfully
         @method, @uri, @head, @body = request.values_at(
           :method, :uri, :head, :body
         )
+
       end
-      
-      # Updates the request header and query parameters
+
+      # Updates the request header and query parameters.
       # Returns nil if no changes were made, otherwise self.
       def update!(options = {})
         objects_that_may_be_updated = [@uri, @head]
@@ -48,33 +55,61 @@ module Restfully
           self
         end
       end
-      
+
       def inspect
         "#{method.to_s.upcase} #{uri.to_s}, head=#{head.inspect}, body=#{body.inspect}"
       end
-      
+
       def no_cache?
         head['Cache-Control'] && head['Cache-Control'].include?('no-cache')
       end
-      
+
       def no_cache!
         @forced_cache = true
         head['Cache-Control'] = 'no-cache'
       end
-      
+
       def forced_cache?
         !!@forced_cache
       end
-      
+
+      def execute!
+        session.logger.debug self.inspect
+        resource = RestClient::Resource.new(
+          uri.to_s,
+          :headers => head
+        )
+
+        begin
+          reqcode, reqhead, reqbody = resource.send(method, body || {})
+          response = Response.new(session, reqcode, reqhead, reqbody)
+          session.logger.debug response.inspect
+          response
+        rescue Errno::ECONNREFUSED => e
+          retry! || raise(e)
+        end
+      end
+
+      def retry!
+        if @attempts < @retry_on_error
+          @attempts+=1
+          session.logger.info "Encountered connection or server error. Retrying in #{@wait_before_retry}s... [#{@attempts}/#{@retry_on_error}]"
+          sleep @wait_before_retry if @wait_before_retry > 0
+          execute!
+        else
+          false
+        end
+      end
+
       def remove_no_cache!
         @forced_cache = false
         if head['Cache-Control']
-          head['Cache-Control'] = head['Cache-Control'].split(/\s+,\s+/).reject{|v| 
+          head['Cache-Control'] = head['Cache-Control'].split(/\s+,\s+/).reject{|v|
             v =~ /no-cache/i
           }.join(",")
         end
       end
-      
+
       protected
       def build_head(options = {})
         sanitize_head(
@@ -94,7 +129,7 @@ module Restfully
           nil
         end
       end
-      
+
     end
   end
 end

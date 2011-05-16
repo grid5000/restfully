@@ -14,13 +14,13 @@ module Restfully
         super(property)
       end
     end
-    
+
     def find_by_uid(symbol)
       found = find{ |i| i.media_type.represents?(symbol) }
       found.expand unless found.nil?
       found
     end
-    
+
     def find_by_index(index)
       index = index+length if index < 0
       each_with_index{|item, i|
@@ -69,27 +69,16 @@ module Restfully
     def empty?
       total == 0
     end
-    
-    # Expand the items that 
+
+    # Expand the items that
     def expand
       each {|i| i.expand}
       self
     end
-    
+
     def inspect
       map{|item| item}.inspect
     end
-    # def (key)
-    #   p Addressable::URI.parse("./"+key.to_s)
-    #   p self.uri
-    #   uri_to_find = Addressable::URI.join(self.uri, "./"+key.to_s)
-    #   p uri_to_find
-    #   find{|resource|
-    #     resource.uri == uri_to_find
-    #   }
-    # end
-
-
   end
 
 end

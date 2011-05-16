@@ -50,7 +50,7 @@ module Restfully
       end
       
       def allow?(http_method)
-        http_method = http_method.to_sym
+        http_method = http_method.downcase.to_sym
         return true if http_method == :get
         (
           media_type.respond_to?(:allow?) && 

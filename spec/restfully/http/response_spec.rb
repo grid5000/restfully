@@ -36,6 +36,9 @@ describe Restfully::HTTP::Response do
     
     response.allow?(:get).should be_true
     response.allow?(:post).should be_true
+    response.allow?("POST").should be_true
+    response.allow?("GET").should be_true
+    response.allow?("PUT").should be_false
   end
   
   it "should raise an error if it cannot find a corresponding media-type" do

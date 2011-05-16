@@ -49,6 +49,9 @@ BANNER
     @options["logger"] = logger
   end
   opts.on("-v", "--verbose", "Run verbosely") do |v|
+    @options["logger"].level = Logger::INFO
+  end
+  opts.on("--debug", "Run in debug mode") do |v|
     @options["logger"].level = Logger::DEBUG
   end
   opts.on_tail("-h", "--help", "Show this message") do

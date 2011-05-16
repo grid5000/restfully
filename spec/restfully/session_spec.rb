@@ -10,20 +10,20 @@ describe Restfully::Session do
       :logger => @logger
     }
   end
-  
+
   it "should initialize a session with the correct properties" do
     session = Restfully::Session.new(@config.merge("key" => "value"))
     session.logger.should == @logger
     session.uri.should == Addressable::URI.parse(@uri)
-    session.config.should == {:key => "value"}
+    session.config.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
   end
-  
+
   it "should raise an error if no URI given" do
     lambda{
       Restfully::Session.new(@config.merge(:uri => ""))
     }.should raise_error(ArgumentError)
   end
-  
+
   it "should fetch the root path [no URI path]" do
     session = Restfully::Session.new(@config)
     session.should_receive(:get).with("").
@@ -31,7 +31,7 @@ describe Restfully::Session do
     res.should_receive(:load).and_return(res)
     session.root.should == res
   end
-  
+
   it "should fetch the root path [URI path present]" do
     session = Restfully::Session.new(
       @config.merge(:uri => "https://api.grid5000.fr/resource/path")
@@ -41,21 +41,21 @@ describe Restfully::Session do
     res.should_receive(:load).and_return(res)
     session.root.should == res
   end
-  
+
   it "should add or replace additional headers to the default set" do
     session = Restfully::Session.new(
       @config.merge(:default_headers => {
-        'Accept' => 'application/xml', 
+        'Accept' => 'application/xml',
         'Cache-Control' => 'no-cache'
       })
     )
     session.default_headers.should == {
-      'Accept' => 'application/xml', 
+      'Accept' => 'application/xml',
       'Cache-Control' => 'no-cache',
       'Accept-Encoding' => 'gzip, deflate'
     }
   end
-  
+
   describe "middleware" do
     it "should only have Rack::Cache enabled by default" do
       session = Restfully::Session.new(@config)
@@ -64,7 +64,7 @@ describe Restfully::Session do
         Rack::Cache
       ]
     end
-    
+
     it "should use Restfully::Rack::BasicAuth if basic authentication is used" do
       session = Restfully::Session.new(@config.merge(
         :username => "crohr", :password => "p4ssw0rd"
@@ -76,15 +76,15 @@ describe Restfully::Session do
       ]
     end
   end
-  
+
   describe "transmitting requests" do
     before do
       @session = Restfully::Session.new(@config)
       @path = "/path"
       @default_headers = @session.default_headers
     end
-    
-    it "should make a get request" do  
+
+    it "should make a get request" do
       stub_request(:get, @uri+@path+"?k1=v1&k2=v2").with(
         :headers => @default_headers.merge({
           'Accept' => '*/*',
@@ -106,13 +106,13 @@ describe Restfully::Session do
         @response,
         instance_of(Restfully::HTTP::Request)
       )
-      
+
       @session.transmit :get, @path, {
         :query => {:k1 => "v1", :k2 => "v2"},
         :headers => {'X-Header' => 'value'}
       }
     end
-    
+
     it "should make an authenticated get request" do
       stub_request(:get, "https://crohr:p4ssw0rd@api.grid5000.fr"+@path+"?k1=v1&k2=v2").with(
         :headers => @default_headers.merge({
@@ -127,57 +127,77 @@ describe Restfully::Session do
         :headers => {'X-Header' => 'value'}
       }
     end
+
+    it "should retry for at most :max_attempts_on_connection_error if connection to the server failed" do
+
+    end
   end
-  
+
   describe "processing responses" do
     before do
       @session = Restfully::Session.new(@config)
-      @request = mock(
-        Restfully::HTTP::Request, 
-        :method => :get, 
-        :uri => @uri, 
-        :head => mock("head"),
-        :update! => nil
+      @request = Restfully::HTTP::Request.new(
+        @session,
+        :get,
+        @uri
       )
+      @request.stub!(:head).and_return({})
+      @request.stub!(:update!).and_return(nil)
+      
       @response = Restfully::HTTP::Response.new(
         @session,
         200,
-        {'X' => 'Y'},
+        {'X' => 'Y', 'Content-Type' => 'text/plain'},
         'body'
       )
     end
-    
+
     it "should return true if status=204" do
       @response.stub!(:code).and_return(204)
       @session.process(@response, @request).should be_true
     end
-    
+
     it "should raise a Restfully::HTTP::ClientError if status in 400..499" do
       @response.stub!(:code).and_return(400)
       lambda{
         @session.process(@response, @request)
       }.should raise_error(Restfully::HTTP::ClientError)
     end
-    
+
     it "should raise a Restfully::HTTP::ServerError if status in 500..599" do
       @response.stub!(:code).and_return(500)
       lambda{
         @session.process(@response, @request)
       }.should raise_error(Restfully::HTTP::ServerError)
     end
-    
+    it "should retry if the server returns one of [502,503,504], and request.retry! returns a response" do
+      @request.should_receive(:retry!).once.
+        and_return(@response)
+      @response.should_receive(:code).ordered.and_return(503)
+      @response.should_receive(:code).ordered.and_return(200)
+      @session.process(@response, @request)
+    end
+    it "should not retry if the server returns one of [502,503,504], but request.retry! returns false" do
+      @request.should_receive(:retry!).once.
+        and_return(false)
+      @response.stub!(:code).and_return(503)
+      lambda{
+        @session.process(@response, @request)
+      }.should raise_error(Restfully::HTTP::ServerError, /503/)
+    end
+
     it "should raise an error if the status is not supported" do
       @response.stub!(:code).and_return(50)
       lambda{
         @session.process(@response, @request)
       }.should raise_error(Restfully::Error)
     end
-    
+
     [201, 202].each do |status|
       it "should fetch the resource specified in the Location header if status = #{status}" do
         @response.stub!(:code).and_return(status)
         @response.head['Location'] = @uri+"/path"
-        
+
         @session.should_receive(:get).
           with(@uri+"/path", :head => @request.head).
           and_return(resource=mock("resource"))
@@ -185,7 +205,7 @@ describe Restfully::Session do
           should == resource
       end
     end
-    
+
     it "should return a Restfully::Resource if successful" do
       Restfully::MediaType.register Restfully::MediaType::ApplicationJson
       body = {
@@ -197,33 +217,33 @@ describe Restfully::Session do
         {'Content-Type' => 'application/json'},
         JSON.dump(body)
       )
-      
+
       resource = @session.process(
         @response,
         @request
       )
-      
+
       resource.should be_a(Restfully::Resource)
       resource.uri.should == @request.uri
       resource['key1'].should == body[:key1]
       resource['key2'].should == body[:key2]
     end
-    
+
     it "should raise an error if the response content-type is not supported" do
       @response = Restfully::HTTP::Response.new(
         @session, 200,
         {'Content-Type' => ''},
         'body'
       )
-      
-      lambda{ 
-        @session.process(@response,@request) 
+
+      lambda{
+        @session.process(@response,@request)
       }.should raise_error(
-        Restfully::Error, 
+        Restfully::Error,
         "Cannot find a media-type for content-type=\"\""
       )
     end
   end
-  
+
 end
 

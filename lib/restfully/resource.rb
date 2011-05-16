@@ -25,7 +25,10 @@ module Restfully
     #   resource["uid"]
     #   => "rennes"
     def [](key)
-      expand.media_type.property(key)
+      unless collection?
+        expand
+      end
+      media_type.property(key)
     end
 
     def uri
@@ -58,7 +61,7 @@ module Restfully
     def load(options = {})
       # Send a GET request only if given a different set of options
       if @request.update!(options) || @request.no_cache?
-        @response = session.execute(@request)
+        @response = @request.execute!
         @request.remove_no_cache! if @request.forced_cache?
         if session.process(@response, @request)
           @associations.clear
@@ -121,8 +124,7 @@ module Restfully
     end
 
     def allow?(method)
-      reload
-      response.allow?(method)
+      response.allow?(method) || reload.response.allow?(method)
     end
 
     def inspect

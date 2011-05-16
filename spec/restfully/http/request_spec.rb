@@ -7,6 +7,11 @@ describe Restfully::HTTP::Request do
       :default_headers => {
         'Accept' => '*/*; application/xml',
         :accept_encoding => "gzip, deflate"
+      },
+      :logger => Logger.new(STDERR),
+      :config => {
+        :retry_on_error => 5,
+        :wait_before_retry => 5
       }
     )
     
@@ -100,6 +105,34 @@ describe Restfully::HTTP::Request do
       @options[:serialization] = {"__type__" => "network"}
       request = Restfully::HTTP::Request.new(@session, :post, "/path", @options)
       request.body.should == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<network xmlns=\"http://api.bonfire-project.eu/doc/schemas/occi\">\n  <name>whatever</name>\n</network>\n"
+    end
+  end
+  
+  describe "execute" do
+    before do
+      @request = Restfully::HTTP::Request.new(
+        @session,
+        :get,
+        "/path"
+      )
+    end
+    it "should build the RestClient::Resource and build a response" do
+      RestClient::Resource.should_receive(:new).with(
+        @request.uri.to_s, 
+        :headers => @request.head
+      ).and_return(
+        resource = mock(RestClient::Resource)
+      )
+      resource.should_receive(:get).and_return([
+        200, 
+        {'Content-Type' => 'text/plain'},
+        ["hello"]
+      ])
+      response = @request.execute!
+      response.should be_a(Restfully::HTTP::Response)
+      response.code.should == 200
+      response.body.should == "hello"
+      response.head.should == {'Content-Type' => 'text/plain'}
     end
   end
 
