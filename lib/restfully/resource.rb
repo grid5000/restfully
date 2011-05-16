@@ -25,8 +25,7 @@ module Restfully
     #   resource["uid"]
     #   => "rennes"
     def [](key)
-      reload_if_empty(self)
-      media_type.property(key)
+      expand.media_type.property(key)
     end
 
     def uri
@@ -93,7 +92,7 @@ module Restfully
     end
 
     def submit(*args)
-      if allow?(:post)
+      if allow?("POST")
         @request.no_cache!
         payload, options = extract_payload_from_args(args)
         session.post(request.uri, payload, options)
@@ -103,7 +102,7 @@ module Restfully
     end
 
     def delete(options = {})
-      if allow?(:delete)
+      if allow?("DELETE")
         @request.no_cache!
         session.delete(request.uri)
       else
@@ -112,7 +111,7 @@ module Restfully
     end
 
     def update(*args)
-      if allow?(:put)
+      if allow?("PUT")
         @request.no_cache!
         payload, options = extract_payload_from_args(args)
         session.put(request.uri, payload, options)
@@ -122,6 +121,7 @@ module Restfully
     end
 
     def allow?(method)
+      reload
       response.allow?(method)
     end
 
@@ -155,6 +155,7 @@ module Restfully
             end
           end
         else
+          expand
           pp.text "PROPERTIES"
           pp.nest 2 do
             properties.each do |key, value|
@@ -191,7 +192,8 @@ module Restfully
     end
     
     def expand
-      reload_if_empty(self)
+      reload unless complete?
+      self
     end
 
     protected
@@ -212,9 +214,5 @@ module Restfully
       [payload, options]
     end
     
-    def reload_if_empty(resource)
-      resource.reload if resource && !resource.complete?
-      resource
-    end
   end
 end

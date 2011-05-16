@@ -16,13 +16,15 @@ module Restfully
     end
     
     def find_by_uid(symbol)
-      find{ |i| reload_if_empty(i).media_type.represents?(symbol) }
+      found = find{ |i| i.media_type.represents?(symbol) }
+      found.expand unless found.nil?
+      found
     end
     
     def find_by_index(index)
       index = index+length if index < 0
       each_with_index{|item, i|
-        return reload_if_empty(item) if i == index
+        return item.expand if i == index
       }
       nil
     end

@@ -44,14 +44,23 @@ describe Restfully::Resource do
       association.should_receive(:load)
       @resource.clusters
     end
-
+    {:update => "PUT", :submit => "POST", :delete => "DELETE"}.each do |method, http_method|
+      it "should reload the resource first, to get the Allowed HTTP methods when calling #{method.to_sym}" do
+        @resource.should_receive(:reload).once.and_return(@resource)
+        @response.should_receive(:allow?).with(http_method).and_return(true)
+        @session.should_receive(http_method.downcase.to_sym).
+          and_return(mock(Restfully::HTTP::Response))
+        @resource.send(method.to_sym)
+      end
+    end
     it "should not allow to submit if POST not allowed on the resource" do
+      @resource.should_receive(:reload).and_return(@resource)
       lambda{
         @resource.submit
       }.should raise_error(Restfully::MethodNotAllowed)
     end
     it "should send a POST request if POST is allowed [payload argument]" do
-      @resource.should_receive(:allow?).with(:post).and_return(true)
+      @resource.should_receive(:allow?).with("POST").and_return(true)
       @session.should_receive(:post).with(
         @resource.uri,
         'some payload',
@@ -66,7 +75,7 @@ describe Restfully::Resource do
       )
     end
     it "should send a POST request if POST is allowed [payload as hash]" do
-      @resource.should_receive(:allow?).with(:post).and_return(true)
+      @resource.should_receive(:allow?).with("POST").and_return(true)
       @session.should_receive(:post).with(
         @resource.uri,
         {:key => 'value'},
@@ -93,7 +102,7 @@ describe Restfully::Resource do
         }, fixture('bonfire-network-existing.xml')
       )
       @resource = Restfully::Resource.new(@session, @response, @request).load
-      @resource.should_receive(:allow?).with(:put).and_return(true)
+      @resource.should_receive(:allow?).with("PUT").and_return(true)
       @session.should_receive(:put).with(
         @resource.uri,
         {:key => 'value'},
