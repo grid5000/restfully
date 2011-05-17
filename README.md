@@ -1,134 +1,78 @@
-# restfully
+# Restfully
+Restfully is a general-purpose client library for RESTful APIs. It is written in Ruby. Its goal is to abstract the nitty-gritty details of exchanging HTTP requests between the user-agent and the server. It also discovers resources at runtime, which means should the API change and add a new functionality, the client will automatically discover it.
 
-An attempt at dynamically providing wrappers on top of RESTful APIs that follow the principle of Hyperlinks As The Engine Of Application State (HATEOAS). 
-It does not require to use specific (and often complex) server-side libraries, but a few constraints and conventions must be followed:
+It works on simple concepts:
 
-1. Return sensible HTTP status codes;
-2. Make use of GET, POST, PUT, DELETE HTTP methods;
-3. Return a Location HTTP header in 201 or 202 responses;
-4. Return a <tt>links</tt> property in all responses to a GET request, that contains a list of link objects:
+1. All APIs are made of **resources**, and **collections of resources**.
+2. The **media-type** of a resource dictates the relationships between that resource and the other resources, and what it is possible to do with them.
 
-              {
-                "property": "value",
-                "links": [
-                  {"rel": "self", "href": "uri/to/resource", "type": "application/vnd.whatever+json;level=1,application/json"},
-                  {"rel": "parent", "href": "uri/to/parent/resource", "type": "application/json"} 
-                  {"rel": "collection", "href": "uri/to/collection", "title": "my_collection", "type": "application/json"}, 
-                  {"rel": "member", "href": "uri/to/member", "title": "member_title", "type": "application/json"}
-                ]
-              }
-   
-   * Adding a <tt>parent</tt> link automatically creates a <tt>#parent</tt> method on the current resource. 
-   * Adding a <tt>collection</tt> link automatically creates a <tt>#my_collection</tt> method that will fetch the Collection when called. 
-   * Adding a <tt>member</tt> link automatically creates a <tt>#member_title</tt> method that will fetch the Resource when called.
+Therefore, Restfully can work with any reasonably RESTful API provided that:
 
-5. Advertise allowed HTTP methods in the response to GET requests by returning a <tt>Allow</tt> HTTP header containing a comma-separated list of the HTTP methods that can be used on the resource. This will allow the automatic generation of methods to interact with the resource. e.g.: advertising a <tt>POST</tt> method (<tt>Allow: GET, POST</tt>) will result in the creation of a <tt>submit</tt> method on the resource.
+* The API returns semantically correct HTTP status codes;
+* The API make use of `GET`, `POST`, `PUT`, `DELETE` HTTP methods;
+* The API returns a valid `Content-Type` header in all responses;
+* The API returns a `Location` HTTP header on 201 and 202 responses;
+* The API returns links to other resources in all responses (the so-called HATEOAS constraint of REST).
+
+If one of the API `Content-Type` is not already supported by one of the `Restfully::MediaType` objects (see `lib/restfully/media_type`), then you just have to build it and register it with Restfully.
 
 ## Installation
 
     $ gem install restfully
+
+If you require media-types that need an XML parser, you must also install the `libxml-ruby` library:
+
+    $ gem install libxml-ruby
 
 ## Usage
 
 ### Command line
 
     $ export RUBYOPT="-rubygems"
-    $ restfully base_uri [-u username] [-p password]
+    $ restfully URI [-u username] [-p password]
   
-e.g., for the Grid5000 API:
+e.g., for the [Grid'5000 API](https://www.grid5000.fr/mediawiki/index.php/API):
 
     $ restfully https://api.grid5000.fr/sid/grid5000 -u username -p password
 
 If the connection was successful, you should get a prompt. You may enter:
 
-    irb(main):001:0> pp root
-
-to get back a pretty-printed output of the root resource:
-
-    #<Restfully::Resource:0x91f08c
-      @uri=#<URI::HTTP:0x123e30c URL:http://api.local/sid/grid5000>
-      LINKS
-        @environments=#<Restfully::Collection:0x917666>,
-        @sites=#<Restfully::Collection:0x9170d0>,
-        @version=#<Restfully::Resource:0x91852a>,
-        @versions=#<Restfully::Collection:0x917e68>
+    ruby-1.8.7-p249 > pp root
+    #<Resource:0x8108399c uri=https://api.grid5000.fr/sid/grid5000
+      RELATIONSHIPS
+        environments, self, sites, version, versions
       PROPERTIES
-        "uid"=>"grid5000",
-        "type"=>"grid",
-        "version"=>"4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8">
+        "uid"=>"grid5000"
+        "type"=>"grid"
+        "version"=>"da6abdd13e2e626f64502a648b784372eac790b1">
+     => nil
 
-You can see the `LINKS` and `PROPERTIES` headers that respectively indicate what links you can follow from there (by calling `root.link_name`) and what properties are available (by calling `root[property_name]`).
+And then follow the links advertised under the `RELATIONSHIPS` header to discover the other API resources. For instance, the `sites` resource can be accessed as follows:
 
-Let's say you want to access the collection of `sites`, you would enter:
-
-    irb(main):002:0> pp root.sites
-
-and get back:
-
-    #<Restfully::Collection:0x9170d0
-      @uri=#<URI::HTTP:0x122e128 URL:http://api.local/sid/grid5000/sites>
-      LINKS
-        @version=#<Restfully::Resource:0x8f553e>,
-        @versions=#<Restfully::Collection:0x8f52be>
-      PROPERTIES
-        "total"=>9,
-        "version"=>"4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8",
-        "offset"=>0
+    ruby-1.8.7-p249 > pp root.sites
+    #<Collection:0x8106d55c uri=https://api.grid5000.fr/sid/grid5000/sites
+      RELATIONSHIPS
+        self, version, versions
       ITEMS (0..9)/9
-        #<Restfully::Resource:0x9058bc uid="bordeaux">,
-        #<Restfully::Resource:0x903d0a uid="grenoble">,
-        #<Restfully::Resource:0x901cc6 uid="lille">,
-        #<Restfully::Resource:0x8fff0c uid="lyon">,
-        #<Restfully::Resource:0x8fe288 uid="nancy">,
-        #<Restfully::Resource:0x8fc4a6 uid="orsay">,
-        #<Restfully::Resource:0x8fa782 uid="rennes">,
-        #<Restfully::Resource:0x8f8bb2 uid="sophia">,
-        #<Restfully::Resource:0x8f6c9a uid="toulouse">>
+        #<Resource:0x81055a9c uri=https://api.grid5000.fr/sid/grid5000/sites/bordeaux>
+        #<Resource:0x81040d54 uri=https://api.grid5000.fr/sid/grid5000/sites/grenoble>
+        #<Resource:0x8102c070 uri=https://api.grid5000.fr/sid/grid5000/sites/lille>
+        #<Resource:0x8101738c uri=https://api.grid5000.fr/sid/grid5000/sites/lyon>
+        #<Resource:0x81002658 uri=https://api.grid5000.fr/sid/grid5000/sites/nancy>
+        #<Resource:0x80fed924 uri=https://api.grid5000.fr/sid/grid5000/sites/orsay>
+        #<Resource:0x80fd8bb4 uri=https://api.grid5000.fr/sid/grid5000/sites/rennes>
+        #<Resource:0x80fc3dcc uri=https://api.grid5000.fr/sid/grid5000/sites/sophia>
+        #<Resource:0x80faf070 uri=https://api.grid5000.fr/sid/grid5000/sites/toulouse>>
+     => nil
 
-A Restfully::Collection is a special kind of Resource, which includes the Enumerable module, which means you can call all of its methods on the `Restfully::Collection` object. 
-For example:
+Note that we're using `pp` to pretty-print the output, but it's not required.
 
-    irb(main):003:0> pp root.sites.find{|s| s['uid'] == 'rennes'}
-    #<Restfully::Resource:0x8fa782
-      @uri=#<URI::HTTP:0x11f4e64 URL:http://api.local/sid/grid5000/sites/rennes>
-      LINKS
-        @environments=#<Restfully::Collection:0x8f9ab2>,
-        @parent=#<Restfully::Resource:0x8f981e>,
-        @deployments=#<Restfully::Collection:0x8f935a>,
-        @clusters=#<Restfully::Collection:0x8f9d46>,
-        @version=#<Restfully::Resource:0x8fa354>,
-        @versions=#<Restfully::Collection:0x8fa0b6>,
-        @status=#<Restfully::Collection:0x8f95ee>
-      PROPERTIES
-        "name"=>"Rennes",
-        "latitude"=>48.1,
-        "location"=>"Rennes, France",
-        "security_contact"=>"rennes-staff@lists.grid5000.fr",
-        "uid"=>"rennes",
-        "type"=>"site",
-        "user_support_contact"=>"rennes-staff@lists.grid5000.fr",
-        "version"=>"4fe96b25d2cbfee16abe5a4fb999c82dbafc2ee8",
-        "description"=>"",
-        "longitude"=>-1.6667,
-        "compilation_server"=>false,
-        "email_contact"=>"rennes-staff@lists.grid5000.fr",
-        "web"=>"http://www.irisa.fr",
-        "sys_admin_contact"=>"rennes-staff@lists.grid5000.fr">
+A Collection is a specific kind of Resource, and it has access to all the methods provided by the Ruby [Enumerable](http://www.rubydoc.info/stdlib/core/1.9.2/Enumerable) module.
 
-or:
-
-    irb(main):006:0> root.sites.map{|s| s['uid']}.grep(/re/)
-    => ["grenoble", "rennes"]
-
-A shortcut is available to find a specific entry in a collection, by entering the searched `uid` as a Symbol:
-
-    irb(main):007:0> root.sites[:rennes]
-    # will find the item whose uid is "rennes"
-
-For ease of use and better security, you may prefer to use a configuration file to avoid re-entering the options every time you use the client:
+For ease of use and better security, you may prefer to use a configuration file to avoid re-entering the Restfully options every time:
 
     $ echo '
-    base_uri: https://api.grid5000.fr/sid/grid5000
+    uri: https://api.grid5000.fr/sid/grid5000
     username: MYLOGIN
     password: MYPASSWORD
     ' > ~/.restfully/api.grid5000.fr.yml && chmod 600 ~/.restfully/api.grid5000.fr.yml
@@ -139,12 +83,6 @@ And then:
 
 ### As a library
 See the `examples` directory for examples.
-
-## Discovering the API capabilities
-A `Restfully::Resource` (and by extension its child `Restfully::Collection`) has the following methods available for introspection:
-
-* `links` will return a hash whose keys are the name of the methods that can be called to navigate between resources;
-* `http_methods` will return an array containing the list of the HTTP methods that are allowed on the resource;
 
 ## Development
 
@@ -163,4 +101,5 @@ A `Restfully::Resource` (and by extension its child `Restfully::Collection`) has
 
 ## Copyright
 
-Copyright (c) 2009 Cyril Rohr, INRIA Rennes - Bretagne Atlantique. See LICENSE for details.
+Copyright (c) 2009-2011 [Cyril Rohr](http://crohr.me), INRIA Rennes - Bretagne Atlantique. 
+See LICENSE for details.

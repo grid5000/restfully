@@ -2,9 +2,9 @@ module Restfully
   # This class represents a Resource, which can be accessed and manipulated
   # via HTTP methods.
   #
-  # The <tt>#load</tt> method must have been called on the resource before
-  # trying to access its attributes or links.
-  #
+  # Some resources can be collection of other resources. 
+  # In that case the <tt>Restfully::Collection</tt> module is included in the <tt>Restfully::Resource</tt> class. 
+  # See the corresponding documentation for the list of additional methods that you can use on a collection resource.
   class Resource
     attr_reader :response, :request, :session
 
@@ -17,11 +17,10 @@ module Restfully
       @associations = {}
     end
 
-    # == Description
     # Returns the value corresponding to the specified key,
-    # among the list of resource properties
+    # among the list of resource properties.
     #
-    # == Usage
+    # e.g.:
     #   resource["uid"]
     #   => "rennes"
     def [](key)
@@ -31,26 +30,32 @@ module Restfully
       media_type.property(key)
     end
 
+    # Returns the resource URI.
     def uri
       request.uri
     end
 
+    # Returns the Restfully::MediaType object that was used to parse the response.
     def media_type
       response.media_type
     end
-    
+
+    # Does this resource contain only a fragment of the full resource?
     def complete?
       media_type.complete?
     end
 
+    # Is this resource a collection of items?
     def collection?
       media_type.collection?
     end
-    
+
+    # Returns the resource kind: "Collection" or "Resource".
     def kind
       collection? ? "Collection" : "Resource"
     end
-    
+
+    # Returns the "signature" of the resource. Used for (pretty-)inspection.
     def signature(closed=true)
       s = "#<#{kind}:0x#{object_id.to_s(16)}"
       s += " uri=#{uri.to_s}"
@@ -58,6 +63,9 @@ module Restfully
       s
     end
 
+    # Load the resource. The <tt>options</tt> Hash can contain any number of parameters among which:
+    # <tt>:head</tt>:: a Hash of HTTP headers to pass when fetching the resource.
+    # <tt>:query</tt>:: a Hash of query parameters to add to the URI when fetching the resource.
     def load(options = {})
       # Send a GET request only if given a different set of options
       if @request.update!(options) || @request.no_cache?
@@ -72,28 +80,29 @@ module Restfully
       
       build
     end
-    
+
+    # Returns the list of relationships for this resource, extracted from the resource links ("rel" attribute).
     def relationships
       response.links.map(&:id).sort
     end
-    
+
+    # Returns the Hash of properties for this resource.
     def properties
       media_type.property.reject{|k,v|        
         # do not return keys used for internal use
         k.to_s =~ HIDDEN_PROPERTIES_REGEXP
       }
     end
-    
-    # For the following methods, maybe it's better to always go through the
-    # cache instead of explicitly saying @request.no_cache! (and update the
-    # #load method accordingly)
-    
-    # Force reloading of the request
+
+    # Force reloading of the resource.
     def reload
       @request.no_cache!
       load
     end
 
+    # POST some payload on that resource URI.
+    # Either you pass a serialized payload as first argument, followed by an optional Hash of <tt>:head</tt> and <tt>:query</tt> parameters.
+    # Or you pass your payload as a Hash, and the serialization will occur based on the Content-Type you set (and only if a corresponding MediaType can be found in the MediaType catalog).
     def submit(*args)
       if allow?("POST")
         @request.no_cache!
@@ -104,6 +113,8 @@ module Restfully
       end
     end
 
+    # Send a DELETE HTTP request on the resource URI.
+    # See <tt>#load</tt> for the list of arguments this method can take.
     def delete(options = {})
       if allow?("DELETE")
         @request.no_cache!
@@ -113,6 +124,8 @@ module Restfully
       end
     end
 
+    # Send a PUT HTTP request with some payload on the resource URI.
+    # See <tt>#submit</tt> for the list of arguments this method can take.
     def update(*args)
       if allow?("PUT")
         @request.no_cache!
@@ -123,6 +136,7 @@ module Restfully
       end
     end
 
+    # Returns true if the resource supports the given HTTP <tt>method</tt> (String or Symbol).
     def allow?(method)
       response.allow?(method) || reload.response.allow?(method)
     end
@@ -173,8 +187,7 @@ module Restfully
       nil
     end
 
-    
-
+    # Build the resource after loading.
     def build
       metaclass = class << self; self; end
       # only build once
@@ -192,7 +205,8 @@ module Restfully
       # end
       self
     end
-    
+
+    # Reload itself if the resource is not <tt>#complete?</tt>.
     def expand
       reload unless complete?
       self

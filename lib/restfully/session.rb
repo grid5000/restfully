@@ -13,9 +13,34 @@ module Restfully
     attr_reader :config
     attr_writer :default_headers
 
+    # Builds a new client session.
+    # Takes a number of <tt>options</tt> as input.
+    # Yields or return the <tt>root</tt> Restfully::Resource object, and the Restfully::Session object.
+    #
+    # <tt>:configuration_file</tt>:: the location of a YAML configuration file that contains any of the parameters below.
+    # <tt>:uri</tt>:: the entry-point URI for this session.
+    # <tt>:logger</tt>:: a Logger object, used to display information.
+    # <tt>:require</tt>:: an Array of Restfully::MediaType objects to automatically require for this session.
+    # <tt>:retry_on_error</tt>:: the maximum number of attempts to make when a server (502,502,504) or connection error occurs.
+    # <tt>:wait_before_retry</tt>:: the number of seconds to wait before making another attempt when a server or connection error occurs.
+    # <tt>:default_headers</tt>:: a Hash of default HTTP headers to send with each request.
+    # <tt>:cache</tt>:: a Hash of parameters to configure the caching component. See <http://rtomayko.github.com/rack-cache/configuration> for more information.
+    # 
+    # e.g.
+    #   Restfully::Session.new(
+    #     :uri => "https://api.bonfire-project.eu:444/",
+    #     :username => "crohr",
+    #     :password => "PASSWORD",
+    #     :require => ['ApplicationVndBonfireXml']
+    #   ) {|root, session| p root}
+    #
     def initialize(options = {})
       @config = options.symbolize_keys
-      @logger = @config.delete(:logger) || Logger.new(STDERR)
+      @logger = @config.delete(:logger)
+      if @logger.nil?
+        @logger = Logger.new(STDERR)
+        @logger.level = Logger::INFO
+      end
 
       # Read configuration from file:
       config_file = @config.delete(:configuration_file) || ENV['RESTFULLY_CONFIG']
@@ -46,25 +71,30 @@ module Restfully
 
       disable RestClient::Rack::Compatibility
       authenticate(@config)
-      setup_cache
+      setup_cache((@config.delete(:cache) || {}).symbolize_keys)
 
       yield root, self if block_given?
     end
 
+    # Enable a RestClient Rack component.
     def enable(rack, *args)
       logger.info "Enabling #{rack.inspect}."
       RestClient.enable rack, *args
     end
 
+    # Disable a RestClient Rack component.
     def disable(rack, *args)
       logger.info "Disabling #{rack.inspect}."
       RestClient.disable rack, *args
     end
 
+    # Returns the list of middleware components enabled.
+    # See rest-client-components for more information.
     def middleware
       RestClient.components.map{|(rack, args)| rack}
     end
 
+    # Authnenticates the request using Basic Authentication.
     def authenticate(options = {})
       if options[:username]
         enable(
@@ -80,6 +110,7 @@ module Restfully
       Addressable::URI.join(uri.to_s, path.to_s)
     end
 
+    # Return the Hash of default HTTP headers that are sent with each request.
     def default_headers
       @default_headers ||= {
         'Accept' => '*/*',
@@ -87,6 +118,7 @@ module Restfully
       }
     end
 
+    # Returns the root Restfully::Resource.
     def root
       get(uri.path).load
     end
@@ -153,8 +185,9 @@ module Restfully
     end
 
     protected
-    def setup_cache
-      enable ::Rack::Cache, :verbose => (logger.level <= Logger::INFO)
+    def setup_cache(options = {})
+      opts = {:verbose => (logger.level <= Logger::INFO)}.merge(options)
+      enable ::Rack::Cache, opts
     end
 
     def error_message(request, response)

@@ -11,17 +11,47 @@ describe Restfully::Session do
     }
   end
 
-  it "should initialize a session with the correct properties" do
-    session = Restfully::Session.new(@config.merge("key" => "value"))
-    session.logger.should == @logger
-    session.uri.should == Addressable::URI.parse(@uri)
-    session.config.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
-  end
+  describe "intialization" do
+    it "should initialize a session with the correct properties" do
+      session = Restfully::Session.new(@config.merge("key" => "value"))
+      session.logger.should == @logger
+      session.uri.should == Addressable::URI.parse(@uri)
+      session.config.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
+    end
 
-  it "should raise an error if no URI given" do
-    lambda{
-      Restfully::Session.new(@config.merge(:uri => ""))
-    }.should raise_error(ArgumentError)
+    it "should raise an error if no URI given" do
+      lambda{
+        Restfully::Session.new(@config.merge(:uri => ""))
+      }.should raise_error(ArgumentError)
+    end
+    
+    it "should add or replace additional headers to the default set" do
+      session = Restfully::Session.new(
+        @config.merge(:default_headers => {
+          'Accept' => 'application/xml',
+          'Cache-Control' => 'no-cache'
+        })
+      )
+      session.default_headers.should == {
+        'Accept' => 'application/xml',
+        'Cache-Control' => 'no-cache',
+        'Accept-Encoding' => 'gzip, deflate'
+      }
+    end
+    
+    it "should pass configuration options to Rack::Cache" do
+      session = Restfully::Session.new(@config.merge({
+        :cache => {
+          :metastore   => 'file:/var/cache/rack/meta',
+          :entitystore => 'file:/var/cache/rack/body'
+        }
+      }))
+      RestClient.components.should == [[Rack::Cache, [{
+        :verbose => true,
+        :metastore   => 'file:/var/cache/rack/meta',
+        :entitystore => 'file:/var/cache/rack/body'
+      }]]]
+    end
   end
 
   it "should fetch the root path [no URI path]" do
@@ -40,20 +70,6 @@ describe Restfully::Session do
       and_return(res = mock(Restfully::Resource))
     res.should_receive(:load).and_return(res)
     session.root.should == res
-  end
-
-  it "should add or replace additional headers to the default set" do
-    session = Restfully::Session.new(
-      @config.merge(:default_headers => {
-        'Accept' => 'application/xml',
-        'Cache-Control' => 'no-cache'
-      })
-    )
-    session.default_headers.should == {
-      'Accept' => 'application/xml',
-      'Cache-Control' => 'no-cache',
-      'Accept-Encoding' => 'gzip, deflate'
-    }
   end
 
   describe "middleware" do
