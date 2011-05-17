@@ -1,7 +1,0 @@
-* Detects methods allowed on a resource using the Allow HTTP header, and generate corresponding wrappers.
-* On a 406, detects accepted content based on a (custom) HTTP header, and retry (if possible) with another Accept header for which a parser is available.
-* Investigate the possibility of using a :include => {} when loading resources or collection so that Restfully prefetches the included associations (using threads or events).
-
-
-
-* Correct next/previous links in deployments and jobs api.
