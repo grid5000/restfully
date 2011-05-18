@@ -73,7 +73,10 @@ describe Restfully::Resource do
       @session.should_receive(:post).with(
         @resource.uri,
         'some payload',
-        :head => {'Content-Type' => 'text/plain'},
+        :head => {
+          'Content-Type' => 'text/plain',
+          'Origin-Content-Type' => "application/vnd.grid5000+json; charset=utf-8"
+        },
         :query => {:k1 => 'v1'},
         :serialization => {}
       )
@@ -88,7 +91,10 @@ describe Restfully::Resource do
       @session.should_receive(:post).with(
         @resource.uri,
         {:key => 'value'},
-        :head => {'Content-Type' => 'text/plain'},
+        :head => {
+          'Content-Type' => 'text/plain',
+          'Origin-Content-Type' => "application/vnd.grid5000+json; charset=utf-8"
+        },
         :query => {:k1 => 'v1'},
         :serialization => {}
       )
@@ -115,7 +121,10 @@ describe Restfully::Resource do
       @session.should_receive(:put).with(
         @resource.uri,
         {:key => 'value'},
-        :head => {'Content-Type' => 'text/plain'},
+        :head => {
+          'Content-Type' => 'text/plain',
+          'Origin-Content-Type' => "application/vnd.bonfire+xml; charset=utf-8"
+        },
         :query => {:k1 => 'v1'},
         :serialization => {"__type__"=>"network"}
       )

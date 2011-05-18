@@ -23,6 +23,8 @@ module Restfully
         request[:head] = sanitize_head(@session.default_headers).merge(
           build_head(request)
         )
+        origin_content_type = request[:head].delete('Origin-Content-Type')
+        request[:head]['Content-Type'] ||= origin_content_type if origin_content_type
 
         request[:uri] = @session.uri_to(path)
         if request[:query]

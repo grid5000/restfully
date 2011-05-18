@@ -21,7 +21,7 @@ module Restfully
         notification
       }.map{|n|
         "application/vnd.fr.grid5000.api.#{n}+json"
-      }.push(
+      }.unshift(
         "application/vnd.grid5000+json"
       )
       set :parser, ApplicationJson::JSONParser

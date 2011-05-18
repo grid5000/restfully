@@ -27,7 +27,7 @@ Then, your Rubygems version (on Debian Squeeze) should be:
 
 Now, install Restfully with:
 
-  $ gem install restfully --prerelease --no-ri --no-rdoc
+  $ gem install restfully --no-ri --no-rdoc
   Building native extensions.  This could take a while...
   Successfully installed json-1.5.1
   Successfully installed mime-types-1.16
@@ -37,7 +37,7 @@ Now, install Restfully with:
   Successfully installed rack-cache-1.0.1
   Successfully installed backports-2.2.0
   Successfully installed addressable-2.2.6
-  Successfully installed restfully-0.7.1.rc2
+  Successfully installed restfully-0.8.0
   9 gems installed
 
 Test that you have access to the Restfully binary:
@@ -57,7 +57,7 @@ Start the interactive Restfully shell (replace <code>LOGIN</code> and <code>PASS
 
 You should get back a prompt like the following:
 
-  Restfully/0.7.1.rc2 - The root resource is available in the 'root' variable.
+  Restfully/0.8.0 - The root resource is available in the 'root' variable.
   ruby-1.8.7-p249 > 
 
 As indicated, enter <code>root</code> and hit RETURN:
@@ -263,10 +263,7 @@ You could do all the following using the interactive shell, but it's probably ea
   uri: https://api.bonfire-project.eu:444/
   username: crohr
   password: PASSWORD
-  require:
-    - ApplicationVndBonfireXml
-  default_headers:
-    Content-Type: application/vnd.bonfire+xml
+  require: ['ApplicationVndBonfireXml']
 
 You could also start SSH sessions after the VMs have been deployed, trigger creation or deletion of VMs when a specific event occurs, etc. All those advanced usages will be described in a future tutorial.
   

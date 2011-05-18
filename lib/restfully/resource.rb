@@ -2,8 +2,8 @@ module Restfully
   # This class represents a Resource, which can be accessed and manipulated
   # via HTTP methods.
   #
-  # Some resources can be collection of other resources. 
-  # In that case the <tt>Restfully::Collection</tt> module is included in the <tt>Restfully::Resource</tt> class. 
+  # Some resources can be collection of other resources.
+  # In that case the <tt>Restfully::Collection</tt> module is included in the <tt>Restfully::Resource</tt> class.
   # See the corresponding documentation for the list of additional methods that you can use on a collection resource.
   class Resource
     attr_reader :response, :request, :session
@@ -77,7 +77,7 @@ module Restfully
           raise Error, "Cannot reload the resource"
         end
       end
-      
+
       build
     end
 
@@ -90,7 +90,7 @@ module Restfully
     def properties
       case props = media_type.property
       when Hash
-        props.reject{|k,v|        
+        props.reject{|k,v|
           # do not return keys used for internal use
           k.to_s =~ HIDDEN_PROPERTIES_REGEXP
         }
@@ -153,7 +153,7 @@ module Restfully
         "{...}"
       end
     end
-    
+
     def pretty_print(pp)
       pp.text signature(false)
       pp.nest 2 do
@@ -164,7 +164,7 @@ module Restfully
             pp.breakable
             pp.text "#{relationships.join(", ")}"
           end
-        end  
+        end
         pp.breakable
         if collection?
           # display items
@@ -205,7 +205,7 @@ module Restfully
               'Accept' => link.type
             }).load(*args)
           end
-          
+
         end
       # end
       self
@@ -220,20 +220,22 @@ module Restfully
     protected
     def extract_payload_from_args(args)
       options = args.extract_options!
-      head = options.delete(:headers) || options.delete(:head)
+      head = options.delete(:headers) || options.delete(:head) || {}
+      head['Origin-Content-Type'] = response.head['Content-Type']
+
       query = options.delete(:query)
 
       payload = args.shift || options
-      
+
       options = {
         :head => head, :query => query,
-        :serialization => media_type.property.reject{|k,v| 
+        :serialization => media_type.property.reject{|k,v|
           k !~ HIDDEN_PROPERTIES_REGEXP
         }
       }
-      
+
       [payload, options]
     end
-    
+
   end
 end
