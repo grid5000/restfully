@@ -1,3 +1,16 @@
+0.8.0
+* Add client-side caching with Rack::Cache and rest-client-components.
+* Reorganize code so that it is based around a catalog of media-types. It is now easy to support other media-types.
+* Support for application/vnd.bonfire+xml media-type (disabled by default).
+* Deal with resource fragments (use #expand on a resource to fetch it completely).
+* Add automatic retry on connection or server error.
+* Better debugging output: full request and response details.
+* Add support for configuration file and media-type requirements within Restfully::Session. 
+* A RESTFULLY_CONFIG environment variable can be set to the location of the configuration file.
+
+0.6.2
+* 9519e04 Handle the case when a RestClient exception is raised and it does not contain a response.
+
 0.6.1
 * Removed unnecessary logging.
 
