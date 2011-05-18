@@ -62,6 +62,6 @@ module Restfully
       end
 
     end
-    
+
   end
 end

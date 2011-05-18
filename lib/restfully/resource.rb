@@ -86,12 +86,17 @@ module Restfully
       response.links.map(&:id).sort
     end
 
-    # Returns the Hash of properties for this resource.
+    # Returns the properties for this resource.
     def properties
-      media_type.property.reject{|k,v|        
-        # do not return keys used for internal use
-        k.to_s =~ HIDDEN_PROPERTIES_REGEXP
-      }
+      case props = media_type.property
+      when Hash
+        props.reject{|k,v|        
+          # do not return keys used for internal use
+          k.to_s =~ HIDDEN_PROPERTIES_REGEXP
+        }
+      else
+        props
+      end
     end
 
     # Force reloading of the resource.

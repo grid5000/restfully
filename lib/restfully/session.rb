@@ -192,7 +192,7 @@ module Restfully
 
     def error_message(request, response)
       msg = "Encountered error #{response.code} on #{request.method.upcase} #{request.uri}"
-      msg += " --- #{response.body[0..200]}" unless response.body.empty?
+      msg += " --- #{response.body[0..400]}" unless response.body.empty?
     end
 
   end
