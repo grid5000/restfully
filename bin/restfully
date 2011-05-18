@@ -9,36 +9,51 @@ require 'optparse'
 require 'logger'
 require 'pp'
 
+# Behaviour of pp in IRB is different on ruby1.9:
+# * pp(object) returns object#inspect.
+# * we prefer the behaviour of ruby1.8 where pp returns nil.
+alias :old_pp :pp 
+def pp(*args)
+  old_pp(*args); nil
+end
 
-logger = Logger.new(STDOUT)
+logger = Logger.new(STDERR)
 logger.level = Logger::WARN
-@options = {:logger => logger}
+@options = {"logger" => logger}
+
 option_parser = OptionParser.new do |opts|
   opts.banner = <<BANNER
 * Description
   Restfully #{Restfully::VERSION} - Access REST APIs effortlessly
 * Usage
-  restfully [base_uri] [options]
+  restfully [uri] [options]
 * Options
 BANNER
 
   opts.on("-u=", "--username=", "Sets the username") do |u|
-    @options[:username] = u
+    @options["username"] = u
   end
   opts.on("-p=", "--password=", "Sets the user password") do |p|
-    @options[:password] = p
+    @options["password"] = p
   end
   opts.on("-c=", "--config=", "Sets the various options based on a custom YAML configuration file") do |v|
-    @options[:configuration_file] = v
+    @options["configuration_file"] = v
+  end
+  opts.on("-r=", "--require=", "Require an additional media-type") do |v|
+    @options["require"] ||= []
+    @options["require"].push(v)
   end
   opts.on("--log=", "Outputs log messages to the given file. Defaults to stdout") do |v|
     original_logger_level = logger.level
     logger = Logger.new(File.expand_path(v))
     logger.level = original_logger_level
-    @options[:logger] = logger
+    @options["logger"] = logger
   end
   opts.on("-v", "--verbose", "Run verbosely") do |v|
-    @options[:logger].level = Logger::DEBUG
+    @options["logger"].level = Logger::INFO
+  end
+  opts.on("--debug", "Run in debug mode") do |v|
+    @options["logger"].level = Logger::DEBUG
   end
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
@@ -49,10 +64,14 @@ end
 
 option_parser.parse!
 
-@options[:base_uri] = ARGV.shift
+if given_uri = ARGV.shift
+  @options["uri"] = given_uri
+end
+
+@session = Restfully::Session.new(@options)
 
 def session
-  @session ||= Restfully::Session.new(@options)
+  @session
 end
 
 def root 
@@ -63,6 +82,41 @@ puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'r
 
 require 'irb'
 require 'irb/completion'
+require 'irb/ext/save-history'
+
+HOME = ENV['HOME'] || ENV['HOMEPATH']
+# Keep history of your last commands.
+# Taken from <http://blog.nicksieger.com/articles/2006/04/23/tweaking-irb>
+IRB.conf[:SAVE_HISTORY] = 100
+IRB.conf[:HISTORY_FILE] = "#{HOME}/.irb-save-history"
+
+module Readline
+  module History
+    LOG = "#{HOME}/.irb-history"
+
+    def self.write_log(line)
+      File.open(LOG, 'ab') {|f| 
+        f << "#{line}\n"
+      }
+    end
+    
+    def self.start_session_log
+      write_log("\n")
+    end
+  end
+
+  alias :old_readline :readline
+  def readline(*args)
+    ln = old_readline(*args)
+    begin
+      History.write_log(ln)
+    rescue
+    end
+    ln
+  end
+end
+Readline::History.start_session_log
 ARGV.clear
+ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
 IRB.start
 exit!

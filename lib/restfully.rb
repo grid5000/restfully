@@ -1,24 +1,17 @@
 require 'backports'
 require 'yaml'
-require 'restfully/extensions'
+
+require 'restfully/version'
 require 'restfully/error'
-require 'restfully/parsing'
 require 'restfully/http'
-require 'restfully/http/adapters/rest_client_adapter'
-require 'restfully/session'
-require 'restfully/special_hash'
-require 'restfully/special_array'
 require 'restfully/link'
 require 'restfully/resource'
 require 'restfully/collection'
+require 'restfully/rack'
+require 'restfully/session'
+require 'restfully/media_type'
 
 module Restfully
-  # To be changed on version bump
-  VERSION = "0.6.3"
-  
-  class << self
-    attr_accessor :adapter
-  end
-  
-  self.adapter = Restfully::HTTP::Adapters::RestClientAdapter
+  # Include the default media-types
+  MediaType.reset
 end

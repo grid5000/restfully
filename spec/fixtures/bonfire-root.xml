@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/">
+  <link rel="experiments" href="/experiments" type="application/vnd.bonfire+xml"/>
+  <link rel="locations" href="/locations" type="application/vnd.bonfire+xml"/>
+</root>

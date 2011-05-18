@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/locations/fr-inria/networks">
+  <items offset="0" total="2">
+    <network href="/locations/fr-inria/networks/1">
+      <address>10.0.0.1</address>
+      <size>C</size>
+      
+      <!-- <cidr>10.0.0.1/24</cidr> -->
+      
+      <visibility>public</visibility>
+      <name>Network1</name>
+      <description>Network1 description</description>
+
+      <link rel="location"
+            href="/locations/fr-inria" />
+    </network>
+    <network href="/locations/fr-inria/networks/2">
+      <address>10.0.0.1</address>
+      <size>C</size>
+      <!-- <cidr>10.0.0.2/24</cidr> -->
+      <visibility>private</visibility>
+      <name>Network2</name>
+      <description>Network2 description</description>
+
+      <link rel="location"
+            href="/locations/fr-inria" />
+    </network>
+  </items>
+  <link rel="top" 
+        href="/locations/fr-inria/networks?limit=20" 
+        type="application/vnd.bonfire+xml" />
+  <link rel="parent" 
+        href="/locations/fr-inria" 
+        type="application/vnd.bonfire+xml" />
+</collection>

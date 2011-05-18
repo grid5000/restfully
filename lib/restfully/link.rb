@@ -1,36 +1,44 @@
 require 'uri'
 module Restfully
   class Link
-    
-    VALID_RELATIONSHIPS = %w{member parent collection self alternate next}
-    RELATIONSHIPS_REQUIRING_TITLE = %w{collection member}
-    
-    attr_reader :rel, :title, :href, :errors
-    
+
+    attr_reader :rel, :title, :href, :errors, :type
+
     def initialize(attributes = {})
-      @rel = attributes['rel']
-      @title = attributes['title']
-      @href = URI.parse(attributes['href'].to_s)
-      @resolvable = attributes['resolvable'] || false
-      @resolved = attributes['resolved'] || false
+      attributes = attributes.symbolize_keys
+      @rel = attributes[:rel]
+      @title = attributes[:title] || @rel
+      @href = URI.parse(attributes[:href].to_s)
+      @type = attributes[:type]
+      @id = attributes[:id]
     end
-    
-    def resolvable?; @resolvable == true; end
-    def resolved?; @resolved == true; end
+
     def self?; @rel == 'self'; end
-    
+
+    def types
+      type.split(";")
+    end
+
     def valid?
       @errors = []
+      if type.nil? || type.empty?
+        errors << "type cannot be blank"
+      elsif media_type.nil?
+        errors << "cannot find a MediaType for type #{type.inspect}"
+      end
       if href.nil?
-        errors << "href cannot be nil."
-      end
-      unless VALID_RELATIONSHIPS.include?(rel)
-        errors << "#{rel} is not a valid link relationship."
-      end
-      if (!title || title.empty?) && RELATIONSHIPS_REQUIRING_TITLE.include?(rel)
-        errors << "#{rel} #{href} has no title."
+        errors << "href cannot be nil"
       end
       errors.empty?
     end
-  end
+
+    def media_type
+      @media_type ||= MediaType.find(type)
+    end # def catalog
+    
+    def id
+      title.to_s.downcase.gsub(/[^a-z]/,'_').squeeze('_').to_sym
+    end
+
+  end # class Link
 end

@@ -1,0 +1,6 @@
+<network xmlns="http://api.bonfire-project.eu/doc/schemas/occi" href="/locations/de-hlrs/networks/29">
+  <id>29</id>
+  <name>Private LAN</name>
+  <address />
+  <public>YES</public>
+</network>

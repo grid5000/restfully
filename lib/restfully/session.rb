@@ -1,96 +1,200 @@
-require 'uri'
 require 'logger'
-require 'restfully/parsing'
+require 'uri'
+require 'restclient'
+require 'restclient/components'
+require 'rack/cache'
+require 'addressable/uri'
 
 module Restfully
-  class NullLogger
-    def method_missing(method, *args)
-      nil
-    end
-  end
   class Session
-    include Parsing, HTTP::Headers
-    attr_reader :base_uri, :logger, :connection, :default_headers
-    
+
+
+    attr_accessor :logger, :uri
+    attr_reader :config
+    attr_writer :default_headers
+
+    # Builds a new client session.
+    # Takes a number of <tt>options</tt> as input.
+    # Yields or return the <tt>root</tt> Restfully::Resource object, and the Restfully::Session object.
+    #
+    # <tt>:configuration_file</tt>:: the location of a YAML configuration file that contains any of the parameters below.
+    # <tt>:uri</tt>:: the entry-point URI for this session.
+    # <tt>:logger</tt>:: a Logger object, used to display information.
+    # <tt>:require</tt>:: an Array of Restfully::MediaType objects to automatically require for this session.
+    # <tt>:retry_on_error</tt>:: the maximum number of attempts to make when a server (502,502,504) or connection error occurs.
+    # <tt>:wait_before_retry</tt>:: the number of seconds to wait before making another attempt when a server or connection error occurs.
+    # <tt>:default_headers</tt>:: a Hash of default HTTP headers to send with each request.
+    # <tt>:cache</tt>:: a Hash of parameters to configure the caching component. See <http://rtomayko.github.com/rack-cache/configuration> for more information.
+    # 
+    # e.g.
+    #   Restfully::Session.new(
+    #     :uri => "https://api.bonfire-project.eu:444/",
+    #     :username => "crohr",
+    #     :password => "PASSWORD",
+    #     :require => ['ApplicationVndBonfireXml']
+    #   ) {|root, session| p root}
+    #
     def initialize(options = {})
-      options = options.symbolize_keys
-      if (config_filename = options.delete(:configuration_file)) && File.exists?(File.expand_path(config_filename))
-        config = YAML.load_file(File.expand_path(config_filename)).symbolize_keys
-        options.merge!(config)
+      @config = options.symbolize_keys
+      @logger = @config.delete(:logger)
+      if @logger.nil?
+        @logger = Logger.new(STDERR)
+        @logger.level = Logger::INFO
       end
-      @base_uri               =   URI.parse(options.delete(:base_uri) || "http://localhost:8888") rescue nil
-      raise ArgumentError.new("#{@base_uri} is not a valid URI") if @base_uri.nil? || @base_uri.scheme !~ /^http/i
-      @logger                 =   options.delete(:logger) || NullLogger.new
-      @logger.level           =   options.delete(:verbose) ? Logger::DEBUG : @logger.level
-      user_default_headers    =   sanitize_http_headers(options.delete(:default_headers) || {})
-      @default_headers        =   {'User-Agent' => "Restfully/#{Restfully::VERSION}", 'Accept' => 'application/json'}.merge(user_default_headers)
-      @connection             =   Restfully.adapter.new(base_uri.to_s, options.merge(:logger => logger))
-      @root                   =   Resource.new(@base_uri, self)
-      yield @root.load, self if block_given?
-    end
-    
-    # returns the root resource
-    def root
-      @root.load
-    end
-    
-    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
-    def head(path, options = {})
-      options = options.symbolize_keys
-      transmit :head, HTTP::Request.new(uri_for(path), :headers => options.delete(:headers), :query => options.delete(:query))
-    end
-    
-    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
-    def get(path, options = {})
-      options = options.symbolize_keys
-      transmit :get, HTTP::Request.new(uri_for(path), :headers => options.delete(:headers), :query => options.delete(:query))
-    end
-    
-    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
-    def post(path, body, options = {})
-      options = options.symbolize_keys
-      uri = uri_for(path)
-      transmit :post, HTTP::Request.new(uri_for(path), :body => body, :headers => options.delete(:headers), :query => options.delete(:query))
-    end
-    
-    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
-    def put(path, body, options = {})
-      options = options.symbolize_keys
-      uri = uri_for(path)
-      transmit :put, HTTP::Request.new(uri_for(path), :body => body, :headers => options.delete(:headers), :query => options.delete(:query))
-    end
-    
-    # returns an HTTP::Response object or raise a Restfully::HTTP::Error
-    def delete(path, options = {})
-      options = options.symbolize_keys
-      transmit :delete, HTTP::Request.new(uri_for(path), :headers => options.delete(:headers), :query => options.delete(:query))
-    end
-    
-    # builds the complete URI, based on the given path and the session's base_uri
-    def uri_for(path)
-      URI.join(base_uri.to_s, path.to_s)
-    end
-    
-    protected
-    def transmit(method, request)
-      default_headers.each do |header, value|
-        request.headers[header] ||= value
+
+      # Read configuration from file:
+      config_file = @config.delete(:configuration_file) || ENV['RESTFULLY_CONFIG']
+      config_file = File.expand_path(config_file) if config_file
+      if config_file && File.file?(config_file) && File.readable?(config_file)
+        @logger.info "Using configuration file located at #{config_file}."
+        @config = YAML.load_file(config_file).symbolize_keys.merge(@config)
       end
-      response = connection.send(method.to_sym, request)
-      response = deal_with_eventual_errors(response, request)
-    end
-    
-    def deal_with_eventual_errors(response, request)
-      case response.status
-      when 400..499
-        # should retry on 406 with another Accept header
-        raise Restfully::HTTP::ClientError, response
-      when 500..599  
-        raise Restfully::HTTP::ServerError, response
+
+      # Require additional media-types:
+      (@config[:require] || []).each do |r|
+        @logger.info "Requiring #{r} media-type..."
+        require "restfully/media_type/#{r.underscore}"
+      end
+
+      @config[:retry_on_error] ||= 5
+      @config[:wait_before_retry] ||= 5
+
+      # Compatibility with :base_uri parameter of Restfully <= 0.6
+      @uri = @config.delete(:uri) || @config.delete(:base_uri)
+      if @uri.nil? || @uri.empty?
+        raise ArgumentError, "You must pass a :uri option."
       else
-        response
+        @uri = Addressable::URI.parse(@uri)
+      end
+
+      default_headers.merge!(@config.delete(:default_headers) || {})
+
+      disable RestClient::Rack::Compatibility
+      authenticate(@config)
+      setup_cache((@config.delete(:cache) || {}).symbolize_keys)
+
+      yield root, self if block_given?
+    end
+
+    # Enable a RestClient Rack component.
+    def enable(rack, *args)
+      logger.info "Enabling #{rack.inspect}."
+      RestClient.enable rack, *args
+    end
+
+    # Disable a RestClient Rack component.
+    def disable(rack, *args)
+      logger.info "Disabling #{rack.inspect}."
+      RestClient.disable rack, *args
+    end
+
+    # Returns the list of middleware components enabled.
+    # See rest-client-components for more information.
+    def middleware
+      RestClient.components.map{|(rack, args)| rack}
+    end
+
+    # Authnenticates the request using Basic Authentication.
+    def authenticate(options = {})
+      if options[:username]
+        enable(
+          Restfully::Rack::BasicAuth,
+          options[:username],
+          options[:password]
+        )
       end
     end
 
+    # Builds the complete URI, based on the given path and the session's uri
+    def uri_to(path)
+      Addressable::URI.join(uri.to_s, path.to_s)
+    end
+
+    # Return the Hash of default HTTP headers that are sent with each request.
+    def default_headers
+      @default_headers ||= {
+        'Accept' => '*/*',
+        'Accept-Encoding' => 'gzip, deflate'
+      }
+    end
+
+    # Returns the root Restfully::Resource.
+    def root
+      get(uri.path).load
+    end
+
+    # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def head(path, options = {})
+      transmit :head, path, options
+    end
+
+    # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def get(path, options = {})
+      transmit :get, path, options
+    end
+
+    # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def post(path, body, options = {})
+      options[:body] = body
+      transmit :post, path, options
+    end
+
+    # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def put(path, body, options = {})
+      options[:body] = body
+      transmit :put, path, options
+    end
+
+    # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
+    def delete(path, options = {})
+      transmit :delete, path, options
+    end
+
+    # Build and execute the corresponding HTTP request,
+    # then process the response.
+    def transmit(method, path, options)
+      request = HTTP::Request.new(self, method, path, options)
+      response = request.execute!
+      process(response, request)
+    end
+
+    # Process a Restfully::HTTP::Response.
+    def process(response, request)
+      case code=response.code
+      when 200
+        logger.debug "Building response..."
+        Resource.new(self, response, request).build
+      when 201,202
+        logger.debug "Following redirection to: #{response.head['Location'].inspect}"
+        get response.head['Location'], :head => request.head
+      when 204
+        true
+      when 400..499
+        raise HTTP::ClientError, error_message(request, response)
+      when 502..504
+        if res = request.retry!
+          process(res, request)
+        else
+         raise(HTTP::ServerError, error_message(request, response))
+       end
+      when 500, 501
+        raise HTTP::ServerError, error_message(request, response)
+      else
+        raise Error, "Restfully does not handle code #{code.inspect}."
+      end
+    end
+
+    protected
+    def setup_cache(options = {})
+      opts = {:verbose => (logger.level <= Logger::INFO)}.merge(options)
+      enable ::Rack::Cache, opts
+    end
+
+    def error_message(request, response)
+      msg = "Encountered error #{response.code} on #{request.method.upcase} #{request.uri}"
+      msg += " --- #{response.body[0..400]}" unless response.body.empty?
+    end
+
   end
+
 end

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection xmlns="http://api.bonfire-project.eu/doc/schemas/occi">
+  <items>
+    <network href="/locations/de-hlrs/networks/29" name="Private LAN"/>
+  </items>
+</collection>

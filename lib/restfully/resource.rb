@@ -1,256 +1,239 @@
 module Restfully
-  
   # This class represents a Resource, which can be accessed and manipulated
   # via HTTP methods.
-  # 
-  # The <tt>#load</tt> method must have been called on the resource before
-  # trying to access its attributes or links.
-  # 
+  #
+  # Some resources can be collection of other resources. 
+  # In that case the <tt>Restfully::Collection</tt> module is included in the <tt>Restfully::Resource</tt> class. 
+  # See the corresponding documentation for the list of additional methods that you can use on a collection resource.
   class Resource
-    
-    attr_reader :uri, 
-                :session, 
-                :links, 
-                :title, 
-                :properties, 
-                :executed_requests
-    
-    # == Description
-    # Creates a new Resource.
-    # <tt>uri</tt>:: a URI object representing the URI of the resource
-    #                (complete, absolute or relative URI)
-    # <tt>session</tt>:: an instantiated Restfully::Session object
-    # <tt>options</tt>:: a hash of options (see below)
-    # == Options
-    # <tt>:title</tt>:: an optional title for the resource
-    def initialize(uri, session, options = {})
-      options = options.symbolize_keys
-      @uri = uri.kind_of?(URI) ? uri : URI.parse(uri.to_s)
+    attr_reader :response, :request, :session
+
+    HIDDEN_PROPERTIES_REGEXP = /^\_\_(.+)\_\_$/
+
+    def initialize(session, response, request)
       @session = session
-      @title = options[:title]
-      reset
+      @response = response
+      @request = request
+      @associations = {}
     end
-    
-    # Resets all the inner objects of the resource
-    # (you must call <tt>#load</tt> if you want to repopulate the resource).
-    def reset
-      @executed_requests = Hash.new
-      @links = Hash.new
-      @properties = Hash.new
-      @status = :stale
-      self
-    end
-    
-    # == Description
-    # Returns the value corresponding to the specified key, 
-    # among the list of resource properties
-    # 
-    # == Usage
+
+    # Returns the value corresponding to the specified key,
+    # among the list of resource properties.
+    #
+    # e.g.:
     #   resource["uid"]
     #   => "rennes"
     def [](key)
-      @properties[key]
-    end
-    
-    def respond_to?(method, *args)
-      @links.has_key?(method.to_s) || super(method, *args)
-    end
-    
-    def method_missing(method, *args)
-      if link = @links[method.to_s]
-        session.logger.debug "Loading link #{method}, args=#{args.inspect}"
-        link.load(*args)
-      else
-        super(method, *args)
+      unless collection?
+        expand
       end
+      media_type.property(key)
     end
-    
-    # == Description
-    # Executes a GET request on the resource, and populate the list of its
-    # properties and links
-    # <tt>options</tt>:: list of options to pass to the request (see below)
-    # == Options
-    # <tt>:reload</tt>:: if set to true, a GET request will be triggered 
-    #                    even if the resource has already been loaded [default=false]
-    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
-    #                   E.g. : resource.load(:query => {:from => (Time.now-3600).to_i, :to => Time.now.to_i})
-    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
-    #                     E.g. : resource.load(:headers => {'Accept' => 'application/json'})
-    # <tt>:body</tt>:: if you already have the unserialized response body of this resource, 
-    #                  you may pass it so that the GET request is not triggered.
-    def load(options = {})
-      options = options.symbolize_keys
-      force_reload = !!options.delete(:reload)
-      stale! unless !force_reload && (request = executed_requests['GET']) && request['options'] == options && request['body']
-      if stale?
-        reset
-        if !force_reload && options[:body]
-          body = options[:body]
-          headers = {}
-        else
-          response = session.get(uri, options)
-          body = response.body
-          headers = response.headers
-        end
-        executed_requests['GET'] = {
-          'options' => options, 
-          'body' =>  body,
-          'headers' => headers
-        }
-        executed_requests['GET']['body'].each do |key, value|
-          populate_object(key, value)
-        end
-        @status = :loaded
-      end
-      self
-    end
-    
-    # Convenience function to make a resource.load(:reload => true)
-    def reload
-      current_options = executed_requests['GET']['options'] rescue {}
-      stale!
-      self.load(current_options.merge(:reload => true))
-    end
-  
-    # == Description
-    # Executes a POST request on the resource, reload it and returns self if successful.
-    # If the response status is different from 2xx, raises a HTTP::ClientError or HTTP::ServerError.
-    # <tt>payload</tt>:: the input body of the request.
-    #                    It may be a serialized string, or a ruby object 
-    #                    (that will be serialized according to the given or default content-type).
-    # <tt>options</tt>:: list of options to pass to the request (see below)
-    # == Options
-    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
-    #                   E.g. : resource.submit("body", :query => {:param1 => "value1"})
-    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
-    #                     E.g. : resource.submit("body", :headers => {:accept => 'application/json', :content_type => 'application/json'})
-    def submit(payload, options = {})
-      options = options.symbolize_keys
-      raise NotImplementedError, "The POST method is not allowed for this resource." unless http_methods.include?('POST')
-      raise ArgumentError, "You must pass a payload" if payload.nil?
-      headers = {
-        :content_type => (executed_requests['GET']['headers']['Content-Type'] || "application/x-www-form-urlencoded").split(/,/).sort{|a,b| a.length <=> b.length}[0],
-        :accept => (executed_requests['GET']['headers']['Content-Type'] || "text/plain")
-      }.merge(options[:headers] || {})
-      options = {:headers => headers}
-      options.merge!(:query => options[:query]) unless options[:query].nil?
-      response = session.post(self.uri, payload, options) # raises an exception if there is an error
-      stale!
-      if [201, 202].include?(response.status)
-        Resource.new(uri_for(response.headers['Location']), session).load
-      else
-        reload
-      end
-    end
-    
-    # == Description
-    # Executes a DELETE request on the resource, and returns true if successful.
-    # If the response status is different from 2xx or 3xx, raises an HTTP::ClientError or HTTP::ServerError.
-    # <tt>options</tt>:: list of options to pass to the request (see below)
-    # == Options
-    # <tt>:query</tt>:: a hash of query parameters to pass along the request. 
-    #                   E.g. : resource.delete(:query => {:param1 => "value1"})
-    # <tt>:headers</tt>:: a hash of HTTP headers to pass along the request. 
-    #                     E.g. : resource.delete(:headers => {:accept => 'application/json'})
-    def delete(options = {})
-      options = options.symbolize_keys
-      raise NotImplementedError, "The DELETE method is not allowed for this resource." unless http_methods.include?('DELETE')
-      response = session.delete(self.uri, options) # raises an exception if there is an error
-      stale!
-      (200..399).include?(response.status)
-    end
-    
-    
-    def stale!; @status = :stale;  end
-    def stale?; @status == :stale; end
 
-    
-    # == Description
-    # Returns the list of allowed HTTP methods on the resource.
-    # == Usage
-    #   resource.http_methods    
-    #   => ['GET', 'POST']
-    # 
-    def http_methods
-      reload if executed_requests['GET'].nil? || executed_requests['GET']['headers'].nil? || executed_requests['GET']['headers'].empty?
-      (executed_requests['GET']['headers']['Allow'] || "GET").split(/,\s*/)
+    # Returns the resource URI.
+    def uri
+      request.uri
     end
-    
-    def uri_for(path)
-      uri.merge(URI.parse(path.to_s))
+
+    # Returns the Restfully::MediaType object that was used to parse the response.
+    def media_type
+      response.media_type
     end
-    
-    def inspect(*args)
-      @properties.inspect(*args)
+
+    # Does this resource contain only a fragment of the full resource?
+    def complete?
+      media_type.complete?
+    end
+
+    # Is this resource a collection of items?
+    def collection?
+      media_type.collection?
+    end
+
+    # Returns the resource kind: "Collection" or "Resource".
+    def kind
+      collection? ? "Collection" : "Resource"
+    end
+
+    # Returns the "signature" of the resource. Used for (pretty-)inspection.
+    def signature(closed=true)
+      s = "#<#{kind}:0x#{object_id.to_s(16)}"
+      s += " uri=#{uri.to_s}"
+      s += ">" if closed
+      s
+    end
+
+    # Load the resource. The <tt>options</tt> Hash can contain any number of parameters among which:
+    # <tt>:head</tt>:: a Hash of HTTP headers to pass when fetching the resource.
+    # <tt>:query</tt>:: a Hash of query parameters to add to the URI when fetching the resource.
+    def load(options = {})
+      # Send a GET request only if given a different set of options
+      if @request.update!(options) || @request.no_cache?
+        @response = @request.execute!
+        @request.remove_no_cache! if @request.forced_cache?
+        if session.process(@response, @request)
+          @associations.clear
+        else
+          raise Error, "Cannot reload the resource"
+        end
+      end
+      
+      build
+    end
+
+    # Returns the list of relationships for this resource, extracted from the resource links ("rel" attribute).
+    def relationships
+      response.links.map(&:id).sort
+    end
+
+    # Returns the properties for this resource.
+    def properties
+      case props = media_type.property
+      when Hash
+        props.reject{|k,v|        
+          # do not return keys used for internal use
+          k.to_s =~ HIDDEN_PROPERTIES_REGEXP
+        }
+      else
+        props
+      end
+    end
+
+    # Force reloading of the resource.
+    def reload
+      @request.no_cache!
+      load
+    end
+
+    # POST some payload on that resource URI.
+    # Either you pass a serialized payload as first argument, followed by an optional Hash of <tt>:head</tt> and <tt>:query</tt> parameters.
+    # Or you pass your payload as a Hash, and the serialization will occur based on the Content-Type you set (and only if a corresponding MediaType can be found in the MediaType catalog).
+    def submit(*args)
+      if allow?("POST")
+        @request.no_cache!
+        payload, options = extract_payload_from_args(args)
+        session.post(request.uri, payload, options)
+      else
+        raise MethodNotAllowed
+      end
+    end
+
+    # Send a DELETE HTTP request on the resource URI.
+    # See <tt>#load</tt> for the list of arguments this method can take.
+    def delete(options = {})
+      if allow?("DELETE")
+        @request.no_cache!
+        session.delete(request.uri)
+      else
+        raise MethodNotAllowed
+      end
+    end
+
+    # Send a PUT HTTP request with some payload on the resource URI.
+    # See <tt>#submit</tt> for the list of arguments this method can take.
+    def update(*args)
+      if allow?("PUT")
+        @request.no_cache!
+        payload, options = extract_payload_from_args(args)
+        session.put(request.uri, payload, options)
+      else
+        raise MethodNotAllowed
+      end
+    end
+
+    # Returns true if the resource supports the given HTTP <tt>method</tt> (String or Symbol).
+    def allow?(method)
+      response.allow?(method) || reload.response.allow?(method)
+    end
+
+    def inspect
+      if media_type.complete?
+        properties.inspect
+      else
+        "{...}"
+      end
     end
     
     def pretty_print(pp)
-      pp.text "#<#{self.class}:0x#{self.object_id.to_s(16)}"
-      pp.text " uid=#{self['uid'].inspect}" if self.class == Resource
+      pp.text signature(false)
       pp.nest 2 do
-        pp.breakable
-        pp.text "@uri="
-        uri.pretty_print(pp)
-        if @links.length > 0
+        if relationships.length > 0
           pp.breakable
-          pp.text "LINKS"
+          pp.text "RELATIONSHIPS"
           pp.nest 2 do
-            @links.to_a.each_with_index do |(key, value), i|
+            pp.breakable
+            pp.text "#{relationships.join(", ")}"
+          end
+        end  
+        pp.breakable
+        if collection?
+          # display items
+          pp.text "ITEMS (#{offset}..#{offset+length})/#{total}"
+          pp.nest 2 do
+            self.each do |item|
               pp.breakable
-              pp.text "@#{key}=#<#{value.class}:0x#{value.object_id.to_s(16)}>"
-              pp.text "," if i < @links.length-1
+              pp.text item.signature(true)
             end
-          end  
-        end
-        if @properties.length > 0
-          pp.breakable
+          end
+        else
+          expand
           pp.text "PROPERTIES"
           pp.nest 2 do
-            @properties.to_a.each_with_index do |(key, value), i|
+            properties.each do |key, value|
               pp.breakable
               pp.text "#{key.inspect}=>"
               value.pretty_print(pp)
-              pp.text "," if i < @properties.length-1
             end
           end
         end
         yield pp if block_given?
       end
       pp.text ">"
-    end   
-    
+      nil
+    end
+
+    # Build the resource after loading.
+    def build
+      metaclass = class << self; self; end
+      # only build once
+      # if @associations.empty?
+        extend Collection if collection?
+
+        response.links.each do |link|
+          metaclass.send(:define_method, link.id.to_sym) do |*args|
+            session.get(link.href, :head => {
+              'Accept' => link.type
+            }).load(*args)
+          end
+          
+        end
+      # end
+      self
+    end
+
+    # Reload itself if the resource is not <tt>#complete?</tt>.
+    def expand
+      reload unless complete?
+      self
+    end
+
     protected
-    def populate_object(key, value)
-      case key
-      when "links"
-        value.each{|link| define_link(Link.new(link))}
-      else
-        case value
-        when Hash
-          @properties.store(key, SpecialHash.new.replace(value)) unless @links.has_key?(key)
-        when Array
-          @properties.store(key, SpecialArray.new(value))
-        else
-          @properties.store(key, value)
-        end
-      end
-    end
-    def define_link(link)
-      if link.valid?
-        case link.rel
-        when 'parent'
-          @links['parent'] = Resource.new(uri.merge(link.href), session)
-        when 'collection'
-          @links[link.title] = Collection.new(uri.merge(link.href), session, :title => link.title)
-        when 'member'
-          @links[link.title] = Resource.new(uri.merge(link.href), session, :title => link.title)
-        when 'self'
-          # we do nothing
-        end
-      else 
-        session.logger.warn link.errors.join("\n")
-      end
+    def extract_payload_from_args(args)
+      options = args.extract_options!
+      head = options.delete(:headers) || options.delete(:head)
+      query = options.delete(:query)
+
+      payload = args.shift || options
+      
+      options = {
+        :head => head, :query => query,
+        :serialization => media_type.property.reject{|k,v| 
+          k !~ HIDDEN_PROPERTIES_REGEXP
+        }
+      }
+      
+      [payload, options]
     end
     
-  end # class Resource
-end # module Restfully
+  end
+end
