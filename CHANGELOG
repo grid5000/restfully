@@ -1,3 +1,6 @@
+0.8.1
+* Guess the content-type of the payload to send on a POST, based on the content-type of the original response to GET.
+
 0.8.0
 * Add client-side caching with Rack::Cache and rest-client-components.
 * Reorganize code so that it is based around a catalog of media-types. It is now easy to support other media-types.
@@ -9,7 +12,7 @@
 * A RESTFULLY_CONFIG environment variable can be set to the location of the configuration file.
 
 0.6.2
-* 9519e04 Handle the case when a RestClient exception is raised and it does not contain a response.
+* Handle the case when a RestClient exception is raised and it does not contain a response.
 
 0.6.1
 * Removed unnecessary logging.
