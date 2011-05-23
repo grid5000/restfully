@@ -95,7 +95,7 @@ module Restfully
       def retry!
         if @attempts < @retry_on_error
           @attempts+=1
-          session.logger.info "Encountered connection or server error. Retrying in #{@wait_before_retry}s... [#{@attempts}/#{@retry_on_error}]"
+          session.logger.warn "Encountered connection or server error. Retrying in #{@wait_before_retry}s... [#{@attempts}/#{@retry_on_error}]"
           sleep @wait_before_retry if @wait_before_retry > 0
           execute!
         else
