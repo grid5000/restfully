@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Restfully::MediaType do  
-  
+describe Restfully::MediaType do
+
   class NewMediaType < Restfully::MediaType::AbstractMediaType
     set :signature, "application/whatever"
     set :parser, JSON
@@ -35,7 +35,7 @@ describe Restfully::MediaType do
       Restfully::MediaType.register Restfully::MediaType::Grid5000
       Restfully::MediaType.find('application/vnd.grid5000+json; charset=utf-8').should == Restfully::MediaType::Grid5000
     end
-    
+
     it "should find the corresponding media_type from the less generic to the most generic [application/json]" do
       Restfully::MediaType.catalog.clear
       Restfully::MediaType.register Restfully::MediaType::Wildcard
@@ -60,7 +60,7 @@ describe Restfully::MediaType do
     end
     it "should correctly initialize with a payload" do
       media_type = Restfully::MediaType::Wildcard.new(
-        "some string", 
+        "some string",
         mock(Restfully::Session)
       )
       media_type.property("some").should == "some"
@@ -70,7 +70,7 @@ describe Restfully::MediaType do
 
   describe Restfully::MediaType::Grid5000 do
     before do
-      @session = 
+      @session =
       @media_type =  Restfully::MediaType::Grid5000.new(
         StringIO.new(fixture('grid5000-rennes.json')),
         @session
@@ -83,6 +83,20 @@ describe Restfully::MediaType do
 
     it "should correctly find a property" do
       @media_type.property("uid").should == "rennes"
+    end
+
+    it "should correctly tell if it represents a symbol [uid=string]" do
+      @media_type.represents?(:rennes).should be_true
+      @media_type.represents?(:'whatever').should be_false
+    end
+
+    it "should correctly tell if it represents a symbol [uid=integer]" do
+      @media_type =  Restfully::MediaType::Grid5000.new(
+        StringIO.new(fixture('grid5000-rennes-job.json')),
+        @session
+      )
+      @media_type.represents?(:'384886').should be_true
+      @media_type.represents?(:'384887').should be_false
     end
 
     it "should tell if it is a collection" do

@@ -1,0 +1,35 @@
+{
+  "assigned_nodes": [
+
+  ],
+  "directory": "/home/dbalouek",
+  "command": "",
+  "mode": "INTERACTIVE",
+  "submitted_at": 1306141519,
+  "project": "default",
+  "events": [
+
+  ],
+  "uid": 384886,
+  "user_uid": "dbalouek",
+  "links": [
+    {
+      "href": "/sid/grid5000/sites/rennes/jobs/384886",
+      "rel": "self",
+      "type": "application/vnd.fr.grid5000.api.Job+json;level=1"
+    },
+    {
+      "href": "/sid/grid5000/sites/rennes",
+      "rel": "parent",
+      "type": "application/vnd.fr.grid5000.api.Site+json;level=1"
+    }
+  ],
+  "types": [
+    "container"
+  ],
+  "queue": "default",
+  "started_at": 1306517400,
+  "scheduled_at": 1306517400,
+  "state": "waiting",
+  "properties": "maintenance = 'NO'"
+}

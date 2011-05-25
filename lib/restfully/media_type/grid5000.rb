@@ -51,7 +51,8 @@ module Restfully
       end
 
       def represents?(id)
-        property("uid") == id.to_s || property("uid") == id.to_i
+        id = id.to_s
+        property("uid") == id || property("uid") == id.to_i
       end
 
       # Only for collections
