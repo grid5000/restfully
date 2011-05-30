@@ -195,19 +195,15 @@ module Restfully
     # Build the resource after loading.
     def build
       metaclass = class << self; self; end
-      # only build once
-      # if @associations.empty?
-        extend Collection if collection?
-
-        response.links.each do |link|
-          metaclass.send(:define_method, link.id.to_sym) do |*args|
-            session.get(link.href, :head => {
-              'Accept' => link.type
-            }).load(*args)
-          end
-
+      extend Collection if collection?
+        
+      response.links.each do |link|
+        metaclass.send(:define_method, link.id.to_sym) do |*args|
+          session.get(link.href, :head => {
+            'Accept' => link.type
+          }).load(*args)
         end
-      # end
+      end
       self
     end
 
