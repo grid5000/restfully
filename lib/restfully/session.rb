@@ -43,7 +43,7 @@ module Restfully
       end
 
       # Read configuration from file:
-      config_file = @config.delete(:configuration_file) || ENV['RESTFULLY_CONFIG']
+      config_file = ENV['RESTFULLY_CONFIG'] || @config.delete(:configuration_file)
       config_file = File.expand_path(config_file) if config_file
       if config_file && File.file?(config_file) && File.readable?(config_file)
         @logger.info "Using configuration file located at #{config_file}."
