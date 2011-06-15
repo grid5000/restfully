@@ -5,23 +5,18 @@ require 'pp'
 require 'restfully'
 
 session = Restfully::Session.new(
-  :configuration_file => "~/.restfully/api.bonfire-project.eu"
+  :configuration_file => ENV['RESTFULLY_CONFIG'] || "~/.restfully/api.bonfire-project.eu"
 )
 
 experiment = nil
-
-public_key = Dir[File.expand_path("~/.ssh/*.pub")].find{|key|
-  File.exist?(key.gsub(/\.pub$/,""))
-}
-fail "Can't find a public SSH key, with its corresponding private key" if public_key.nil?
-
-puts "Using public key located at #{public_key}."
-
 
 begin
   experiment = session.root.experiments.submit(
     :name => "Scenario1",
     :description => "Demo of scenario2 using Restfully",
+    # For VW experiments, you MUST explicitly specify the status to "waiting".
+    # Then, after you created your resources, you MUST update the experiment 
+    # and pass its status to "running" (see below).
     :status => "waiting",
     :walltime => 4*3600 # 4 hours
   )
@@ -29,25 +24,29 @@ begin
   location = session.root.locations[:'be-ibbt']
   fail "Can't select the be-ibbt location" if location.nil?
 
-  disk = location.storages.find{|s| s['name'] == "SLES10.2-STD"}
+  disk = location.storages.find{|s| s['name'] == "BonFIRE Debian Squeeze v1"}
   fail "Can't get one of the images" if disk.nil?
+  
+  network = location.networks.find{|s| s['name'] == "BonFIRE WAN"}
+  fail "Can't get the BonFIRE WAN network" if network.nil?
 
-  network = experiment.networks.submit(
-    :location => location,
-    :name => "network-experiment##{experiment['id']}",
-    :bandwidth => 100,
-    :latency => 0,
-    :size => 24,
-    :lossrate => 0,
-    # You MUST specify the address:
-    :address => "172.18.4.0"
-  )
+  # If you wanted to submit a custom network, here is how you would do it:
+  # network = experiment.networks.submit(
+  #   :location => location,
+  #   :name => "network-experiment#{experiment['id']}",
+  #   :bandwidth => 100,
+  #   :latency => 0,
+  #   :size => 24,
+  #   :lossrate => 0,
+  #   # You MUST specify the address:
+  #   :address => "192.168.0.1"
+  # )
 
-  p "*****************"
+  puts "*****************"
   pp network
 
   compute1 = experiment.computes.submit(
-    :name => "compute1-experiment##{experiment['id']}",
+    :name => "compute1-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => disk, :type => "OS"}
@@ -59,7 +58,7 @@ begin
   )
 
   compute2 = experiment.computes.submit(
-    :name => "compute2-experiment##{experiment['id']}",
+    :name => "compute2-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => disk, :type => "OS"}
@@ -73,6 +72,7 @@ begin
   pp compute1.reload
   pp compute2.reload
 
+  # Pass experiment to "running":
   experiment.update(:status => "running")
 
   pp experiment.reload
@@ -94,5 +94,6 @@ rescue Exception => e
   puts "[ERROR] #{e.class.name}: #{e.message}"
   puts e.backtrace.join("\n")
   puts "Cleaning up..."
+  sleep 5
   experiment.delete unless experiment.nil?
 end

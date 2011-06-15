@@ -13,14 +13,6 @@ session.logger.level = Logger::INFO
 
 experiment = nil
 
-public_key = Dir[File.expand_path("~/.ssh/*.pub")].find{|key|
-  File.exist?(key.gsub(/\.pub$/,""))
-}
-fail "Can't find a public SSH key, with its corresponding private key" if public_key.nil?
-
-puts "Using public key located at #{public_key}."
-
-
 begin
   experiment = session.root.experiments.submit(
     :name => "Scenario1",
@@ -33,18 +25,18 @@ begin
   location2 = session.root.locations[:'de-hlrs']
   fail "Can't select the de-hlrs location" if location2.nil?
 
-  server_image = location1.storages.find{|s| s['name'] =~ /squeeze/}
-  client_image = location2.storages.find{|s| s['name'] == "Basic Small"}
+  server_image = location1.storages.find{|s| s['name'] == "BonFIRE Debian Squeeze 2G v1"}
+  client_image = location2.storages.find{|s| s['name'] == "BonFIRE Debian Squeeze 2G v1"}
   fail "Can't get one of the images" if server_image.nil? || client_image.nil?
 
-  network_location1 = location1.networks.find{|n| n['public'] == 'YES'}
+  network_location1 = location1.networks.find{|n| n['name'] == 'BonFIRE WAN'}
   fail "Can't select the public network in fr-inria" if network_location1.nil?
 
-  network_location2 = location2.networks.find{|n| n['public'] == 'YES'}
+  network_location2 = location2.networks.find{|n| n['name'] == 'BonFIRE WAN'}
   fail "Can't select the network in de-hlrs" if network_location2.nil?
 
   server = experiment.computes.submit(
-    :name => "server-experiment##{experiment['id']}",
+    :name => "server-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => server_image, :type => "OS"}
@@ -52,14 +44,11 @@ begin
     :nic => [
       {:network => network_location1}
     ],
-    :location => location1,
-    :context => {
-       'AUTHORIZED_KEYS' => File.read(public_key)
-     }
+    :location => location1
   )
 
   client = experiment.computes.submit(
-    :name => "client-experiment##{experiment['id']}",
+    :name => "client-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => client_image, :type => "OS"}
@@ -69,8 +58,7 @@ begin
     ],
     :location => location2,
     :context => {
-       'SERVER_IP' => server.reload['nic'][0]['ip'],
-       'AUTHORIZED_KEYS' => File.read(public_key)
+       'server_ip' => server.reload['nic'][0]['ip']
      }
   )
 
@@ -106,7 +94,8 @@ begin
 rescue Exception => e
   puts "[ERROR] #{e.class.name}: #{e.message}"
   puts e.backtrace.join("\n")
-  puts "Cleaning up..."
+  puts "Cleaning up in 5 seconds. Hit CTRL-C now to keep your VMs..."
+  sleep 5
   experiment.delete unless experiment.nil?
 end
 
@@ -118,5 +107,3 @@ username: crohr
 password: PASSWORD
 require:
   - ApplicationVndBonfireXml
-default_headers:
-  Content-Type: application/vnd.bonfire+xml
