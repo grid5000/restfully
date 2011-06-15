@@ -13,12 +13,20 @@ So, first, be sure you have a version of the <code>Ruby</code> interpreter on yo
 
 If you have a version lower than 1.8.6, you should probably consider upgrading to a newer version.
 
-Then, you need to install <code>Rubygems</code>, the ruby package manager. See http://docs.rubygems.org/read/chapter/3 for more explanations.
+Then, you need to install <code>Rubygems</code>, the ruby package manager, and <code>libxml</code>. See http://docs.rubygems.org/read/chapter/3 for more explanations.
 
 Note that on recent distributions (e.g. Debian Squeeze), you should be able to install all that with:
 
   apt-get update
   apt-get install ruby rubygems libxml-ruby
+
+In Ubuntu, you might have to install the ruby1.8-dev package, otherwise you can't install the gems later:
+ # apt-get install ruby1.8-dev
+
+Alternatively, on MacOS:
+
+  sudo gem update --system
+  gem install libxml-ruby
 
 Then, your Rubygems version (on Debian Squeeze) should be:
 
@@ -51,7 +59,7 @@ Note: on Debian Squeeze, you may need to add the path to the gem binaries to you
 
 == Getting Started ==
 
-Start the interactive Restfully shell (replace <code>LOGIN</code> and <code>PASSWORD</code> by your BonFIRE credentials):
+Start the interactive Restfully shell (replace <code>LOGIN</code> and <code>PASSWORD</code> by your BonFIRE credentials, see [[#FAQ]] for an alternative way of passing parameters):
 
   $ restfully https://api.bonfire-project.eu:444/ -u LOGIN -p PASSWORD -r ApplicationVndBonfireXml
 
@@ -144,7 +152,7 @@ A collection includes the Ruby [http://www.rubydoc.info/stdlib/core/1.9.2/Enumer
 Take your time to follow every relationship you find to see what you get back.  Then in the next section we'll see how we can create things.
 
 == Creating a BonFIRE Experiment ==
-You could do all the following using the interactive shell, but it's probably easier to write everything in a script file ready to be executed as many times as you need. For this we'll use the Restfully as a library, and we can write a short script that deploy the required resources for Scenario 1:
+You could do all the following using the interactive shell, but it's probably easier to write everything in a script file ready to be executed as many times as you need. For this we'll use the Restfully as a library, and we can write a short script that deploy the required resources for Scenario 1. The up to date version of this script and other examples can be found at https://github.com/crohr/restfully/tree/master/examples/bonfire).
 
   #!/usr/bin/env ruby
   
@@ -266,7 +274,7 @@ You could do all the following using the interactive shell, but it's probably ea
   require: ['ApplicationVndBonfireXml']
 
 You could also start SSH sessions after the VMs have been deployed, trigger creation or deletion of VMs when a specific event occurs, etc. All those advanced usages will be described in a future tutorial.
-  
+
 == FAQ ==
 * How do I avoid passing my password each time I want to use Restfully?
 
