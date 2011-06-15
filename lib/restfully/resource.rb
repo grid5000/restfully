@@ -24,7 +24,7 @@ module Restfully
     #   resource["uid"]
     #   => "rennes"
     def [](key)
-      unless collection?
+      if !media_type.property(key) && !collection?
         expand
       end
       media_type.property(key)

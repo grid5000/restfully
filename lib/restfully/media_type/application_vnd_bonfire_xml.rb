@@ -70,6 +70,8 @@ module Restfully
               end
             end
             if element.attributes["href"]
+              h["id"] ||= element.attributes["id"] if element.attributes["id"]
+              h["name"] ||= element.attributes["name"] if element.attributes["name"]
               h["link"] ||= []
               h["link"].push({
                 "href" => element.attributes["href"],
@@ -191,7 +193,7 @@ module Restfully
       end
       
       def complete?
-        if property.reject{|k,v| k==HIDDEN_TYPE_KEY}.empty? && links.find(&:self?)
+        if property.reject{|k,v| [HIDDEN_TYPE_KEY, "id", "name"].include?(k)}.empty? && links.find(&:self?)
           false
         else
           true

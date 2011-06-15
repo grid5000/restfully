@@ -43,6 +43,7 @@ module Restfully
           res = HTTP::Response.new(session, 200, {
             'Content-Type' => self_link.types[0]
           }, item_media_type.io)
+
           @items[hash] = Resource.new(session, res, req).load
         end
         block.call @items[hash]
