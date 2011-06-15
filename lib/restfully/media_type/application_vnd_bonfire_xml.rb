@@ -199,6 +199,12 @@ module Restfully
           true
         end
       end
+      
+      def banner
+        if property("name")
+          " name=#{property("name").inspect}"
+        end
+      end
 
       # Only for collections
       def each(*args, &block)

@@ -58,7 +58,11 @@ module Restfully
     # Returns the "signature" of the resource. Used for (pretty-)inspection.
     def signature(closed=true)
       s = "#<#{kind}:0x#{object_id.to_s(16)}"
-      s += " uri=#{uri.to_s}"
+      s += media_type.banner unless media_type.banner.nil?
+      # Only display path if host and port are the same than session's URI:
+      s += " uri=#{[uri.host, uri.port] == [
+        session.uri.host, session.uri.port
+      ] ? uri.request_uri.inspect : uri.to_s.inspect}"
       s += ">" if closed
       s
     end

@@ -96,6 +96,12 @@ module Restfully
       def unserialized
         @unserialized ||= self.class.unserialize(@io)
       end
+      
+      # Returns a string to display after the URI when pretty-printing
+      # objects.
+      def banner
+        nil
+      end
 
       # Without argument, returns the properties Hash obtained from calling
       # #unserialized.
