@@ -134,6 +134,8 @@ module Restfully
 
           def dump_object(object, parent)
             case object
+            when XML::Node
+              parent << object
             when Restfully::Resource
               dump_object({"href" => object.uri.to_s}, parent)
             when Hash
