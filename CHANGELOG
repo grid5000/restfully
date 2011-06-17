@@ -1,3 +1,17 @@
+0.8.5
+* Make application/vnd.bonfire+xml support XML nodes given in the ruby hash when submitting or updating a resource.
+
+0.8.4
+* Allow media types to display a custom banner when pretty-printing resources.
+
+0.8.3
+* Be a bit more clever when loading items to fetch a property.
+* RESTFULLY_CONFIG environment variable takes precedence over :configuration_file
+
+0.8.2
+* Fix Grid'5000 media-type for access with :[](key), key being an integer.
+* Outputs retry attempts at WARN level.
+
 0.8.1
 * Guess the content-type of the payload to send on a POST, based on the content-type of the original response to GET.
 
