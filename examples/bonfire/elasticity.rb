@@ -10,7 +10,6 @@ require 'pp'
 require 'restfully'
 require 'net/ssh/gateway' # gem install net-ssh-gateway
 
-
 # Here we use a configuration file to avoid putting our BonFIRE credentials in the source file.
 # See <http://wiki.bonfire-project.eu/index.php/Restfully#FAQ> to learn how to create that configuration file, or at the end of that script.
 session = Restfully::Session.new(
@@ -18,43 +17,37 @@ session = Restfully::Session.new(
 )
 session.logger.level = Logger::INFO
 
+if ENV['DEBUG']
+  require 'examples/bonfire/helpers/http'
+  session.enable Rack::HTTPLogger, :log_file => ENV['DEBUG']
+end
+
 experiment = nil
 @gw_user = session.config[:username] || ENV['USER']
 
-public_key = Dir[File.expand_path("~/.ssh/*.pub")].find{|key|
-  File.exist?(key.gsub(/\.pub$/,""))
-}
-fail "Can't find a public SSH key, with its corresponding private key" if public_key.nil?
-
-puts "Using public key located at #{public_key}."
-
-
 # Helper function to deal with SSH connections
-def ssh(host, user, options = {})
-  gateway = Net::SSH::Gateway.new('ssh.bonfire.grid5000.fr', @gw_user, :forward_agent => true, :timeout => 10)
-  @connection = @connection.close and nil unless @connection.nil?
+def ssh(host, user, options = {}, &block)
+  gateway = Net::SSH::Gateway.new('ssh.bonfire.grid5000.fr', @gw_user, :forward_agent => true)
   puts "Trying to SSH into #{user}@#{host}..."
-  Timeout.timeout(10) do
-    @connection = gateway.ssh(host, user, options.merge(:forward_agent => true, :timeout => 10))
+  gateway.ssh(host, user, &block)
+  gateway.shutdown!
+end
+
+def ssh_accessible?(host)
+  Timeout.timeout(30) do
+    ssh(host, 'root') {|s| s.exec!("hostname") }
   end
-  yield @connection
-rescue Timeout::Error => e
-  puts "Timeout. Retrying..."
-  sleep 60
-  retry
-rescue Net::SSH::Disconnect => e
-  puts "Server is not reachable yet: #{e.message}. Retrying..."
-  sleep 60
-  retry
-ensure
-  @connection.close if @connection
+  true
+rescue Exception => e
+  puts "Can't SSH yet to #{host}. Reason: #{e.class.name}, #{e.message}."
+  false
 end
 
 begin
   experiment = session.root.experiments.submit(
     :name => "Scenario1",
     :description => "Demo of scenario1 using Restfully",
-    :walltime => 1800
+    :walltime => 3600
   )
 
   aggregator_location = session.root.locations[:'fr-inria']
@@ -65,9 +58,9 @@ begin
   fail "Can't select the uk-epcc location" if server_location.nil?
 
   
-  aggregator_image = aggregator_location.storages.find{|s| s['name'] == "zabbix-aggregator"}
-  client_image = client_location.storages.find{|s| s['name'] =~ /squeeze$/i}
-  server_image = server_location.storages.find{|s| s['name'] =~ /squeeze$/i}
+  aggregator_image = aggregator_location.storages.find{|s| s['name'] =~ /BonFIRE Zabbix Aggregator v2/i}
+  client_image = client_location.storages.find{|s| s['name'] =~ /BonFIRE Debian Squeeze v1/i}
+  server_image = server_location.storages.find{|s| s['name'] =~ /BonFIRE Debian Squeeze 2G v1/i}
   fail "Can't get one of the images" if server_image.nil? || client_image.nil? || aggregator_image.nil?
 
   aggregator_network = aggregator_location.networks.find{|n| n['public'] == 'YES' && n['name'] == 'Public Network'}
@@ -80,7 +73,7 @@ begin
   fail "Can't select the server network" if server_network.nil?
 
   aggregator = experiment.computes.submit(
-    :name => "aggregator-experiment##{experiment['id']}",
+    :name => "BonFIRE-monitor-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => aggregator_image, :type => "OS"}
@@ -93,7 +86,7 @@ begin
   aggregator_ip = aggregator['nic'][0]['ip']
 
   server = experiment.computes.submit(
-    :name => "server-experiment##{experiment['id']}",
+    :name => "server-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => server_image, :type => "OS"}
@@ -109,7 +102,7 @@ begin
   server_ip = server['nic'][0]['ip']
 
   client = experiment.computes.submit(
-    :name => "client-experiment##{experiment['id']}",
+    :name => "client-experiment#{experiment['id']}",
     :instance_type => "small",
     :disk => [
       {:storage => client_image, :type => "OS"}
@@ -139,26 +132,27 @@ begin
     puts "One of the VMs is not ACTIVE. Waiting..."
     sleep 10
   end
-  
-  puts "VMs are now ACTIVE. Waiting some time to be sure they are RUNNING..."
 
-  sleep 5*60
+  until [aggregator_ip,server_ip,client_ip].all?{|ip| ssh_accessible?(ip)}
+    sleep 10
+  end
+  
+  puts "VMs are now READY"
 
   ssh(server_ip, 'root') do |handler|
     puts handler.exec!("hostname")
-    puts handler.exec!("apt-get update && apt-get install apache2 -y")
+    puts handler.exec!("DEBIAN_FRONTEND=noninteractive apt-get install curl -y")
+    # Here we show how one can fetch the full description of the current VM via the BonFIRE API:
+    puts handler.exec!("source /etc/default/bonfire && curl -k $BONFIRE_URI/locations/$BONFIRE_PROVIDER/computes/$BONFIRE_RESOURCE_ID -u $BONFIRE_CREDENTIALS")
   end
 
   ssh(aggregator_ip, 'root') do |handler|
     puts handler.exec!("hostname")
-    puts handler.exec!("apt-get update && apt-get install curl -y")
-    # Here we show how one can fetch the full description of the current VM via the BonFIRE API:
-    puts handler.exec!("source /etc/default/bonfire && curl -k $BONFIRE_URI/locations/$BONFIRE_PROVIDER/computes/$BONFIRE_RESOURCE_ID -u $BONFIRE_CREDENTIALS")
   end
   
-  ssh(client_ip, 'root') do |handler|
-    puts handler.exec!("wget http://#{server_ip}/")
-  end
+  # ssh(client_ip, 'root') do |handler|
+  #   puts handler.exec!("wget http://#{server_ip}/")
+  # end
 
   # Control loop, until the experiment is done.
   until ['terminated', 'canceled'].include?(experiment.reload['status']) do
