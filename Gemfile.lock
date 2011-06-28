@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    restfully (0.8.4)
+    restfully (0.8.6)
       addressable
       backports
       json (~> 1.5)
