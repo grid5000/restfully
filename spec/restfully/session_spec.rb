@@ -52,6 +52,13 @@ describe Restfully::Session do
         :entitystore => 'file:/var/cache/rack/body'
       }]]]
     end
+    
+    it "should disable the clietn-side cache if given :no_cache" do
+      session = Restfully::Session.new(@config.merge({
+        :cache => false
+      }))
+      RestClient.components.should == []
+    end
   end
 
   it "should fetch the root path [no URI path]" do

@@ -71,7 +71,7 @@ module Restfully
 
       disable RestClient::Rack::Compatibility
       authenticate(@config)
-      setup_cache((@config.delete(:cache) || {}).symbolize_keys)
+      setup_cache(@config.delete(:cache))
 
       yield root, self if block_given?
     end
@@ -186,7 +186,10 @@ module Restfully
 
     protected
     def setup_cache(options = {})
-      opts = {:verbose => (logger.level <= Logger::INFO)}.merge(options)
+      return if options == false
+      opts = {:verbose => (logger.level <= Logger::INFO)}.merge(
+        (options || {}).symbolize_keys
+      )
       enable ::Rack::Cache, opts
     end
 

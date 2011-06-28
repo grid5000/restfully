@@ -49,6 +49,9 @@ BANNER
     logger.level = original_logger_level
     @options["logger"] = logger
   end
+  opts.on("--no-cache", "Disable client-side caching") do |v|
+    @options["cache"] = false
+  end
   opts.on("-v", "--verbose", "Run verbosely") do |v|
     @options["logger"].level = Logger::INFO
   end
