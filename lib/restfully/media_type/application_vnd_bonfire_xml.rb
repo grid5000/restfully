@@ -161,7 +161,7 @@ module Restfully
               i = 0
               parent['id'] = i.to_s
               dump_object(object[0], parent)
-              object[1..-1].each{|item|
+              (object[1..-1] || []).each{|item|
                 i+=1
                 node = XML::Node.new(parent.name)
                 node['id'] = i.to_s
