@@ -163,9 +163,11 @@ begin
       client.reload
       # Here you could save_as, send a notification, etc.
       # Here for example, we save the first disk of the client VM as a new image:
-      client.update(:disk => [
-        {:save_as => {:name => "saved-#{client['name']}-image"}}
-      ]) unless client['disk'][0]['save_as']
+      unless client['disk'][0]['save_as']
+        client.update(:disk => [
+          {:save_as => {:name => "saved-#{client['name']}-image"}}
+        ])
+      end
     else
       puts "Experiment is #{experiment['status']}. Nothing to do yet."
     end

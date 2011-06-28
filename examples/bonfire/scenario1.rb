@@ -7,7 +7,8 @@ require 'restfully'
 # Here we use a configuration file to avoid putting our BonFIRE credentials in the source file.
 # See <http://wiki.bonfire-project.eu/index.php/Restfully#FAQ> to learn how to create that configuration file, or at the end of that script.
 session = Restfully::Session.new(
-  :configuration_file => "~/.restfully/api.bonfire-project.eu"
+  :configuration_file => "~/.restfully/api.bonfire-project.eu",
+  :cache => false
 )
 session.logger.level = Logger::INFO
 
