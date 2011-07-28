@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 # The command line Restfully client
 
-lib_dir = File.expand_path(File.dirname(__FILE__) + '/../lib')
-$LOAD_PATH.unshift lib_dir unless $LOAD_PATH.include? lib_dir
-
 require 'restfully'
 require 'optparse'
 require 'logger'
@@ -71,10 +68,8 @@ if given_uri = ARGV.shift
   @options["uri"] = given_uri
 end
 
-@session = Restfully::Session.new(@options)
-
 def session
-  @session
+  @session ||= Restfully::Session.new(@options)
 end
 
 def root 
@@ -93,32 +88,36 @@ HOME = ENV['HOME'] || ENV['HOMEPATH']
 IRB.conf[:SAVE_HISTORY] = 100
 IRB.conf[:HISTORY_FILE] = "#{HOME}/.irb-save-history"
 
-module Readline
-  module History
-    LOG = "#{HOME}/.irb-history"
+# Raises an error on Windows, so disabling it.
+if RUBY_PLATFORM !~ /(win|w)32$/
+  module Readline
+    module History
+      LOG = "#{HOME}/.irb-history"
 
-    def self.write_log(line)
-      File.open(LOG, 'ab') {|f| 
-        f << "#{line}\n"
-      }
-    end
+      def self.write_log(line)
+        File.open(LOG, 'ab') {|f| 
+          f << "#{line}\n"
+        }
+      end
     
-    def self.start_session_log
-      write_log("\n")
+      def self.start_session_log
+        write_log("\n")
+      end
     end
-  end
 
-  alias :old_readline :readline
-  def readline(*args)
-    ln = old_readline(*args)
-    begin
-      History.write_log(ln)
-    rescue
+    alias :old_readline :readline
+    def readline(*args)
+      ln = old_readline(*args)
+      begin
+        History.write_log(ln)
+      rescue
+      end
+      ln
     end
-    ln
   end
+  Readline::History.start_session_log
 end
-Readline::History.start_session_log
+
 ARGV.clear
 ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
 IRB.start
