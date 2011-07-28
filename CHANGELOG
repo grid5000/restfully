@@ -1,3 +1,6 @@
+0.8.7
+* Clean up Restfully bin, and do not attempt to overwrite Readline::History on Windows OS.
+
 0.8.6
 * Small bug fix in application/vnd.bonfire+xml media-type.
 * Add --no-cache flag to disable client-side caching.
