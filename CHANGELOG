@@ -1,3 +1,7 @@
+0.8.6
+* Small bug fix in application/vnd.bonfire+xml media-type.
+* Add --no-cache flag to disable client-side caching.
+
 0.8.5
 * Make application/vnd.bonfire+xml support XML nodes given in the ruby hash when submitting or updating a resource.
 
