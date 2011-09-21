@@ -16,6 +16,8 @@ Therefore, Restfully can work with any reasonably RESTful API provided that:
 
 If one of the API `Content-Type` is not already supported by one of the `Restfully::MediaType` objects (see `lib/restfully/media_type`), then you just have to build it and register it with Restfully.
 
+Documentation can be found at <http://rubydoc.info/gems/restfully>.
+
 ## Installation
 
     $ gem install restfully
