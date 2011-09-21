@@ -68,9 +68,9 @@ if given_uri = ARGV.shift
   @options["uri"] = given_uri
 end
 
-def session
-  @session ||= Restfully::Session.new(@options)
-end
+@session = Restfully::Session.new(@options)
+
+def session; @session; end
 
 def root 
   @root ||= session.root
