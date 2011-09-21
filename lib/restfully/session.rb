@@ -1,5 +1,7 @@
 require 'logger'
 require 'uri'
+require 'open-uri'
+
 require 'restclient'
 require 'restclient/components'
 require 'rack/cache'
@@ -47,13 +49,13 @@ module Restfully
       config_file = File.expand_path(config_file) if config_file
       if config_file && File.file?(config_file) && File.readable?(config_file)
         @logger.info "Using configuration file located at #{config_file}."
-        @config = YAML.load_file(config_file).symbolize_keys.merge(@config)
-      end
-
-      # Require additional media-types:
-      (@config[:require] || []).each do |r|
-        @logger.info "Requiring #{r} media-type..."
-        require "restfully/media_type/#{r.underscore}"
+        @config = YAML.load_file(config_file).symbolize_keys.merge(@config) do |key, oldval, newval|
+          case oldval
+          when Array then oldval.push(newval).flatten
+          when Hash then oldval.merge(newval)
+          else newval
+          end
+        end
       end
 
       @config[:retry_on_error] ||= 5
@@ -72,6 +74,27 @@ module Restfully
       disable RestClient::Rack::Compatibility
       authenticate(@config)
       setup_cache(@config.delete(:cache))
+
+      # Require additional types (e.g.: media-types):
+      (@config[:require] || []).each do |r|
+        @logger.info "Requiring #{r}..."
+        if ::File.exist?(file=File.expand_path(r))
+          require file
+        elsif r =~ /^https?:\/\//i
+          begin
+            resource = get(r)
+            file = Tempfile.new(['restfully', '.rb'])
+            file << resource.response.body
+            file.close
+            require file.path.gsub(/\.rb^/,'')
+          rescue HTTP::Error => e
+            logger.fatal "Can't fetch #{r} from the Internet. Aborting."
+            raise e
+          end
+        else
+          require "restfully/media_type/#{r.underscore}"
+        end
+      end
 
       yield root, self if block_given?
     end
