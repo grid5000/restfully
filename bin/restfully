@@ -16,7 +16,7 @@ end
 
 logger = Logger.new(STDERR)
 logger.level = Logger::WARN
-@options = {"logger" => logger}
+OPTIONS = {"logger" => logger}
 
 option_parser = OptionParser.new do |opts|
   opts.banner = <<BANNER
@@ -28,35 +28,39 @@ option_parser = OptionParser.new do |opts|
 BANNER
 
   opts.on("-u=", "--username=", "Sets the username") do |u|
-    @options["username"] = u
+    OPTIONS["username"] = u
   end
   opts.on("-p=", "--password=", "Sets the user password") do |p|
-    @options["password"] = p
+    OPTIONS["password"] = p
   end
   opts.on("-c=", "--config=", "Sets the various options based on a custom YAML configuration file") do |v|
-    @options["configuration_file"] = v
+    OPTIONS["configuration_file"] = v
   end
-  opts.on("-e=", "--execute=", "Execute the given commands in the context of the Restfully session") do |v|
-    @options["execute"] = v
+  opts.on("-e=", "--execute=", "Execute the given commands in the context of the Restfully session. Pass - to read from STDIN.") do |v|
+    OPTIONS["execute"] = if v == "-"
+      STDIN.read
+    else
+      v
+    end
   end
   opts.on("-r=", "--require=", "Require an additional media-type") do |v|
-    @options["require"] ||= []
-    @options["require"].push(v)
+    OPTIONS["require"] ||= []
+    OPTIONS["require"].push(v)
   end
   opts.on("--log=", "Outputs log messages to the given file. Defaults to stdout") do |v|
     original_logger_level = logger.level
     logger = Logger.new(File.expand_path(v))
     logger.level = original_logger_level
-    @options["logger"] = logger
+    OPTIONS["logger"] = logger
   end
   opts.on("--no-cache", "Disable client-side caching") do |v|
-    @options["cache"] = false
+    OPTIONS["cache"] = false
   end
   opts.on("-v", "--verbose", "Run verbosely") do |v|
-    @options["logger"].level = Logger::INFO
+    OPTIONS["logger"].level = Logger::INFO
   end
   opts.on("--debug", "Run in debug mode") do |v|
-    @options["logger"].level = Logger::DEBUG
+    OPTIONS["logger"].level = Logger::DEBUG
   end
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
@@ -68,13 +72,25 @@ end
 option_parser.parse!
 
 if given_uri = ARGV.shift
-  @options["uri"] = given_uri
+  OPTIONS["uri"] = given_uri
 end
 
-@session = Restfully::Session.new(@options)
+@session = Restfully::Session.new(OPTIONS)
 
-if @options["execute"]
-  @session.instance_eval(@options["execute"])
+if OPTIONS["execute"]
+  module Restfully
+    class Session
+      alias :old_initialize :initialize
+      # Overwrite Restfully::Session.new calls that might occur in scripts
+      # execute with --execute option, so that they preferably take the
+      # configuration given with the restfully command-line tool.
+      def initialize(options = {}, &block)
+        options = options.symbolize_keys.merge(OPTIONS.symbolize_keys)
+        old_initialize(options, &block)
+      end
+    end
+  end
+  @session.instance_eval(OPTIONS["execute"])
 else
   def session; @session; end
   def root; @root ||= session.root; end
