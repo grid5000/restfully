@@ -27,7 +27,7 @@ module Restfully
     # <tt>:wait_before_retry</tt>:: the number of seconds to wait before making another attempt when a server or connection error occurs.
     # <tt>:default_headers</tt>:: a Hash of default HTTP headers to send with each request.
     # <tt>:cache</tt>:: a Hash of parameters to configure the caching component. See <http://rtomayko.github.com/rack-cache/configuration> for more information.
-    # 
+    #
     # e.g.
     #   Restfully::Session.new(
     #     :uri => "https://api.bonfire-project.eu:444/",
@@ -146,6 +146,11 @@ module Restfully
       get(uri.path).load
     end
 
+    # Returns self.
+    def session
+      self
+    end
+
     # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
     def head(path, options = {})
       transmit :head, path, options
@@ -171,14 +176,6 @@ module Restfully
     # Returns an HTTP::Response object or raise a Restfully::HTTP::Error
     def delete(path, options = {})
       transmit :delete, path, options
-    end
-
-    # Build and execute the corresponding HTTP request,
-    # then process the response.
-    def transmit(method, path, options)
-      request = HTTP::Request.new(self, method, path, options)
-      response = request.execute!
-      process(response, request)
     end
 
     # Process a Restfully::HTTP::Response.
@@ -208,6 +205,14 @@ module Restfully
     end
 
     protected
+    # Build and execute the corresponding HTTP request,
+    # then process the response.
+    def transmit(method, path, options)
+      request = HTTP::Request.new(self, method, path, options)
+      response = request.execute!
+      process(response, request)
+    end
+
     def setup_cache(options = {})
       return if options == false
       opts = {:verbose => (logger.level <= Logger::INFO)}.merge(

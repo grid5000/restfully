@@ -36,6 +36,9 @@ BANNER
   opts.on("-c=", "--config=", "Sets the various options based on a custom YAML configuration file") do |v|
     @options["configuration_file"] = v
   end
+  opts.on("-e=", "--execute=", "Execute the given commands in the context of the Restfully session") do |v|
+    @options["execute"] = v
+  end
   opts.on("-r=", "--require=", "Require an additional media-type") do |v|
     @options["require"] ||= []
     @options["require"].push(v)
@@ -70,55 +73,56 @@ end
 
 @session = Restfully::Session.new(@options)
 
-def session; @session; end
+if @options["execute"]
+  @session.instance_eval(@options["execute"])
+else
+  def session; @session; end
+  def root; @root ||= session.root; end
 
-def root 
-  @root ||= session.root
-end
+  puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."
 
-puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."
+  require 'irb'
+  require 'irb/completion'
+  require 'irb/ext/save-history'
 
-require 'irb'
-require 'irb/completion'
-require 'irb/ext/save-history'
+  HOME = ENV['HOME'] || ENV['HOMEPATH']
+  # Keep history of your last commands.
+  # Taken from <http://blog.nicksieger.com/articles/2006/04/23/tweaking-irb>
+  IRB.conf[:SAVE_HISTORY] = 100
+  IRB.conf[:HISTORY_FILE] = "#{HOME}/.irb-save-history"
 
-HOME = ENV['HOME'] || ENV['HOMEPATH']
-# Keep history of your last commands.
-# Taken from <http://blog.nicksieger.com/articles/2006/04/23/tweaking-irb>
-IRB.conf[:SAVE_HISTORY] = 100
-IRB.conf[:HISTORY_FILE] = "#{HOME}/.irb-save-history"
+  # Raises an error on Windows, so disabling it.
+  if RUBY_PLATFORM !~ /(win|w)32$/
+    module Readline
+      module History
+        LOG = "#{HOME}/.irb-history"
 
-# Raises an error on Windows, so disabling it.
-if RUBY_PLATFORM !~ /(win|w)32$/
-  module Readline
-    module History
-      LOG = "#{HOME}/.irb-history"
-
-      def self.write_log(line)
-        File.open(LOG, 'ab') {|f| 
-          f << "#{line}\n"
-        }
-      end
+        def self.write_log(line)
+          File.open(LOG, 'ab') {|f| 
+            f << "#{line}\n"
+          }
+        end
     
-      def self.start_session_log
-        write_log("\n")
+        def self.start_session_log
+          write_log("\n")
+        end
       end
-    end
 
-    alias :old_readline :readline
-    def readline(*args)
-      ln = old_readline(*args)
-      begin
-        History.write_log(ln)
-      rescue
+      alias :old_readline :readline
+      def readline(*args)
+        ln = old_readline(*args)
+        begin
+          History.write_log(ln)
+        rescue
+        end
+        ln
       end
-      ln
     end
+    Readline::History.start_session_log
   end
-  Readline::History.start_session_log
-end
 
-ARGV.clear
-ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
-IRB.start
-exit!
+  ARGV.clear
+  ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
+  IRB.start
+  exit!
+end

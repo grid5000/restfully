@@ -53,7 +53,7 @@ describe Restfully::Session do
       }]]]
     end
     
-    it "should disable the clietn-side cache if given :no_cache" do
+    it "should disable the client-side cache if given :no_cache" do
       session = Restfully::Session.new(@config.merge({
         :cache => false
       }))
@@ -67,6 +67,11 @@ describe Restfully::Session do
       and_return(res = mock(Restfully::Resource))
     res.should_receive(:load).and_return(res)
     session.root.should == res
+  end
+  
+  it "should return itself when calling #session" do
+    session = Restfully::Session.new(@config)
+    session.session.should == session
   end
 
   it "should fetch the root path [URI path present]" do
@@ -130,10 +135,10 @@ describe Restfully::Session do
         instance_of(Restfully::HTTP::Request)
       )
 
-      @session.transmit :get, @path, {
+      @session.send(:transmit, :get, @path, {
         :query => {:k1 => "v1", :k2 => "v2"},
         :headers => {'X-Header' => 'value'}
-      }
+      })
     end
 
     it "should make an authenticated get request" do
@@ -145,10 +150,10 @@ describe Restfully::Session do
       )
       @session.should_receive(:process)
       @session.authenticate :username => 'crohr', :password => 'p4ssw0rd'
-      @session.transmit :get, @path, {
+      @session.send(:transmit, :get, @path, {
         :query => {:k1 => "v1", :k2 => "v2"},
         :headers => {'X-Header' => 'value'}
-      }
+      })
     end
 
     it "should retry for at most :max_attempts_on_connection_error if connection to the server failed" do
