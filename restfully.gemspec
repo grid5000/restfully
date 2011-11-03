@@ -23,6 +23,10 @@ Gem::Specification.new do |s|
   s.add_dependency('rack-cache')
   s.add_dependency('backports')
   s.add_dependency('addressable')
+  s.add_dependency('ripl')
+  s.add_dependency('ripl-multi_line')
+  s.add_dependency('ripl-color_streams')
+  s.add_dependency('ripl-play')
   
   s.add_development_dependency('rake', '~> 0.8')
   s.add_development_dependency('rspec', '~> 2')

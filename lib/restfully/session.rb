@@ -11,9 +11,18 @@ module Restfully
   class Session
 
 
-    attr_accessor :logger, :uri
+    attr_writer :logger
+    attr_accessor :uri
     attr_reader :config
     attr_writer :default_headers
+    
+    def logger
+      config[:logger] ||= begin
+        l = Logger.new(STDERR)
+        l.level = Logger::INFO
+        l
+      end
+    end
 
     # Builds a new client session.
     # Takes a number of <tt>options</tt> as input.
@@ -38,29 +47,15 @@ module Restfully
     #
     def initialize(options = {})
       @config = options.symbolize_keys
-      @logger = @config.delete(:logger)
-      if @logger.nil?
-        @logger = Logger.new(STDERR)
-        @logger.level = Logger::INFO
-      end
 
-      # Read configuration from file:
-      config_file = ENV['RESTFULLY_CONFIG'] || @config.delete(:configuration_file)
-      config_file = File.expand_path(config_file) if config_file
-      if config_file && File.file?(config_file) && File.readable?(config_file)
-        @logger.info "Using configuration file located at #{config_file}."
-        @config = YAML.load_file(config_file).symbolize_keys.merge(@config) do |key, oldval, newval|
-          case oldval
-          when Array then oldval.push(newval).flatten
-          when Hash then oldval.merge(newval)
-          else newval
-          end
-        end
-      end
+      @config = merge_configurations(
+        load_configuration_file(@config), 
+        @config
+      )
 
       @config[:retry_on_error] ||= 5
       @config[:wait_before_retry] ||= 5
-
+p [:config, @config]
       # Compatibility with :base_uri parameter of Restfully <= 0.6
       @uri = @config.delete(:uri) || @config.delete(:base_uri)
       if @uri.nil? || @uri.empty?
@@ -77,7 +72,7 @@ module Restfully
 
       # Require additional types (e.g.: media-types):
       (@config[:require] || []).each do |r|
-        @logger.info "Requiring #{r}..."
+        logger.info "Requiring #{r}..."
         if ::File.exist?(file=File.expand_path(r))
           require file
         elsif r =~ /^https?:\/\//i
@@ -98,10 +93,33 @@ module Restfully
 
       yield root, self if block_given?
     end
+    
+    
+    def merge_configurations(config1, config2 = {})
+      config1.merge(config2) do |key, oldval, newval|
+        case oldval
+        when Array then oldval.push(newval).flatten
+        when Hash then oldval.merge(newval)
+        else newval
+        end
+      end
+    end
+    
+    def load_configuration_file(opts = {})
+      # Read configuration from file:
+      config_file = ENV['RESTFULLY_CONFIG'] || opts.delete(:configuration_file)
+      config_file = File.expand_path(config_file) if config_file
+      if config_file && File.file?(config_file) && File.readable?(config_file)
+        logger.info "Using configuration file located at #{config_file}."
+        YAML.load_file(config_file).symbolize_keys
+      else
+        {}
+      end
+    end
 
     # Enable a RestClient Rack component.
     def enable(rack, *args)
-      logger.info "Enabling #{rack.inspect}."
+      logger.info "Enabling #{rack.inspect} with options=#{args.inspect}."
       RestClient.enable rack, *args
     end
 

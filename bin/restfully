@@ -5,6 +5,8 @@ require 'restfully'
 require 'optparse'
 require 'logger'
 require 'pp'
+require 'ripl'
+require 'ripl/multi_line'
 
 # Behaviour of pp in IRB is different on ruby1.9:
 # * pp(object) returns object#inspect.
@@ -18,15 +20,24 @@ logger = Logger.new(STDERR)
 logger.level = Logger::WARN
 OPTIONS = {"logger" => logger}
 
+Ripl.config[:play_quiet] = false
+
 option_parser = OptionParser.new do |opts|
   opts.banner = <<BANNER
 * Description
   Restfully #{Restfully::VERSION} - Access REST APIs effortlessly
 * Usage
-  restfully [uri] [options]
-* Options
+  restfully [options] [FILE]
+
+  If FILE is given and is an HTTP URI or a local file, the content of that file will be executed in the context of the Restfully session. Pass - to read from STDIN.
+  If no FILE is given, then an interactive shell will be launched in the context of the Restfully session.
 BANNER
 
+  opts.separator ""
+  opts.separator "* Common options"
+  opts.on("--uri=", "Sets the base URI") do |v|
+    OPTIONS["uri"] = v
+  end
   opts.on("-u=", "--username=", "Sets the username") do |u|
     OPTIONS["username"] = u
   end
@@ -35,13 +46,6 @@ BANNER
   end
   opts.on("-c=", "--config=", "Sets the various options based on a custom YAML configuration file") do |v|
     OPTIONS["configuration_file"] = v
-  end
-  opts.on("-e=", "--execute=", "Execute the given commands in the context of the Restfully session. Pass - to read from STDIN.") do |v|
-    OPTIONS["execute"] = if v == "-"
-      STDIN.read
-    else
-      v
-    end
   end
   opts.on("-r=", "--require=", "Require an additional media-type") do |v|
     OPTIONS["require"] ||= []
@@ -56,89 +60,104 @@ BANNER
   opts.on("--no-cache", "Disable client-side caching") do |v|
     OPTIONS["cache"] = false
   end
+  opts.on("--color", "Color output") do |v|
+    require 'ripl/color_streams'
+  end
+  opts.on("-q", "--quiet", "Run quietly") do |v|
+    Ripl.config[:play_quiet] = true
+    OPTIONS["logger"].level = Logger::WARN
+  end
   opts.on("-v", "--verbose", "Run verbosely") do |v|
     OPTIONS["logger"].level = Logger::INFO
   end
   opts.on("--debug", "Run in debug mode") do |v|
     OPTIONS["logger"].level = Logger::DEBUG
   end
+  
+  opts.separator ""
+  opts.separator "* Options specific to FILE"
+  opts.on("--shell", "Start an interactive session even after FILE content has been executed") do |v|
+    OPTIONS["shell"] = true
+  end
+  opts.on("-i", "--install", "Install any gem that might be required in FILE") do |v|
+    Ripl.config[:play_install] = true
+  end
+  
+  opts.separator ""
+  opts.separator "* Other"
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
   end
-  
-end
+  opts.on_tail("--version", "Show version") do
+    puts Restfully::VERSION
+    exit
+  end
+end.parse!
 
-option_parser.parse!
-
-if given_uri = ARGV.shift
-  OPTIONS["uri"] = given_uri
+if ARGV[0]
+  require 'ripl/play'
+  Ripl.config[:play] = ARGV[0].dup
 end
 
 @session = Restfully::Session.new(OPTIONS)
 
-if OPTIONS["execute"]
-  module Restfully
-    class Session
-      alias :old_initialize :initialize
-      # Overwrite Restfully::Session.new calls that might occur in scripts
-      # execute with --execute option, so that they preferably take the
-      # configuration given with the restfully command-line tool.
-      def initialize(options = {}, &block)
-        options = options.symbolize_keys.merge(OPTIONS.symbolize_keys)
-        old_initialize(options, &block)
-      end
+module Restfully
+  class Session
+    alias :old_initialize :initialize
+    # Overwrite Restfully::Session.new calls that might occur in replayed
+    # scripts, so that they preferably take the configuration given with the
+    # restfully command-line tool.
+    def initialize(options = {}, &block)
+      @config = options.symbolize_keys
+      opts2 = load_configuration_file(OPTIONS.symbolize_keys)
+      opts3 = merge_configurations(@config, opts2)
+      p [:final, opts3[:logger]]
+      old_initialize(opts3, &block)
     end
   end
-  @session.instance_eval(OPTIONS["execute"])
-else
-  def session; @session; end
-  def root; @root ||= session.root; end
-
-  puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."
-
-  require 'irb'
-  require 'irb/completion'
-  require 'irb/ext/save-history'
-
-  HOME = ENV['HOME'] || ENV['HOMEPATH']
-  # Keep history of your last commands.
-  # Taken from <http://blog.nicksieger.com/articles/2006/04/23/tweaking-irb>
-  IRB.conf[:SAVE_HISTORY] = 100
-  IRB.conf[:HISTORY_FILE] = "#{HOME}/.irb-save-history"
-
-  # Raises an error on Windows, so disabling it.
-  if RUBY_PLATFORM !~ /(win|w)32$/
-    module Readline
-      module History
-        LOG = "#{HOME}/.irb-history"
-
-        def self.write_log(line)
-          File.open(LOG, 'ab') {|f| 
-            f << "#{line}\n"
-          }
-        end
-    
-        def self.start_session_log
-          write_log("\n")
-        end
-      end
-
-      alias :old_readline :readline
-      def readline(*args)
-        ln = old_readline(*args)
-        begin
-          History.write_log(ln)
-        rescue
-        end
-        ln
-      end
-    end
-    Readline::History.start_session_log
-  end
-
-  ARGV.clear
-  ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
-  IRB.start
-  exit!
 end
+
+module Ripl::Play
+  def get_input
+    puts(prompt + @play_input) unless Ripl.config[:play_quiet]
+    @play_input
+  end
+end
+
+ARGV.clear
+p Ripl.config[:play_quiet]
+Ripl.start :binding => @session.instance_eval{ binding }#, :readline => "ruby"
+# 
+# if execute = OPTIONS.delete("execute")
+#   module Restfully
+#     class Session
+#       alias :old_initialize :initialize
+#       # Overwrite Restfully::Session.new calls that might occur in scripts
+#       # execute with --execute option, so that they preferably take the
+#       # configuration given with the restfully command-line tool.
+#       def initialize(options = {}, &block)
+#         opts1 = options.symbolize_keys
+#         opts2 = load_configuration_file(OPTIONS.symbolize_keys)
+#         opts3 = merge_configurations(opts1, opts2)
+#         old_initialize(opts3, &block)
+#       end
+#     end
+#   end
+#   @session.instance_eval(execute)
+#   if OPTIONS["shell"]
+#     ARGV.clear
+#     Ripl.start :binding => @session.instance_eval{ binding }
+#   end
+# else
+#   def session; @session; end
+#   def root; @root ||= session.root; end
+# 
+#   require 'ripl'
+#   
+#   puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."
+#   
+#   
+#   ARGV.clear  
+#   Ripl.start :binding => @session.instance_eval{ binding }
+# end
