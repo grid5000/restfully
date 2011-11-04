@@ -18,6 +18,7 @@ If one of the API `Content-Type` is not already supported by one of the `Restful
 
 Documentation can be found at <http://rubydoc.info/gems/restfully>.
 
+
 ## Installation
 
     $ gem install restfully
@@ -26,16 +27,17 @@ If you require media-types that need an XML parser, you must also install the `l
 
     $ gem install libxml-ruby
 
+
 ## Usage
 
 ### Command line
 
     $ export RUBYOPT="-rubygems"
-    $ restfully URI [-u username] [-p password]
+    $ restfully --uri URI [-u username] [-p password]
   
 e.g., for the [Grid'5000 API](https://www.grid5000.fr/mediawiki/index.php/API):
 
-    $ restfully https://api.grid5000.fr/sid/grid5000 -u username -p password
+    $ restfully --uri https://api.grid5000.fr/sid/grid5000 -u username -p password
 
 If the connection was successful, you should get a prompt. You may enter:
 
@@ -83,8 +85,38 @@ And then:
 
     $ restfully -c ~/.restfully/api.grid5000.fr.yml
 
+If you want to record the commands you enter in your interactive session, just
+add the `--record` flag, and at the end of your session the commands you
+entered will have been written into `SESSION_FILE` (by default:
+`restfully-tape`).
+
+### Replay
+
+Restfully can replay a sequence of ruby expressions. Just pass the FILE (local
+or HTTP URI) as argument to the `restfully` tool:
+
+    $ restfully -c ~/.restfully/my-config.yml path/to/file.rb
+    $ restfully -c ~/.restfully/my-config.yml http://server.ltd/script.rb
+
+Or via STDIN:
+
+    $ echo "pp root" | restfully -c ~/.restfully/config.yml
+
+Don't hesitate to play with the `--replay` option, which outputs the content of the FILE line by line, and the result of each expression.
+
+By default, the program exits when the content of the FILE has been executed.
+Pass the `--shell` flag to keep a shell open in the same Restfully session
+after FILE has been executed. This is useful if you want to manipulate the
+variables defined by the FILE.
+
+Also, note that any `Restfully::Session.new(...)` declaration in the code you
+execute will have its configuration overridden with anything given on the
+command line (either in a configuration file or as arguments). Therefore you
+can easily execute scripts written by others, in your own context.
+
 ### As a library
 See the `examples` directory for examples.
+
 
 ## Development
 
@@ -100,6 +132,7 @@ See the `examples` directory for examples.
 * Add tests for it. This is important so I don't break it in a future version unintentionally.
 * Commit, do not mess with Rakefile, version, or history (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull).
 * Send me a pull request. 
+
 
 ## Copyright
 
