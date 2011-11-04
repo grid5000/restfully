@@ -6,6 +6,17 @@ module Restfully
     
     def initialize(opts = {})
       @options = opts.symbolize_keys
+      
+      @options[:retry_on_error] ||= 5
+      @options[:wait_before_retry] ||= 5
+    end
+
+    def logger
+      @options[:logger] ||= begin
+        l = Logger.new(STDERR)
+        l.level = Logger::WARN
+        l
+      end
     end
 
     def merge(config = {})
@@ -35,6 +46,7 @@ module Restfully
       if file
         file = File.expand_path(file)
         if File.file?(file) && File.readable?(file)
+          logger.info "Loading configuration from #{file}..."
           @options = self.class.load(file).merge(self).options
         end
       end

@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency('ripl')
   s.add_dependency('ripl-multi_line')
   s.add_dependency('ripl-color_streams')
+  s.add_dependency('ripl-short_errors')
   s.add_dependency('ripl-play', '~> 0.2.1')
   s.add_dependency('rb-readline')
   

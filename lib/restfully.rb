@@ -14,6 +14,7 @@ require 'restfully/media_type'
 
 module Restfully
   DEFAULT_TAPE = "restfully-tape"
+  DEFAULT_URI = "http://localhost:4567"
   # Include the default media-types
   MediaType.reset
 end

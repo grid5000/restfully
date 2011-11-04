@@ -16,13 +16,12 @@ describe Restfully::Session do
       session = Restfully::Session.new(@config.merge("key" => "value"))
       session.logger.should == @logger
       session.uri.should == Addressable::URI.parse(@uri)
-      session.config.to_hash.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
+      session.config.to_hash.values_at(:wait_before_retry, :key, :retry_on_error).should == [5, "value", 5]
     end
 
-    it "should raise an error if no URI given" do
-      lambda{
-        Restfully::Session.new(@config.merge(:uri => ""))
-      }.should raise_error(ArgumentError)
+    it "should set a default URI if no URI given" do
+      session = Restfully::Session.new(@config.merge(:uri => ""))
+      session.uri.to_s.should == Restfully::DEFAULT_URI
     end
     
     it "should add or replace additional headers to the default set" do
@@ -69,9 +68,11 @@ describe Restfully::Session do
     session.root.should == res
   end
   
-  it "should return itself when calling #session" do
+  it "should return a sanbox" do
     session = Restfully::Session.new(@config)
-    session.session.should == session
+    sandbox = session.sandbox
+    sandbox.session.should == session
+    sandbox.logger.should == session.logger
   end
 
   it "should fetch the root path [URI path present]" do

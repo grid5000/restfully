@@ -7,6 +7,7 @@ require 'logger'
 require 'pp'
 require 'ripl'
 require 'ripl/multi_line'
+require 'ripl/short_errors'
 
 # Behaviour of pp in IRB is different on ruby1.9:
 # * pp(object) returns object#inspect.
@@ -67,7 +68,6 @@ BANNER
   end
   opts.on("--color", "Color output") do |v|
     require 'ripl/color_streams'
-    require 'ripl/color_result'
   end
   opts.on("--record [SESSION_FILE]", "Record interactive session into SESSION_FILE (default=#{Restfully::DEFAULT_TAPE}), to be replayed later. This option is ignored if FILE is given.") do |v|
     OPTIONS["record"] = v || Restfully::DEFAULT_TAPE
@@ -104,11 +104,9 @@ BANNER
   end
 end.parse!
 
-# Declare original Restfully::Session
-@session = Restfully::Session.new(OPTIONS)
-
 if $stdin.tty? && !ARGV[0]
   # Interactive session
+  OPTIONS["shell"] = true
   puts "Restfully/#{Restfully::VERSION} - The root resource is available in the 'root' variable."
   if OPTIONS["record"]
     # Recording requested
@@ -117,7 +115,7 @@ if $stdin.tty? && !ARGV[0]
   end
 else
   # Replayed session
-  @session.logger.warn "--record option valid only with interactive session. Ignoring." if OPTIONS["record"]
+  logger.warn "--record option valid only with interactive session. Ignoring." if OPTIONS["record"]
   require 'ripl/play'
 
   module Ripl::Play
@@ -153,6 +151,9 @@ else
   Ripl.config[:play] = ARGV[0].dup if ARGV[0]
 end
 
+# Declare original Restfully::Session
+SESSION = Restfully::Session.new(OPTIONS)
+
 module Restfully
   class Session
     alias :old_initialize :initialize
@@ -160,9 +161,10 @@ module Restfully
     # scripts, so that they preferably take the configuration given with the
     # restfully command-line tool.
     def initialize(options = {}, &block)
+      options[:overridden] = true
       old_opts = Configuration.new(options).expand
-      new_opts = Configuration.new(OPTIONS).expand
-      old_initialize(old_opts.merge(new_opts).to_hash, &block)
+      new_opts = old_opts.merge(SESSION.config)
+      old_initialize(new_opts, &block)
     end
   end
 end
@@ -171,4 +173,4 @@ end
 at_exit{ @log_file && @log_file.close }
 
 ARGV.clear
-Ripl.start :binding => @session.instance_eval{ binding }
+Ripl.start :binding => SESSION.sandbox.instance_eval{ binding }

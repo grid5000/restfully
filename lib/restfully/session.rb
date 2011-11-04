@@ -7,21 +7,17 @@ require 'restclient/components'
 require 'rack/cache'
 require 'addressable/uri'
 
+require 'restfully/sandbox'
+
 module Restfully
   class Session
 
-
-    attr_writer :logger
     attr_accessor :uri
     attr_reader :config
     attr_writer :default_headers
     
     def logger
-      @logger ||= begin
-        l = Logger.new(STDERR)
-        l.level = Logger::INFO
-        l
-      end
+      @config.logger
     end
 
     # Builds a new client session.
@@ -46,28 +42,40 @@ module Restfully
     #   ) {|root, session| p root}
     #
     def initialize(options = {})
-      @config = Configuration.new(options).expand
-      @logger = @config.delete(:logger)
-
-      @config[:retry_on_error] ||= 5
-      @config[:wait_before_retry] ||= 5
-
-      # Compatibility with :base_uri parameter of Restfully <= 0.6
-      @uri = @config.delete(:uri) || @config.delete(:base_uri)
-      if @uri.nil? || @uri.empty?
-        raise ArgumentError, "You must pass a :uri option."
+      @config = if options.kind_of?(Configuration)
+        options
       else
-        @uri = Addressable::URI.parse(@uri)
+        Configuration.new(options).expand
       end
 
-      default_headers.merge!(@config.delete(:default_headers) || {})
+      setup
+
+      yield root, self if block_given?
+    end
+    
+    def setup
+      # Compatibility with :base_uri parameter of Restfully <= 0.6
+      @uri = config[:uri] || config[:base_uri]
+      msg = if @uri.nil? || @uri.empty?
+        @uri = Restfully::DEFAULT_URI
+        "No URI given. Using #{@uri}"
+      else
+        "Base URI changed to: #{@uri}" 
+      end
+      if config[:overridden] || @uri == Restfully::DEFAULT_URI
+        config[:shell] ? puts(msg) : logger.warn(msg)
+      end
+
+      @uri = Addressable::URI.parse(@uri)
+
+      default_headers.merge!(config[:default_headers] || {})
 
       disable RestClient::Rack::Compatibility
-      authenticate(@config)
-      setup_cache(@config.delete(:cache))
+      authenticate(config)
+      setup_cache(config[:cache])
 
       # Require additional types (e.g.: media-types):
-      (@config[:require] || []).each do |r|
+      (config[:require] || []).each do |r|
         logger.info "Requiring #{r}..."
         if ::File.exist?(file=File.expand_path(r))
           require file
@@ -86,8 +94,6 @@ module Restfully
           require "restfully/media_type/#{r.underscore}"
         end
       end
-
-      yield root, self if block_given?
     end
 
     # Enable a RestClient Rack component.
@@ -136,10 +142,11 @@ module Restfully
     def root
       get(uri.path).load
     end
-
-    # Returns self.
-    def session
-      self
+    
+    # Return a sandbox object, useful to execute code within the current
+    # session context witout polluting the Session object.
+    def sandbox
+      Sandbox.new(self)
     end
 
     # Returns an HTTP::Response object or raise a Restfully::HTTP::Error

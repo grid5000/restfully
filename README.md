@@ -90,6 +90,10 @@ add the `--record` flag, and at the end of your session the commands you
 entered will have been written into `SESSION_FILE` (by default:
 `restfully-tape`).
 
+Note: depending on your Readline installation, you might see the following
+message: "Bond has detected EditLine and may not work with it. See the
+README's Limitations section". You can safely ignore it.
+
 ### Replay
 
 Restfully can replay a sequence of ruby expressions. Just pass the FILE (local
