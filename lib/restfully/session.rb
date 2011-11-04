@@ -17,7 +17,7 @@ module Restfully
     attr_writer :default_headers
     
     def logger
-      config[:logger] ||= begin
+      @logger ||= begin
         l = Logger.new(STDERR)
         l.level = Logger::INFO
         l
@@ -46,16 +46,12 @@ module Restfully
     #   ) {|root, session| p root}
     #
     def initialize(options = {})
-      @config = options.symbolize_keys
-
-      @config = merge_configurations(
-        load_configuration_file(@config), 
-        @config
-      )
+      @config = Configuration.new(options).expand
+      @logger = @config.delete(:logger)
 
       @config[:retry_on_error] ||= 5
       @config[:wait_before_retry] ||= 5
-p [:config, @config]
+
       # Compatibility with :base_uri parameter of Restfully <= 0.6
       @uri = @config.delete(:uri) || @config.delete(:base_uri)
       if @uri.nil? || @uri.empty?
@@ -93,33 +89,10 @@ p [:config, @config]
 
       yield root, self if block_given?
     end
-    
-    
-    def merge_configurations(config1, config2 = {})
-      config1.merge(config2) do |key, oldval, newval|
-        case oldval
-        when Array then oldval.push(newval).flatten
-        when Hash then oldval.merge(newval)
-        else newval
-        end
-      end
-    end
-    
-    def load_configuration_file(opts = {})
-      # Read configuration from file:
-      config_file = ENV['RESTFULLY_CONFIG'] || opts.delete(:configuration_file)
-      config_file = File.expand_path(config_file) if config_file
-      if config_file && File.file?(config_file) && File.readable?(config_file)
-        logger.info "Using configuration file located at #{config_file}."
-        YAML.load_file(config_file).symbolize_keys
-      else
-        {}
-      end
-    end
 
     # Enable a RestClient Rack component.
     def enable(rack, *args)
-      logger.info "Enabling #{rack.inspect} with options=#{args.inspect}."
+      logger.info "Enabling #{rack.inspect}."
       RestClient.enable rack, *args
     end
 

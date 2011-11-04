@@ -2,6 +2,7 @@ require 'backports'
 require 'yaml'
 
 require 'restfully/version'
+require 'restfully/configuration'
 require 'restfully/error'
 require 'restfully/http'
 require 'restfully/link'
@@ -12,6 +13,7 @@ require 'restfully/session'
 require 'restfully/media_type'
 
 module Restfully
+  DEFAULT_TAPE = "restfully-tape"
   # Include the default media-types
   MediaType.reset
 end

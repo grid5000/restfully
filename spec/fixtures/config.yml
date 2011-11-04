@@ -1,0 +1,5 @@
+uri: https://api.bonfire-project.eu/
+username: someone
+password: p4ssw0rd
+require: ['ApplicationVndBonfireXml']
+gateway: ssh.bonfire.grid5000.fr

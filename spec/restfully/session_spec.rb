@@ -16,7 +16,7 @@ describe Restfully::Session do
       session = Restfully::Session.new(@config.merge("key" => "value"))
       session.logger.should == @logger
       session.uri.should == Addressable::URI.parse(@uri)
-      session.config.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
+      session.config.to_hash.should == {:wait_before_retry=>5, :key=>"value", :retry_on_error=>5}
     end
 
     it "should raise an error if no URI given" do
