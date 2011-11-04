@@ -1,3 +1,11 @@
+1.0.0.rc1
+* Command line arguments have changed: URI is now an option (`--uri` flag); if
+  an argument is given, it is supposed to be a FILE that will be executed in
+  the current context.
+* Added support for execution of code given via FILE or STDIN, in the
+  context of the declared Restfully::Session. 
+* Switch to Ripl instead of IRB.
+
 0.8.8
 * Allow to require additional files from a URI.
 * Create session object immediately when starting the shell.
