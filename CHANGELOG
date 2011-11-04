@@ -1,3 +1,10 @@
+1.0.0.rc2
+* Limit backtrace displayed. 
+* Fix some issues with configuration. 
+* Execute given FILE or shell input in a sandbox. Gives access to `get`,
+  `post`, `put`, `delete`, `head`, `logger` without the need to go through
+  `session`.
+
 1.0.0.rc1
 * Command line arguments have changed: URI is now an option (`--uri` flag); if
   an argument is given, it is supposed to be a FILE that will be executed in
