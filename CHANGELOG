@@ -1,3 +1,7 @@
+0.8.8
+* Allow to require additional files from a URI.
+* Create session object immediately when starting the shell.
+
 0.8.7
 * Clean up Restfully bin, and do not attempt to overwrite Readline::History on Windows OS.
 
