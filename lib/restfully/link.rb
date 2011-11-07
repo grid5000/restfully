@@ -21,11 +21,6 @@ module Restfully
 
     def valid?
       @errors = []
-      if type.nil? || type.empty?
-        errors << "type cannot be blank"
-      elsif media_type.nil?
-        errors << "cannot find a MediaType for type #{type.inspect}"
-      end
       if href.nil?
         errors << "href cannot be nil"
       end

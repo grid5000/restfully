@@ -203,7 +203,7 @@ module Restfully
       response.links.each do |link|
         metaclass.send(:define_method, link.id.to_sym) do |*args|
           session.get(link.href, :head => {
-            'Accept' => link.type
+            'Accept' => link.type || media_type.class.signature.join(",")
           }).load(*args)
         end
       end

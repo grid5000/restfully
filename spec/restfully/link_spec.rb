@@ -42,17 +42,15 @@ describe Restfully::Link do
       @media_type = mock(Restfully::MediaType::AbstractMediaType)
     end
     
-    it "should not be valid if there is no type" do
+    it "should be valid even if there is no type" do
       link = Restfully::Link.new(@valid_attributes.merge(:type => ''))
-      link.should_not be_valid
-      link.errors.should == ["type cannot be blank"]
+      link.should be_valid
     end
     
-    it "should not be valid if a media_type cannot be found" do
+    it "should be valid even if a media_type cannot be found" do
       Restfully::MediaType.catalog.clear
       link = Restfully::Link.new(@valid_attributes)
-      link.should_not be_valid
-      link.errors.should == ["cannot find a MediaType for type \"application/json\""]
+      link.should be_valid
     end
     
 
