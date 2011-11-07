@@ -18,6 +18,7 @@ module Restfully
         metric
         job
         deployment
+        networkequipment
         notification
       }.map{|n|
         "application/vnd.fr.grid5000.api.#{n}+json"
