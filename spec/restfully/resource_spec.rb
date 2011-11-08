@@ -11,7 +11,7 @@ describe Restfully::Resource do
     )
     @response = Restfully::HTTP::Response.new(
       @session, 200, {
-        'Content-Type' => 'application/vnd.grid5000+json; charset=utf-8',
+        'Content-Type' => 'application/vnd.grid5000.item+json; charset=utf-8',
         'Allow' => 'GET'
       }, fixture('grid5000-rennes.json')
     )
@@ -75,7 +75,7 @@ describe Restfully::Resource do
         'some payload',
         :head => {
           'Content-Type' => 'text/plain',
-          'Origin-Content-Type' => "application/vnd.grid5000+json; charset=utf-8"
+          'Origin-Content-Type' => "application/vnd.grid5000.item+json; charset=utf-8"
         },
         :query => {:k1 => 'v1'},
         :serialization => {}
@@ -93,7 +93,7 @@ describe Restfully::Resource do
         {:key => 'value'},
         :head => {
           'Content-Type' => 'text/plain',
-          'Origin-Content-Type' => "application/vnd.grid5000+json; charset=utf-8"
+          'Origin-Content-Type' => "application/vnd.grid5000.item+json; charset=utf-8"
         },
         :query => {:k1 => 'v1'},
         :serialization => {}

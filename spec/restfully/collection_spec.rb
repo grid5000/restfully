@@ -9,11 +9,11 @@ describe Restfully::Collection do
     )
     @request = Restfully::HTTP::Request.new(
       @session, :get, "/grid5000/sites/rennes/jobs",
-      :head => {'Accept' => 'application/vnd.grid5000+json'}
+      :head => {'Accept' => 'application/vnd.grid5000.collection+json'}
     )
     @response = Restfully::HTTP::Response.new(
       @session, 200, {
-        'Content-Type' => 'application/vnd.grid5000+json; charset=utf-8',
+        'Content-Type' => 'application/vnd.grid5000.collection+json; charset=utf-8',
         'Allow' => 'GET,POST'
       }, fixture('grid5000-rennes-jobs.json')
     )
@@ -38,6 +38,7 @@ describe Restfully::Collection do
     items = []
     @resource.load.each{|i| items << i}
     items.all?{|i| i.kind_of?(Restfully::Resource)}.should be_true
+    @resource.should be_collection
     items[0].relationships.map(&:to_s).sort.should == ["parent", "self"]
     items[0]['uid'].should == 376505
   end

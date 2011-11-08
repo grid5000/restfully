@@ -9,7 +9,7 @@ module Restfully
         site
         cluster
         node
-        nodeStatus
+        nodestatus
         version
         collection
         timeseries
@@ -23,7 +23,9 @@ module Restfully
       }.map{|n|
         "application/vnd.fr.grid5000.api.#{n}+json"
       }.unshift(
-        "application/vnd.grid5000+json"
+        "application/vnd.grid5000.collection+json"
+      ).unshift(
+        "application/vnd.grid5000.item+json"
       )
       set :parser, ApplicationJson::JSONParser
 

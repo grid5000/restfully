@@ -31,9 +31,9 @@ describe Restfully::MediaType do
       Restfully::MediaType.find("application/json").should == Restfully::MediaType::ApplicationJson
     end
 
-    it "should find the corresponding media_type [application/vnd.grid5000+json]" do
+    it "should find the corresponding media_type [application/vnd.grid5000.collection+json]" do
       Restfully::MediaType.register Restfully::MediaType::Grid5000
-      Restfully::MediaType.find('application/vnd.grid5000+json; charset=utf-8').should == Restfully::MediaType::Grid5000
+      Restfully::MediaType.find('application/vnd.grid5000.collection+json; charset=utf-8').should == Restfully::MediaType::Grid5000
     end
 
     it "should find the corresponding media_type from the less generic to the most generic [application/json]" do
