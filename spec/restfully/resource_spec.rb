@@ -41,8 +41,15 @@ describe Restfully::Resource do
         URI.parse("/grid5000/sites/rennes/clusters"),
         :head=>{"Accept"=>"application/vnd.grid5000+json"}
       ).and_return(association=mock(Restfully::Resource))
-      association.should_receive(:load)
       @resource.clusters
+    end
+    it "should load the requested association with the additional parameters" do
+      @session.should_receive(:get).once.with(
+        URI.parse("/grid5000/sites/rennes/clusters"),
+        :head=>{"Accept"=>"application/json", 'X-Thing' => 'value'},
+        :query => {"branch" => 'testing'}
+      ).and_return(association=mock(Restfully::Resource))
+      @resource.clusters(:query => {'branch' => "testing"}, :head => {'x-Thing' => 'value', :accept => 'application/json'})
     end
     {:update => "PUT", :submit => "POST", :delete => "DELETE"}.each do |method, http_method|
       it "should get the Allowed HTTP methods when calling #{method.to_sym}" do

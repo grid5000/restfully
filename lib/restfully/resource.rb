@@ -10,6 +10,8 @@ module Restfully
 
     HIDDEN_PROPERTIES_REGEXP = /^\_\_(.+)\_\_$/
 
+    include HTTP::Helper
+
     def initialize(session, response, request)
       @session = session
       @response = response
@@ -202,9 +204,13 @@ module Restfully
       metaclass = class << self; self; end
       response.links.each do |link|
         metaclass.send(:define_method, link.id.to_sym) do |*args|
-          session.get(link.href, :head => {
-            'Accept' => link.type || media_type.class.signature.join(",")
-          }).load(*args)
+          options = args.extract_options!
+          head = options.delete(:headers) || options.delete(:head) || {}
+          head = sanitize_head(head)
+          head['Accept'] ||= (
+            link.type || media_type.class.signature.join(",")
+          )
+          session.get(link.href, options.merge(:head => head))
         end
       end
       self
