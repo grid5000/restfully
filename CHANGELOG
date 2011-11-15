@@ -1,3 +1,9 @@
+1.0.0
+* Support for NetworkEquipment variant in Grid'5000 media type.
+* It is not longer mandatory for links to have a :type attribute.
+* Removed application/vnd.grid5000+json. Replaced with application/vnd.grid5000.{collection,item}+json.
+* Correctly handle head and query parameters given when loading a link.
+
 1.0.0.rc2
 * Limit backtrace displayed. 
 * Fix some issues with configuration. 
