@@ -1,3 +1,6 @@
+1.0.1
+* Add #to_hash alias for #properties.
+
 1.0.0
 * Support for NetworkEquipment variant in Grid'5000 media type.
 * It is not longer mandatory for links to have a :type attribute.
