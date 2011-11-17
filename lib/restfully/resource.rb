@@ -105,6 +105,11 @@ module Restfully
       end
     end
 
+    # Alias for #properties
+    def to_hash
+      properties
+    end
+
     # Force reloading of the resource.
     def reload
       @request.no_cache!
