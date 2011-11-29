@@ -16,7 +16,7 @@ module Restfully
     def self?; @rel == 'self'; end
 
     def types
-      type.split(";")
+      (type || "").split(";")
     end
 
     def valid?
@@ -29,7 +29,7 @@ module Restfully
 
     def media_type
       @media_type ||= MediaType.find(type)
-    end # def catalog
+    end
     
     def id
       title.to_s.downcase.gsub(/[^a-z]/,'_').squeeze('_').to_sym

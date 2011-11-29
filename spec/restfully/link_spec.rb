@@ -43,8 +43,9 @@ describe Restfully::Link do
     end
     
     it "should be valid even if there is no type" do
-      link = Restfully::Link.new(@valid_attributes.merge(:type => ''))
+      link = Restfully::Link.new(@valid_attributes.merge(:type => nil))
       link.should be_valid
+      link.types.should == []
     end
     
     it "should be valid even if a media_type cannot be found" do
