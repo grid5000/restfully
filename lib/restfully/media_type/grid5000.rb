@@ -19,6 +19,7 @@ module Restfully
         job
         deployment
         networkequipment
+        environment
         notification
       }.map{|n|
         "application/vnd.fr.grid5000.api.#{n}+json"
