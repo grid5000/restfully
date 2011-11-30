@@ -1,3 +1,6 @@
+1.0.4
+* Add support for Grid'5000 environment media-type.
+
 1.0.3
 * Fix bug in link when no :type is present.
 
