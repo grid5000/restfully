@@ -124,10 +124,11 @@ See the `examples` directory for examples.
 
 ## Development
 
-### Testing
+### Testing 
 
 * `rake spec`; or
 * run `autotest` in the project directory.
+* we use [Travis CI](http://travis-ci.org/) on every push: [![Build Status](https://secure.travis-ci.org/crohr/restfully.png)](http://travis-ci.org/crohr/restfully)
 
 ### Note on Patches/Pull Requests
  
