@@ -48,9 +48,8 @@ describe Restfully::HTTP::Request do
   
   it "should correctly update the request with the given parameters" do
     @options[:query] = {:k1 => 'v1', :k2 => [1,2,3]}
-    @options[:head]['Accept'] = 'text/plain'
     request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
-    request.update!(:headers => {'whatever' => 'value'}, :query => {'k1' => 'xx'}).should_not be_nil
+    request.update!(:headers => {'whatever' => 'value', 'Accept' => 'text/plain'}, :query => {'k1' => 'xx'}).should_not be_nil
     request.uri.to_s.should == 'https://api.grid5000.fr/path?k1=xx'
     request.head.should include("Whatever"=>"value", 'Accept' => 'text/plain')
   end
