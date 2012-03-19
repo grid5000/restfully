@@ -74,7 +74,7 @@ describe Restfully::HTTP::Request do
       request.head['Content-Type'].
         should == 'application/x-www-form-urlencoded'
       request.method.should == :post
-      request.body.should == "k1=value1&k2[]=a&k2[]=b&k2[]=c"
+      request.body.should == Restfully::MediaType::ApplicationXWwwFormUrlencoded.serialize(@options[:body])
     end
 
     it "should correctly build the request [body as hash, content-type=json]" do

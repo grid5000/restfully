@@ -120,7 +120,7 @@ describe Restfully::MediaType do
     end
     it "should correctly encode a hash" do
       Restfully::MediaType::ApplicationXWwwFormUrlencoded.
-        serialize(@unserialized).should == @serialized
+        serialize(@unserialized).split("&").sort.should == ["k1=value", "k2[]=a", "k2[]=b", "k2[]=c"]
     end
     it "should correctly decode a string" do
       Restfully::MediaType::ApplicationXWwwFormUrlencoded.
