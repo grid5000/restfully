@@ -141,5 +141,8 @@ See the `examples` directory for examples.
 
 ## Copyright
 
-Copyright (c) 2009-2011 [Cyril Rohr](http://crohr.me), INRIA Rennes - Bretagne Atlantique. 
-See LICENSE for details.
+Copyright (c) 2009-2012 [Cyril Rohr](http://crohr.me), INRIA Rennes - Bretagne Atlantique. 
+
+See LICENSE for details ([CeCILL-B] [cecillb], a BSD style license).
+
+[cecillb]: http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
