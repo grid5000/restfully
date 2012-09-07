@@ -121,7 +121,7 @@ module Restfully
               else
                 h[key] = [h[key], value]
               end
-            elsif ["disk", "nic", "link", "computes", "networks", "storages"].include?(key)
+            elsif ["disk", "nic", "link", "computes", "networks", "storages", "endpoint", "site_link", "interface", "network_link"].include?(key)
               h[key] = [value]
             else
               h[key] = value
