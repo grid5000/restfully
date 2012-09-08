@@ -1,3 +1,10 @@
+1.0.6
+* Added new element types for BonFIRE media-type.
+* Switch to CeCILL-B license.
+
+1.0.5
+* Explicit dependency on ripl-0.6.1
+
 1.0.4
 * Add support for Grid'5000 environment media-type.
 
