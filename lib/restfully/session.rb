@@ -134,7 +134,8 @@ module Restfully
     def default_headers
       @default_headers ||= {
         'Accept' => '*/*',
-        'Accept-Encoding' => 'gzip, deflate'
+        'Accept-Encoding' => 'gzip, deflate',
+        'User-Agent' => "Restfully/#{Restfully::VERSION}" 
       }
     end
 
