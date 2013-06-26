@@ -34,7 +34,8 @@ describe Restfully::Session do
       session.default_headers.should == {
         'Accept' => 'application/xml',
         'Cache-Control' => 'no-cache',
-        'Accept-Encoding' => 'gzip, deflate'
+        'Accept-Encoding' => 'gzip, deflate',
+        'User-agent' => "Restfully/#{Restfully::VERSION}" 
       }
     end
     
