@@ -35,7 +35,7 @@ describe Restfully::Session do
         'Accept' => 'application/xml',
         'Cache-Control' => 'no-cache',
         'Accept-Encoding' => 'gzip, deflate',
-        'User-agent' => "Restfully/#{Restfully::VERSION}" 
+        'User-Agent' => "Restfully/#{Restfully::VERSION}" 
       }
     end
     
