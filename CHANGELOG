@@ -1,3 +1,6 @@
+1.0.7
+* Add a default user-agent to restfully so its (raw) usage can be discovered in logs.
+
 1.0.6
 * Added new element types for BonFIRE media-type.
 * Switch to CeCILL-B license.
