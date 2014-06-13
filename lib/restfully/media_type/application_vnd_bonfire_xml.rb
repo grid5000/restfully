@@ -195,7 +195,7 @@ module Restfully
       end
       
       def complete?
-        if property.reject{|k,v| [HIDDEN_TYPE_KEY, "id", "name"].include?(k)}.empty? && links.find(&:self?)
+        if property.reject{|k,v| [HIDDEN_TYPE_KEY, "id", "name", "type"].include?(k)}.empty? && links.find(&:self?)
           false
         else
           true
