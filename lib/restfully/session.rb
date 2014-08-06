@@ -15,6 +15,7 @@ module Restfully
     attr_accessor :uri
     attr_reader :config
     attr_writer :default_headers
+    attr_reader :ssl_options
     
     def logger
       @config.logger
@@ -49,6 +50,8 @@ module Restfully
       end
 
       setup
+      
+      @ssl_options=config.to_hash.keep_if{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/} 
 
       yield root, self if block_given?
     end
@@ -207,6 +210,7 @@ module Restfully
     # Build and execute the corresponding HTTP request,
     # then process the response.
     def transmit(method, path, options)
+      options.merge!(ssl_options)
       request = HTTP::Request.new(self, method, path, options)
       response = request.execute!
       process(response, request)
