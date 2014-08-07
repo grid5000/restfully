@@ -15,8 +15,6 @@ module Restfully
 
         request = options.symbolize_keys
 
-        @ssl_options = options.keep_if{|k,v| k =~ /^ssl/ || k=~ /verify_ssl/}
-
         @retry_on_error = request[:retry_on_error] || session.config[:retry_on_error]
         @wait_before_retry = request[:wait_before_retry] || session.config[:wait_before_retry]
 
@@ -81,7 +79,7 @@ module Restfully
         session.logger.debug self.inspect
         resource = RestClient::Resource.new(
           uri.to_s,
-          @ssl_options.merge({:headers => head})
+          @session.ssl_options.merge({:headers => head})
         )
 
         begin

@@ -210,7 +210,6 @@ module Restfully
     # Build and execute the corresponding HTTP request,
     # then process the response.
     def transmit(method, path, options)
-      options.merge!(ssl_options)
       request = HTTP::Request.new(self, method, path, options)
       response = request.execute!
       process(response, request)
