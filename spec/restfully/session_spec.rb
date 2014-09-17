@@ -24,6 +24,17 @@ describe Restfully::Session do
       session.uri.to_s.should == Restfully::DEFAULT_URI
     end
     
+    it "should set en empty hash for ssl_options if none given" do
+      session = Restfully::Session.new(@config.merge("key" => "value"))
+      session.ssl_options.should == {}
+    end
+
+    it "should keep ssl_options if some given" do
+      ssl_options={:verify_ssl => true, :ssl_option => 3}
+      session = Restfully::Session.new(@config.merge(ssl_options))
+      session.ssl_options.should == ssl_options
+    end
+
     it "should add or replace additional headers to the default set" do
       session = Restfully::Session.new(
         @config.merge(:default_headers => {
