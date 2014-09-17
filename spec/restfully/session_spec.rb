@@ -4,7 +4,7 @@ describe Restfully::Session do
   before do
     RestClient.components.clear
     @logger = Logger.new(STDERR)
-    @uri = "https://api.grid5000.fr"
+    @uri = "https://api.project.net"
     @config = {
       :uri => @uri,
       :logger => @logger
@@ -78,7 +78,7 @@ describe Restfully::Session do
 
   it "should fetch the root path [URI path present]" do
     session = Restfully::Session.new(
-      @config.merge(:uri => "https://api.grid5000.fr/resource/path")
+      @config.merge(:uri => "https://api.project.net/resource/path")
     )
     session.should_receive(:get).with("/resource/path").
       and_return(res = mock(Restfully::Resource))
@@ -144,7 +144,7 @@ describe Restfully::Session do
     end
 
     it "should make an authenticated get request" do
-      stub_request(:get, "https://crohr:p4ssw0rd@api.grid5000.fr"+@path+"?k1=v1&k2=v2").with(
+      stub_request(:get, "https://crohr:p4ssw0rd@api.project.net"+@path+"?k1=v1&k2=v2").with(
         :headers => @default_headers.merge({
           'Accept' => '*/*',
           'X-Header' => 'value'
