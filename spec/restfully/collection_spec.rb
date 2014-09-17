@@ -5,7 +5,7 @@ describe Restfully::Collection do
     Restfully::MediaType.register Restfully::MediaType::ApplicationVndBonfireXml
     
     @session = Restfully::Session.new(
-      :uri => "https://api.grid5000.fr"
+      :uri => "https://api.project.net"
     )
     @request = Restfully::HTTP::Request.new(
       @session, :get, "/grid5000/sites/rennes/jobs",
@@ -51,7 +51,7 @@ describe Restfully::Collection do
     )
     @resource = Restfully::Resource.new(@session, @response, @request).load
     @resource.all?{|i| i.complete?}.should be_false
-    stub_request(:get, "https://api.grid5000.fr/locations/de-hlrs/networks/29").
+    stub_request(:get, "https://api.project.net/locations/de-hlrs/networks/29").
       with(:headers => {'Accept'=>'application/vnd.bonfire+xml', 'Accept-Encoding'=>'gzip, deflate', 'Cache-Control'=>'no-cache'}).
       to_return(:status => 200, :body => fixture("bonfire-network-existing.xml"), :headers => {'Content-Type' => 'application/vnd.bonfire+xml'})
     @resource.expand

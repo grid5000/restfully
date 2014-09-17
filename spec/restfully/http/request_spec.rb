@@ -12,7 +12,8 @@ describe Restfully::HTTP::Request do
       :config => {
         :retry_on_error => 5,
         :wait_before_retry => 5
-      }
+      },
+      :ssl_options => {}
     )
     
     @options = {

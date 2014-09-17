@@ -79,7 +79,7 @@ module Restfully
         session.logger.debug self.inspect
         resource = RestClient::Resource.new(
           uri.to_s,
-          :headers => head
+          @session.ssl_options.merge({:headers => head})
         )
 
         begin

@@ -15,6 +15,7 @@ module Restfully
     attr_accessor :uri
     attr_reader :config
     attr_writer :default_headers
+    attr_reader :ssl_options
     
     def logger
       @config.logger
@@ -49,7 +50,12 @@ module Restfully
       end
 
       setup
-
+      
+      #similar to 
+      # @ssl_options=config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/}
+      #but supporting the retarded ruby 1.8.7 of select (output an Array)
+      @ssl_options=Hash[*config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/}.flatten]
+ 
       yield root, self if block_given?
     end
     
