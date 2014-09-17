@@ -51,6 +51,9 @@ module Restfully
 
       setup
       
+      #similar to 
+      # @ssl_options=config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/}
+      #but supporting the retarded ruby 1.8.7 of select (output an Array)
       @ssl_options=Hash[*config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/}.flatten]
  
       yield root, self if block_given?
