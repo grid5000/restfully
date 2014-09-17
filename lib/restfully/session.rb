@@ -51,7 +51,7 @@ module Restfully
 
       setup
       
-      @ssl_options=config.to_hash.keep_if{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/} 
+      @ssl_options=config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/} 
 
       yield root, self if block_given?
     end
