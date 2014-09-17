@@ -13,7 +13,7 @@ describe Restfully::HTTP::Request do
         :retry_on_error => 5,
         :wait_before_retry => 5
       },
-      :ssl_options => {:verify_ssl => false}
+      :ssl_options => {}
     )
     
     @options = {
@@ -22,8 +22,7 @@ describe Restfully::HTTP::Request do
         :some_header => 'some value',
         'accept' => 'application/json'
       },
-      :body => {:hello => 'world'},
-      :verify_ssl => false,
+      :body => {:hello => 'world'}
     }
     
     @session.should_receive(:uri_to).with("/path").
@@ -33,7 +32,6 @@ describe Restfully::HTTP::Request do
   it "should correctly build the request [no body]" do
     
     request = Restfully::HTTP::Request.new(@session, :get, "/path", @options)
-    request.ssl_options.should == {:verify_ssl => false}
     request.head.should == {
       'Cache-Control' => 'no-cache',
       'Some-Header' => 'some value',

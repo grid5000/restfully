@@ -6,7 +6,7 @@ module Restfully
     class Request
       include Helper
 
-      attr_reader :session, :method, :uri, :head, :body, :attempts, :ssl_options
+      attr_reader :session, :method, :uri, :head, :body, :attempts
       attr_accessor :retry_on_error, :wait_before_retry
 
       def initialize(session, method, path, options = {})
