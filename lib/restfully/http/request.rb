@@ -6,7 +6,7 @@ module Restfully
     class Request
       include Helper
 
-      attr_reader :session, :method, :uri, :head, :body, :attempts
+      attr_reader :session, :method, :uri, :head, :body, :attempts, :ssl_options
       attr_accessor :retry_on_error, :wait_before_retry
 
       def initialize(session, method, path, options = {})
@@ -15,7 +15,7 @@ module Restfully
 
         request = options.symbolize_keys
 
-        @ssl_options = options.keep_if{|k,v| k =~ /^ssl/ || k=~ /verify_ssl/}
+        @ssl_options = options.select{|k,v| k =~ /^ssl/ || k=~ /verify_ssl/}
 
         @retry_on_error = request[:retry_on_error] || session.config[:retry_on_error]
         @wait_before_retry = request[:wait_before_retry] || session.config[:wait_before_retry]
