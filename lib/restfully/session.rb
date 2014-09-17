@@ -52,7 +52,14 @@ module Restfully
       setup
       
       @ssl_options=config.to_hash.select{|k,v| k =~ /^ssl/ || k =~ /verify_ssl/} 
-
+      if @ssl_options.is_a?(Array)
+        #we are in ruby 1.8 world and its fancy select function
+        ssl_options_in_array=@ssl_options
+        @ssl_options={}
+        ssl_options_in_array.each do |k,v|
+          @ssl_options[k]=v
+        end
+      end
       yield root, self if block_given?
     end
     
