@@ -99,7 +99,7 @@ describe Restfully::MediaType::ApplicationVndBonfireXml do
       collection.uri.to_s.should == "http://localhost:8000/experiments"
       collection.collection?.should be_true
       collection.length.should == 3
-      collection.total.should == 3
+      collection.total.should == 4
       collection.offset.should == 0
       collection.all?{|i| i.kind_of? Restfully::Resource}.should be_true
       collection[0].should == collection.first
