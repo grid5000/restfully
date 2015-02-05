@@ -76,7 +76,7 @@ A Collection is a specific kind of Resource, and it has access to all the method
 For ease of use and better security, you may prefer to use a configuration file to avoid re-entering the Restfully options every time:
 
     $ echo '
-    uri: https://api.grid5000.fr/sid/grid5000
+    uri: https://api.grid5000.fr/sid
     username: MYLOGIN
     password: MYPASSWORD
     ' > ~/.restfully/api.grid5000.fr.yml && chmod 600 ~/.restfully/api.grid5000.fr.yml
