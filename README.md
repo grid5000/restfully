@@ -34,40 +34,43 @@ If you require media-types that need an XML parser, you must also install the `l
 
     $ export RUBYOPT="-rubygems"
     $ restfully --uri URI [-u username] [-p password]
-  
+
 e.g., for the [Grid'5000 API](https://www.grid5000.fr/mediawiki/index.php/API):
 
-    $ restfully --uri https://api.grid5000.fr/sid/grid5000 -u username -p password
+    $ restfully --uri https://api.grid5000.fr/sid -u username -p password
 
 If the connection was successful, you should get a prompt. You may enter:
 
     ruby-1.8.7-p249 > pp root
-    #<Resource:0x8108399c uri=https://api.grid5000.fr/sid/grid5000
+    #<Resource:0x3fe42a129ba4 uri="/sid"
       RELATIONSHIPS
-        environments, self, sites, version, versions
+        environments, network_equipments, notifications, parent, self, sites, users, version, versions
       PROPERTIES
-        "uid"=>"grid5000"
         "type"=>"grid"
-        "version"=>"da6abdd13e2e626f64502a648b784372eac790b1">
-     => nil
+        "uid"=>"grid5000"
+        "version"=>"b754a5a0d09480dac1662eea3bf096238d9f3530"
+        "release"=>"3.1.9"
+        "timestamp"=>1423434089>
+    => nil
 
 And then follow the links advertised under the `RELATIONSHIPS` header to discover the other API resources. For instance, the `sites` resource can be accessed as follows:
 
     ruby-1.8.7-p249 > pp root.sites
-    #<Collection:0x8106d55c uri=https://api.grid5000.fr/sid/grid5000/sites
+    #<Collection:0x3fe42a195890 uri="/sid/sites"
       RELATIONSHIPS
-        self, version, versions
-      ITEMS (0..9)/9
-        #<Resource:0x81055a9c uri=https://api.grid5000.fr/sid/grid5000/sites/bordeaux>
-        #<Resource:0x81040d54 uri=https://api.grid5000.fr/sid/grid5000/sites/grenoble>
-        #<Resource:0x8102c070 uri=https://api.grid5000.fr/sid/grid5000/sites/lille>
-        #<Resource:0x8101738c uri=https://api.grid5000.fr/sid/grid5000/sites/lyon>
-        #<Resource:0x81002658 uri=https://api.grid5000.fr/sid/grid5000/sites/nancy>
-        #<Resource:0x80fed924 uri=https://api.grid5000.fr/sid/grid5000/sites/orsay>
-        #<Resource:0x80fd8bb4 uri=https://api.grid5000.fr/sid/grid5000/sites/rennes>
-        #<Resource:0x80fc3dcc uri=https://api.grid5000.fr/sid/grid5000/sites/sophia>
-        #<Resource:0x80faf070 uri=https://api.grid5000.fr/sid/grid5000/sites/toulouse>>
-     => nil
+        self
+      ITEMS (0..10)/10
+        #<Resource:0x3fe42a1c4fc8 uri="/sid/sites/grenoble">
+        #<Resource:0x3fe42a1d4b80 uri="/sid/sites/lille">
+        #<Resource:0x3fe42a1e6bb4 uri="/sid/sites/luxembourg">
+        #<Resource:0x3fe42a1f487c uri="/sid/sites/lyon">
+        #<Resource:0x3fe428c6b8d4 uri="/sid/sites/nancy">
+        #<Resource:0x3fe42906bd94 uri="/sid/sites/nantes">
+        #<Resource:0x3fe4290900a4 uri="/sid/sites/reims">
+        #<Resource:0x3fe4291eea40 uri="/sid/sites/rennes">
+        #<Resource:0x3fe429226954 uri="/sid/sites/sophia">
+        #<Resource:0x3fe42925e714 uri="/sid/sites/toulouse">>
+    => nil
 
 Note that we're using `pp` to pretty-print the output, but it's not required.
 
