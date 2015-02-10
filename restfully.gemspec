@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.description               = "Consume RESTful APIs effortlessly"
   
   s.add_dependency('json', '~> 1.5')
-  s.add_dependency('rest-client', '~> 1.6')
+  s.add_dependency('rest-client', '~> 1.6.0')
   s.add_dependency('mime-types', '~> 1')
   s.add_dependency('rest-client-components')
   s.add_dependency('rack-cache')
