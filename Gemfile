@@ -1,5 +1,5 @@
-source :rubygems
+source 'https://rubygems.org'
 
 gemspec
 
-gem 'libxml-ruby', '2.2.2'
+gem 'libxml-ruby'
