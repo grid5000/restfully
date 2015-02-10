@@ -1,4 +1,5 @@
-# Restfully
+# Restfully [![Build Status](https://travis-ci.org/crohr/restfully.svg?branch=master)](https://travis-ci.org/crohr/restfully)
+
 Restfully is a general-purpose client library for RESTful APIs. It is written in Ruby. Its goal is to abstract the nitty-gritty details of exchanging HTTP requests between the user-agent and the server. It also discovers resources at runtime, which means should the API change and add a new functionality, the client will automatically discover it.
 
 It works on simple concepts:
@@ -131,7 +132,6 @@ See the `examples` directory for examples.
 
 * `rake spec`; or
 * run `autotest` in the project directory.
-* we use [Travis CI](http://travis-ci.org/) on every push: [![Build Status](https://secure.travis-ci.org/crohr/restfully.png)](http://travis-ci.org/crohr/restfully)
 
 ### Note on Patches/Pull Requests
  
