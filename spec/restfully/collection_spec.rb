@@ -97,6 +97,23 @@ describe Restfully::Collection do
       }
       @resource[:'3'].should_not be_nil
     end
+    it "should not find an item by uid if on the second page and guess_paged_items false" do
+      @session.config[:guess_paged_items]=false
+      @resource[:'4'].should be_nil
+    end
+
+    it "should find an item by uid if on the second page and guess_paged_items is true" do
+      @session.config[:guess_paged_items]=true
+      @session.should_receive(:get).and_return(@resource)
+      @resource[:'4'].should_not be_nil
+    end
+
+    it "should not find an item by uid if on the second page, guess_paged_items is true and item does not exist" do
+      @session.config[:guess_paged_items]=true
+      @session.should_receive(:get).and_raise(Restfully::HTTP::ClientError)
+      @resource[:'5'].should be_nil
+    end
+
   end
 
   
