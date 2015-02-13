@@ -1,3 +1,7 @@
+1.0.8
+
+* Update BonFIRE media-type.
+
 1.0.7
 * Add a default user-agent to restfully so its (raw) usage can be discovered in logs.
 
