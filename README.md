@@ -144,7 +144,7 @@ See the `examples` directory for examples.
 
 ## Copyright
 
-Copyright (c) 2009-2012 [Cyril Rohr](http://crohr.me), INRIA Rennes - Bretagne Atlantique. 
+Copyright (c) 2009-2015 [Cyril Rohr](http://crohr.me), INRIA Rennes - Bretagne Atlantique. 
 
 See LICENSE for details ([CeCILL-B] [cecillb], a BSD style license).
 
