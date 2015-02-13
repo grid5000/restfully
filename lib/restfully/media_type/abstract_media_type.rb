@@ -86,6 +86,13 @@ module Restfully
         @session = session
       end
 
+      # Returns a direct URI to a specific resource identified by <tt>symbol</tt>.
+      # Only called from collections, when doing collection[:'some-resource-id'].
+      # Either return a path if the media type supports direct fetching, or nil (default).
+      def direct_fetch_uri(symbol)
+        nil
+      end
+
       # Returns an array of Link objects.
       # Do not overwrite directly. Overwrite #extract_links instead.
       def links

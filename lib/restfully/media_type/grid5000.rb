@@ -46,6 +46,12 @@ module Restfully
         !!(property("items") && property("total") && property("offset"))
       end
 
+      def direct_fetch_uri(symbol)
+        self_link = links.find{|l| l.self?}
+        return nil if self_link.nil?
+        URI.parse([self_link.href, symbol.to_s].join("/"))
+      end
+
       def meta
         if collection?
           property("items")
