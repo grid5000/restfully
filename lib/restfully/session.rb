@@ -190,6 +190,9 @@ module Restfully
         logger.debug "Building response..."
         Resource.new(self, response, request).build
       when 201,202
+        logger.debug "Getting description of newly created resource at: #{response.head['Location'].inspect}"
+        get response.head['Location'], :head => request.head
+      when 301,302
         logger.debug "Following redirection to: #{response.head['Location'].inspect}"
         get response.head['Location'], :head => request.head
       when 204
