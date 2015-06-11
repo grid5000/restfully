@@ -247,6 +247,19 @@ describe Restfully::Session do
       end
     end
 
+    [301, 302].each do |status|
+      it "should fetch the resource specified in the Location header if status = #{status}" do
+        @response.stub!(:code).and_return(status)
+        @response.head['Location'] = @uri+"/path"
+
+        @session.should_receive(:get).
+          with(@uri+"/path", :head => @request.head).
+          and_return(resource=mock("resource"))
+        @session.process(@response, @request).
+          should == resource
+      end
+    end
+
     it "should return a Restfully::Resource if successful" do
       Restfully::MediaType.register Restfully::MediaType::ApplicationJson
       body = {
