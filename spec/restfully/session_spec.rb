@@ -234,7 +234,7 @@ describe Restfully::Session do
       }.should raise_error(Restfully::Error)
     end
 
-    [201, 202].each do |status|
+    [301, 302].each do |status|
       it "should fetch the resource specified in the Location header if status = #{status}" do
         @response.stub!(:code).and_return(status)
         @response.head['Location'] = @uri+"/path"
