@@ -49,7 +49,9 @@ module Restfully
       def direct_fetch_uri(symbol)
         self_link = links.find{|l| l.self?}
         return nil if self_link.nil?
-        URI.parse([self_link.href, symbol.to_s].join("/"))
+        return URI.parse([self_link.href, symbol.to_s].join("/")), {:head => {
+            'Accept' =>  "application/vnd.grid5000.item+json",
+          }}
       end
 
       def meta
