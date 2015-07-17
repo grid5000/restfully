@@ -99,5 +99,26 @@ describe Restfully::Collection do
     end
   end
 
-  
+  describe "direct_fetch" do
+    before do
+      @response = Restfully::HTTP::Response.new(
+        @session, 200, {
+          'Content-Type' => 'application/vnd.grid5000.collection+json; charset=utf-8'
+        }, fixture('grid5000-rennes-jobs.json')
+      )
+      Restfully::MediaType.register Restfully::MediaType::Grid5000
+      @resource = Restfully::Resource.new(@session, @response, @request).load
+    end
+
+    it "should work if not uri found for media_type" do
+      @resource.media_type.should_receive(:direct_fetch_uri).with(:'376504').and_return(nil)
+      @resource[:'376504'].should_not be_nil
+    end
+    it "should work if a client error happens when fetching direct_uri" do
+      bad_uri=URI.parse("https://api.project.net/job/376504")
+      @resource.media_type.should_receive(:direct_fetch_uri).and_return(bad_uri)
+      @resource.session.should_receive(:get).with(bad_uri).and_raise(Restfully::HTTP::ClientError)
+      @resource[:'376504'].should_not be_nil
+    end
+  end
 end
