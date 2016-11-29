@@ -16,9 +16,9 @@ module Restfully
     end
 
     def find_by_uid(symbol)
-      direct_uri,options = media_type.direct_fetch_uri(symbol)
+      direct_uri = media_type.direct_fetch_uri(symbol)
       # Attempt to make a direct fetch if possible (in case of large collections)
-      found = session.get(direct_uri,options) if direct_uri
+      found = session.get(direct_uri,{:head => {'Accept' => media_type.class.default_type}}) if direct_uri
       # Fall back to collection traversal if direct fetch was not possible, or was not found
       found = find{ |i| i.media_type.represents?(symbol) } if found.nil?
       found.expand unless found.nil?

@@ -99,5 +99,19 @@ describe Restfully::Collection do
     end
   end
 
-  
+  describe "direct_fetch_usage" do
+    it "should attempt a direct_fetch using default type for media_type" do
+      @response.media_type.class.should == Restfully::MediaType::Grid5000
+      direct_uri="https://api.project.net/fake_stub"
+      direct_uri=@response.media_type.should_receive(:direct_fetch_uri).and_return(direct_uri)
+      Restfully::MediaType::Grid5000.should_receive(:default_type).and_return('test/fake+json')
+      stub_request(:get, "https://api.project.net/fake_stub").
+        with(:headers => {'Accept'=>'test/fake+json'}).
+        to_return(:status => 200,
+                  :body => fixture('grid5000-rennes-job.json'),
+                  :headers => {'Content-Type' => 'application/json'})
+      @resource.load
+      @resource[:'3'].should_not be_nil
+    end
+  end
 end
