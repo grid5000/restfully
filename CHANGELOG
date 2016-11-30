@@ -1,3 +1,8 @@
+1.2.0
+
+* Send the media-type default type when requesting a resource directly
+* Update gem dependencies to allow for working on older rubies
+
 1.1.1
 
 * Correctly handles redirections
