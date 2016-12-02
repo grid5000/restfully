@@ -34,9 +34,12 @@ Gem::Specification.new do |s|
   s.add_dependency('addressable')
   if RUBY_VERSION < "1.9.3"
     s.add_dependency('mime-types', '~> 2.6.0') 
+  else
+    s.add_dependency('mime-types') 
+  end
+  if RUBY_VERSION < "1.9.3"
     s.add_dependency('public_suffix', '~> 1.3.0') 
   elsif RUBY_VERSION < "2.0"
-    s.add_dependency('mime-types') 
     s.add_dependency('public_suffix', '~> 1.4.0') 
   end
   s.add_dependency('ripl', '0.6.1')
