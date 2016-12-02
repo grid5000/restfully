@@ -155,12 +155,22 @@ describe Restfully::Session do
     end
 
     it "should make an authenticated get request" do
-      stub_request(:get, "https://crohr:p4ssw0rd@api.project.net"+@path+"?k1=v1&k2=v2").with(
-        :headers => @default_headers.merge({
-          'Accept' => '*/*',
-          'X-Header' => 'value'
-        })
-      )
+      if ::WebMock::VERSION >= "2.0.0"
+        stub_request(:get, "https://api.project.net"+@path+"?k1=v1&k2=v2").with(
+          :basic_auth => ['crohr','p4ssw0rd'],
+          :headers => @default_headers.merge({
+            'Accept' => '*/*',
+            'X-Header' => 'value'
+          })
+        )
+      else
+        stub_request(:get, "https://crohr:p4ssw0rd@api.project.net"+@path+"?k1=v1&k2=v2").with(
+          :headers => @default_headers.merge({
+            'Accept' => '*/*',
+            'X-Header' => 'value'
+          })
+        )
+      end
       @session.should_receive(:process)
       @session.authenticate :username => 'crohr', :password => 'p4ssw0rd'
       @session.send(:transmit, :get, @path, {
