@@ -18,7 +18,11 @@ Gem::Specification.new do |s|
   s.description               = "Consume RESTful APIs effortlessly"
   
   s.add_dependency('json', '~> 1.5')
-  s.add_dependency('rest-client', '~> 1.6')
+  if RUBY_VERSION < "2.0.0"
+    s.add_dependency('rest-client', '< 2.0')
+  else
+    s.add_dependency('rest-client')
+  end
   s.add_dependency('rest-client-components')
   if RUBY_VERSION < "1.9.3"
     s.add_dependency('rack-cache', '~> 1.2.0')
@@ -29,8 +33,10 @@ Gem::Specification.new do |s|
   s.add_dependency('backports')
   s.add_dependency('addressable')
   if RUBY_VERSION < "1.9.3"
+    s.add_dependency('mime-types', '~> 2.6.0') 
     s.add_dependency('public_suffix', '~> 1.3.0') 
   elsif RUBY_VERSION < "2.0"
+    s.add_dependency('mime-types') 
     s.add_dependency('public_suffix', '~> 1.4.0') 
   end
   s.add_dependency('ripl', '0.6.1')
