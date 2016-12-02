@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.description               = "Consume RESTful APIs effortlessly"
   
   s.add_dependency('json', '~> 1.5')
-  s.add_dependency('rest-client', '~> 1.6')
+  s.add_dependency('rest-client')
   s.add_dependency('rest-client-components')
   if RUBY_VERSION < "1.9.3"
     s.add_dependency('rack-cache', '~> 1.2.0')
