@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.summary                   = "Consume RESTful APIs effortlessly"
   s.description               = "Consume RESTful APIs effortlessly"
   
-  s.add_dependency('json', '~> 1.5')
+  s.add_dependency('json')
   s.add_dependency('rest-client')
   s.add_dependency('rest-client-components')
   s.add_dependency('rack-cache')
@@ -26,13 +26,13 @@ Gem::Specification.new do |s|
   s.add_dependency('addressable')
   s.add_dependency('mime-types') 
   s.add_dependency('public_suffix')
-  s.add_dependency('ripl', '0.6.1')
+  s.add_dependency('ripl')
   s.add_dependency('ripl-multi_line')
   s.add_dependency('ripl-color_streams')
   s.add_dependency('ripl-short_errors')
-  s.add_dependency('ripl-play', '~> 0.2.1')
+  s.add_dependency('ripl-play')
   s.add_dependency('rb-readline')
-  s.add_development_dependency('rake', '~> 0.8')
+  s.add_development_dependency('rake')
   s.add_development_dependency('rspec', '~> 2')
   s.add_development_dependency('webmock')
   s.add_development_dependency('autotest')
