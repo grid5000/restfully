@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rest-client-components')
   s.add_dependency('rack-cache')
   s.add_dependency('rack')
-  s.add_dependency('backports')
+  s.add_dependency('activesupport')
   s.add_dependency('addressable')
   s.add_dependency('mime-types') 
   s.add_dependency('public_suffix')
