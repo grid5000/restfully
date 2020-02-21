@@ -1,3 +1,17 @@
+1.3.0
+
+* Require 'activesupport' instead of 'backports' to avoid deprecation warning
+* Loosen dependencies for gems that are stable anyway
+* Drop support for Ruby < 2.3
+* Remove dependency on 1.6 version of rest-client, as requested by users ;
+  since PR#7 was accepted, we have a way to instruct restfully to pass
+  appropriate ssl options should restfully be used against a service that is
+  hosted on a server with no valid ssl credential. Need to restrict version to
+  under 2.0 for ruby versions under 2.0. (Patch from David Margery)
+* For webmock versions as from 2.0.0, webmock does not match credentials
+  provided in Authorization header and credentials provided in the userinfo of
+  a url. Update test to reflect that. (Patch from David Margery)
+
 1.2.0
 
 * Send the media-type default type when requesting a resource directly
